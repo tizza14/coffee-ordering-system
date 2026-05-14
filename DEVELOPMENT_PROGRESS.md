@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 17:00 +08:00
+Last updated: 2026-05-14 17:32 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -504,3 +504,45 @@ Implemented:
 
 1. API documentation (Swagger/OpenAPI) — spec marks this as optional.
 2. Cloud deployment (Vercel for frontend, Render/EC2 for backend, MongoDB Atlas) — requires external accounts.
+
+## Current Handoff Notes
+
+Status at 2026-05-14 17:32 +08:00:
+
+- Working tree had no tracked uncommitted changes before this handoff update.
+- Do not push automatically; user wants to review before any push.
+- Git still warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level ignore rules still work.
+
+Seed / local database state:
+
+- `npm run seed` currently fails if no MongoDB is listening on `localhost:27017`.
+- The seed script falls back to `mongodb://localhost:27017/coffee_ordering` when `MONGODB_URI` is not set.
+- `docker-compose.yml` exists, but `docker compose up -d mongodb` currently fails before startup because Compose interpolates required backend env variables:
+  - `JWT_SECRET`
+  - `LINE_PAY_CHANNEL_ID`
+  - `LINE_PAY_CHANNEL_SECRET`
+- Docker Desktop is installed, but Docker daemon was not running:
+  - `com.docker.service` status was `Stopped`.
+  - Docker API connection failed at `npipe:////./pipe/dockerDesktopLinuxEngine`.
+- Attempt to start Docker Desktop was interrupted by the user before completion.
+
+Recommended next local setup path:
+
+1. Start Docker Desktop manually or allow the agent to start `com.docker.service`.
+2. Either run MongoDB directly:
+   ```powershell
+   docker run --name coffee-mongo -p 27017:27017 -d mongo:7
+   ```
+   or provide compose env values and run:
+   ```powershell
+   $env:JWT_SECRET="dev-secret"
+   $env:LINE_PAY_CHANNEL_ID="dev-channel"
+   $env:LINE_PAY_CHANNEL_SECRET="dev-secret"
+   docker compose up -d mongodb
+   ```
+3. Run:
+   ```powershell
+   cd backend
+   npm run seed
+   ```
+4. Consider updating `src/scripts/seed.ts` to load `.env` via `dotenv.config()` and to print a clearer MongoDB startup hint on `ECONNREFUSED`.
