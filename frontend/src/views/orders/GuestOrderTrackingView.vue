@@ -4,38 +4,35 @@
       class="grid max-w-xl gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="load"
     >
-      <h1 class="m-0 text-2xl font-bold">
-        Guest Order Tracking
-      </h1>
+      <h1 class="m-0 text-2xl font-bold">Guest Order Tracking</h1>
       <label class="grid gap-1.5 font-semibold">
         Lookup code
         <input
           v-model="lookupCode"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
           required
-        >
+        />
       </label>
       <label class="grid gap-1.5 font-semibold">
         Phone
         <input
           v-model="phone"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
-        >
+        />
       </label>
       <label class="grid gap-1.5 font-semibold">
         Guest token
         <input
           v-model="guestToken"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
-        >
+        />
       </label>
-      <button class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white">
+      <button
+        class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
+      >
         Load order
       </button>
-      <p
-        v-if="errorMessage"
-        class="m-0 font-semibold text-red-700"
-      >
+      <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
         {{ errorMessage }}
       </p>
     </form>
@@ -48,20 +45,14 @@
         {{ orderStore.currentOrder.orderLookupCode }}
       </h2>
       <p class="m-0">
-        {{ liveStatus || orderStore.currentOrder.status }} / {{ orderStore.currentOrder.paymentStatus }}
+        {{ liveStatus || orderStore.currentOrder.status }} /
+        {{ orderStore.currentOrder.paymentStatus }}
       </p>
-      <p class="m-0">
-        Total: NT$ {{ orderStore.currentOrder.totalAmount }}
-      </p>
+      <p class="m-0">Total: NT$ {{ orderStore.currentOrder.totalAmount }}</p>
     </article>
 
-    <section
-      v-if="notificationStore.items.length > 0"
-      class="grid gap-2"
-    >
-      <h2 class="m-0 text-xl font-bold">
-        Notifications
-      </h2>
+    <section v-if="notificationStore.items.length > 0" class="grid gap-2">
+      <h2 class="m-0 text-xl font-bold">Notifications</h2>
       <ul class="grid list-none gap-2 p-0">
         <li
           v-for="notification in notificationStore.items"
@@ -104,7 +95,10 @@ async function load() {
       guestToken.value || undefined
     );
     if (guestToken.value) {
-      socketStore.connect({ orderLookupCode: lookupCode.value, guestToken: guestToken.value });
+      socketStore.connect({
+        orderLookupCode: lookupCode.value,
+        guestToken: guestToken.value
+      });
       socketStore.joinOrderRoom(order.id);
     }
   } catch {

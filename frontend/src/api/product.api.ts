@@ -38,7 +38,10 @@ export async function createProduct(payload: ProductPayload) {
   return response.data;
 }
 
-export async function updateProduct(id: string, payload: Partial<ProductPayload>) {
+export async function updateProduct(
+  id: string,
+  payload: Partial<ProductPayload>
+) {
   const response = await http.put<Product>(`/products/${id}`, payload);
   return response.data;
 }

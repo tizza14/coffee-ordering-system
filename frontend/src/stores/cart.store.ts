@@ -18,7 +18,9 @@ export const useCartStore = defineStore('cart', {
   },
   actions: {
     addProduct(product: Product) {
-      const existingItem = this.items.find((item) => item.productId === product.id);
+      const existingItem = this.items.find(
+        (item) => item.productId === product.id
+      );
       if (existingItem) {
         existingItem.quantity += 1;
         return;
@@ -33,15 +35,21 @@ export const useCartStore = defineStore('cart', {
     },
     updateQuantity(productId: string, quantity: number) {
       if (quantity < 1 || quantity > 99) return;
-      const item = this.items.find((cartItem) => cartItem.productId === productId);
+      const item = this.items.find(
+        (cartItem) => cartItem.productId === productId
+      );
       if (item) item.quantity = quantity;
     },
     increment(productId: string) {
-      const item = this.items.find((cartItem) => cartItem.productId === productId);
+      const item = this.items.find(
+        (cartItem) => cartItem.productId === productId
+      );
       if (item && item.quantity < 99) item.quantity += 1;
     },
     decrement(productId: string) {
-      const item = this.items.find((cartItem) => cartItem.productId === productId);
+      const item = this.items.find(
+        (cartItem) => cartItem.productId === productId
+      );
       if (!item) return;
       if (item.quantity === 1) {
         this.removeProduct(productId);

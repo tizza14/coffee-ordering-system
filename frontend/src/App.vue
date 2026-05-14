@@ -1,12 +1,16 @@
 <template>
-  <header class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-stone-300 bg-white px-4 py-3 sm:flex-nowrap sm:gap-6 sm:px-6">
+  <header
+    class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-stone-300 bg-white px-4 py-3 sm:flex-nowrap sm:gap-6 sm:px-6"
+  >
     <RouterLink
       class="shrink-0 font-bold text-slate-800 no-underline"
       to="/products"
     >
       Coffee Ordering
     </RouterLink>
-    <nav class="flex w-full items-center gap-3.5 overflow-x-auto pb-1 sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
+    <nav
+      class="flex w-full items-center gap-3.5 overflow-x-auto pb-1 sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0"
+    >
       <RouterLink
         class="shrink-0 font-bold text-slate-800 no-underline"
         to="/products"
@@ -33,7 +37,9 @@
         My Orders
       </RouterLink>
       <RouterLink
-        v-if="authStore.user?.role === 'staff' || authStore.user?.role === 'admin'"
+        v-if="
+          authStore.user?.role === 'staff' || authStore.user?.role === 'admin'
+        "
         class="shrink-0 font-bold text-slate-800 no-underline"
         to="/staff/orders"
       >

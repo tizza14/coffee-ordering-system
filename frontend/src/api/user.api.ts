@@ -19,7 +19,9 @@ export interface UserListResponse {
 }
 
 export async function getUsers(page = 1) {
-  const response = await http.get<UserListResponse>('/users', { params: { page } });
+  const response = await http.get<UserListResponse>('/users', {
+    params: { page }
+  });
   return response.data;
 }
 

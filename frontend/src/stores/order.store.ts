@@ -21,7 +21,9 @@ export const useOrderStore = defineStore('orders', {
     async createMemberOrder(items: CartItem[]) {
       this.isLoading = true;
       try {
-        this.currentOrder = await orderApi.createMemberOrder({ items: toOrderItems(items) });
+        this.currentOrder = await orderApi.createMemberOrder({
+          items: toOrderItems(items)
+        });
         return this.currentOrder;
       } finally {
         this.isLoading = false;
@@ -56,11 +58,21 @@ export const useOrderStore = defineStore('orders', {
       status: 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled'
     ) {
       const order = await orderApi.updateOrderStatus(orderId, status);
-      this.staffOrders = this.staffOrders.map((item) => (item.id === order.id ? order : item));
+      this.staffOrders = this.staffOrders.map((item) =>
+        item.id === order.id ? order : item
+      );
       return order;
     },
-    async loadGuestOrder(lookupCode: string, phone?: string, guestToken?: string) {
-      this.currentOrder = await orderApi.getGuestOrder(lookupCode, phone, guestToken);
+    async loadGuestOrder(
+      lookupCode: string,
+      phone?: string,
+      guestToken?: string
+    ) {
+      this.currentOrder = await orderApi.getGuestOrder(
+        lookupCode,
+        phone,
+        guestToken
+      );
       if (guestToken) this.guestToken = guestToken;
       return this.currentOrder;
     }

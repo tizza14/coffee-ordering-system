@@ -12,9 +12,14 @@ const app = createApp();
 const rbacApp = express();
 
 rbacApp.use(express.json());
-rbacApp.get('/staff-only', authenticate, authorize(['staff', 'admin']), (_req, res) => {
-  res.json({ message: 'Welcome, staff!' });
-});
+rbacApp.get(
+  '/staff-only',
+  authenticate,
+  authorize(['staff', 'admin']),
+  (_req, res) => {
+    res.json({ message: 'Welcome, staff!' });
+  }
+);
 rbacApp.use(errorMiddleware);
 
 beforeAll(connectTestDb);
@@ -26,11 +31,13 @@ describe('Auth & RBAC Middleware', () => {
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   it('allows access to /me with valid token', async () => {
-    const registerResponse = await request(app).post('/api/auth/register').send({
-      name: 'Alice',
-      email: 'alice@example.com',
-      password: password
-    });
+    const registerResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: password
+      });
     const token = registerResponse.body.accessToken;
 
     const response = await request(app)
@@ -77,11 +84,13 @@ describe('Auth & RBAC Middleware', () => {
   });
 
   it('denies user access to staff-only route', async () => {
-    const registerResponse = await request(app).post('/api/auth/register').send({
-      name: 'Alice',
-      email: 'alice@example.com',
-      password: password
-    });
+    const registerResponse = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: password
+      });
     const token = registerResponse.body.accessToken;
 
     const response = await request(rbacApp)

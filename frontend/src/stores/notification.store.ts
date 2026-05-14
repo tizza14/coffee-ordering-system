@@ -14,12 +14,30 @@ export const useNotificationStore = defineStore('notifications', {
       const result = await notificationApi.getNotifications();
       this.items = result.data;
     },
-    async loadGuestNotifications(lookupCode: string, phone?: string, guestToken?: string) {
-      const result = await notificationApi.getGuestNotifications(lookupCode, phone, guestToken);
+    async loadGuestNotifications(
+      lookupCode: string,
+      phone?: string,
+      guestToken?: string
+    ) {
+      const result = await notificationApi.getGuestNotifications(
+        lookupCode,
+        phone,
+        guestToken
+      );
       this.items = result.data;
     },
-    async markRead(id: string, lookupCode?: string, phone?: string, guestToken?: string) {
-      const updated = await notificationApi.markNotificationRead(id, lookupCode, phone, guestToken);
+    async markRead(
+      id: string,
+      lookupCode?: string,
+      phone?: string,
+      guestToken?: string
+    ) {
+      const updated = await notificationApi.markNotificationRead(
+        id,
+        lookupCode,
+        phone,
+        guestToken
+      );
       this.items = this.items.map((item) => (item.id === id ? updated : item));
     }
   }

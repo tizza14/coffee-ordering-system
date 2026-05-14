@@ -1,14 +1,14 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1">
+  <section
+    class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1"
+  >
     <div class="min-w-0">
-      <header class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch">
+      <header
+        class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch"
+      >
         <div>
-          <h1 class="m-0 text-2xl font-bold text-slate-800">
-            Products
-          </h1>
-          <p class="m-0 text-slate-600">
-            Available coffee and desserts
-          </p>
+          <h1 class="m-0 text-2xl font-bold text-slate-800">Products</h1>
+          <p class="m-0 text-slate-600">Available coffee and desserts</p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
@@ -16,7 +16,11 @@
             :key="option.value"
             type="button"
             class="min-h-9 rounded-md border border-stone-500 px-3 font-bold text-slate-800"
-            :class="selectedCategory === option.value ? 'border-slate-800 bg-slate-800 text-white' : 'bg-white'"
+            :class="
+              selectedCategory === option.value
+                ? 'border-slate-800 bg-slate-800 text-white'
+                : 'bg-white'
+            "
             @click="selectedCategory = option.value"
           >
             {{ option.label }}
@@ -24,29 +28,21 @@
         </div>
       </header>
 
-      <p
-        v-if="isLoading"
-        class="py-4"
-      >
-        Loading products...
-      </p>
-      <p
-        v-else-if="errorMessage"
-        class="py-4 font-bold text-red-700"
-      >
+      <p v-if="isLoading" class="py-4">Loading products...</p>
+      <p v-else-if="errorMessage" class="py-4 font-bold text-red-700">
         {{ errorMessage }}
       </p>
-      <ul
-        v-else
-        class="grid list-none gap-3 p-0"
-      >
+      <ul v-else class="grid list-none gap-3 p-0">
         <li
           v-for="product in filteredProducts"
           :key="product.id"
           class="flex items-center justify-between gap-4 rounded-lg border border-stone-300 bg-white p-4 max-[820px]:flex-col max-[820px]:items-stretch"
         >
           <div class="grid gap-1.5">
-            <span class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600">{{ product.category }}</span>
+            <span
+              class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
+              >{{ product.category }}</span
+            >
             <h2 class="m-0 text-xl font-bold text-slate-800">
               {{ product.name }}
             </h2>
@@ -55,7 +51,9 @@
             </p>
             <strong>NT$ {{ product.price }}</strong>
           </div>
-          <div class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch">
+          <div
+            class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch"
+          >
             <span
               v-if="product.isRedeemable"
               class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
@@ -74,11 +72,11 @@
       </ul>
     </div>
 
-    <aside class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first">
+    <aside
+      class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first"
+    >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-bold text-slate-800">
-          Cart
-        </h2>
+        <h2 class="m-0 text-xl font-bold text-slate-800">Cart</h2>
         <button
           class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-55"
           type="button"
@@ -89,16 +87,10 @@
         </button>
       </div>
 
-      <p
-        v-if="cartStore.items.length === 0"
-        class="py-4 text-slate-600"
-      >
+      <p v-if="cartStore.items.length === 0" class="py-4 text-slate-600">
         No items selected.
       </p>
-      <ul
-        v-else
-        class="grid list-none gap-3 p-0"
-      >
+      <ul v-else class="grid list-none gap-3 p-0">
         <li
           v-for="item in cartStore.items"
           :key="item.productId"
@@ -135,7 +127,9 @@
         </li>
       </ul>
 
-      <footer class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5">
+      <footer
+        class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
+      >
         <span>Total</span>
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
@@ -171,7 +165,9 @@ const errorMessage = ref('');
 
 const filteredProducts = computed(() => {
   if (selectedCategory.value === 'all') return products.value;
-  return products.value.filter((product) => product.category === selectedCategory.value);
+  return products.value.filter(
+    (product) => product.category === selectedCategory.value
+  );
 });
 
 onMounted(async () => {

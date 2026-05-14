@@ -21,7 +21,7 @@ describe('WebSocket', () => {
     app = createApp();
     httpServer = http.createServer(app);
     initSocketServer(httpServer);
-    
+
     return new Promise<void>((resolve) => {
       httpServer.listen(() => {
         const address = httpServer.address();
@@ -49,7 +49,9 @@ describe('WebSocket', () => {
       password: await bcrypt.hash(password, 10),
       role
     });
-    const response = await request(app).post('/api/auth/login').send({ email, password });
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password });
     return response.body.accessToken as string;
   }
 
@@ -61,7 +63,9 @@ describe('WebSocket', () => {
       .query({ EIO: '4', transport: 'polling' })
       .set('Origin', 'http://evil.example.com');
 
-    expect(response.headers['access-control-allow-origin']).not.toBe('http://evil.example.com');
+    expect(response.headers['access-control-allow-origin']).not.toBe(
+      'http://evil.example.com'
+    );
   });
 
   it('allows authenticated member to connect and join own room', (done) => {
@@ -72,7 +76,7 @@ describe('WebSocket', () => {
 
       clientSocket.on('connect', () => {
         clientSocket.emit('join_room', { room: 'room:staff' });
-        
+
         // Wait a bit and check if we are in the room - actually we can't easily check from client
         // but we can check if we receive messages for that room.
         // For now just check connection works.
@@ -140,10 +144,22 @@ describe('WebSocket', () => {
   it('receives order_updated event when status changes', (done) => {
     Promise.all([
       loginAs('staff'),
-      ProductModel.create({ name: 'Coffee', price: 100, category: 'coffee', isAvailable: true })
+      ProductModel.create({
+        name: 'Coffee',
+        price: 100,
+        category: 'coffee',
+        isAvailable: true
+      })
     ]).then(([staffToken, product]) => {
       OrderModel.create({
-        items: [{ productId: product._id, name: product.name, price: product.price, quantity: 1 }],
+        items: [
+          {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 1
+          }
+        ],
         totalAmount: 100,
         paymentStatus: 'paid',
         status: 'pending'
@@ -179,10 +195,22 @@ describe('WebSocket', () => {
   it('receives notification event when status changes', (done) => {
     Promise.all([
       loginAs('staff'),
-      ProductModel.create({ name: 'Coffee', price: 100, category: 'coffee', isAvailable: true })
+      ProductModel.create({
+        name: 'Coffee',
+        price: 100,
+        category: 'coffee',
+        isAvailable: true
+      })
     ]).then(([staffToken, product]) => {
       OrderModel.create({
-        items: [{ productId: product._id, name: product.name, price: product.price, quantity: 1 }],
+        items: [
+          {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 1
+          }
+        ],
         totalAmount: 100,
         paymentStatus: 'paid',
         status: 'pending'
@@ -214,4 +242,3 @@ describe('WebSocket', () => {
     });
   });
 });
-

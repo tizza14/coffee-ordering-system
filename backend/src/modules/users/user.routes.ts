@@ -7,7 +7,12 @@ import { updateRoleSchema } from './user.validators';
 
 export const userRoutes = Router();
 
-userRoutes.get('/', authenticate, authorize(['admin']), userController.listUsers);
+userRoutes.get(
+  '/',
+  authenticate,
+  authorize(['admin']),
+  userController.listUsers
+);
 userRoutes.patch(
   '/:id/role',
   authenticate,

@@ -21,10 +21,18 @@ export const usePaymentStore = defineStore('payments', {
         this.isLoading = false;
       }
     },
-    async confirmLinePay(orderId: string, transactionId: string, guestToken?: string) {
+    async confirmLinePay(
+      orderId: string,
+      transactionId: string,
+      guestToken?: string
+    ) {
       this.isLoading = true;
       try {
-        const result = await paymentApi.confirmLinePay(orderId, transactionId, guestToken);
+        const result = await paymentApi.confirmLinePay(
+          orderId,
+          transactionId,
+          guestToken
+        );
         this.paymentStatus = result.paymentStatus;
         return result;
       } finally {

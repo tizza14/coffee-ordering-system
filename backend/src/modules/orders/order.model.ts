@@ -23,7 +23,11 @@ const orderSchema = new Schema(
     guestTokenExpiresAt: Date,
     items: { type: [orderItemSchema], required: true },
     totalAmount: { type: Number, required: true, min: 0 },
-    orderType: { type: String, enum: ['purchase', 'redeem'], default: 'purchase' },
+    orderType: {
+      type: String,
+      enum: ['purchase', 'redeem'],
+      default: 'purchase'
+    },
     paymentStatus: {
       type: String,
       enum: ['unpaid', 'payment_pending', 'paid', 'payment_failed', 'refunded'],
@@ -36,7 +40,14 @@ const orderSchema = new Schema(
     pointsRedeemed: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'],
+      enum: [
+        'pending',
+        'accepted',
+        'preparing',
+        'ready',
+        'completed',
+        'cancelled'
+      ],
       default: 'pending'
     }
   },

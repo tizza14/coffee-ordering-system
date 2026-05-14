@@ -22,4 +22,9 @@ productRoutes.put(
   validateBody(updateProductSchema),
   productController.updateProduct
 );
-productRoutes.delete('/:id', authenticate, authorize(['admin']), productController.deleteProduct);
+productRoutes.delete(
+  '/:id',
+  authenticate,
+  authorize(['admin']),
+  productController.deleteProduct
+);

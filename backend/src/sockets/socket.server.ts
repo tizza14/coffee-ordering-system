@@ -23,7 +23,9 @@ export function initSocketServer(httpServer: HttpServer) {
   io.use(authenticateSocket);
 
   io.on('connection', (socket: Socket) => {
-    console.log(`Socket connected: ${socket.id} (User: ${socket.data.user?.id || 'Guest'})`);
+    console.log(
+      `Socket connected: ${socket.id} (User: ${socket.data.user?.id || 'Guest'})`
+    );
 
     socket.on('join_room', async (data: { room: string }) => {
       const { room } = data;
@@ -53,7 +55,10 @@ export function initSocketServer(httpServer: HttpServer) {
         }
 
         if (user) {
-          const order = await OrderModel.findOne({ _id: orderId, userId: user.id });
+          const order = await OrderModel.findOne({
+            _id: orderId,
+            userId: user.id
+          });
           if (order) {
             socket.join(room);
           }
@@ -83,7 +88,9 @@ export function getIo() {
 
 export function emitOrderUpdated(orderId: string, data: OrderUpdatedPayload) {
   if (!io) return;
-  getIo().to(`room:order:${orderId}`).emit('order_updated', { orderId, ...data });
+  getIo()
+    .to(`room:order:${orderId}`)
+    .emit('order_updated', { orderId, ...data });
 }
 
 export function emitNotification(room: string, notification: unknown) {

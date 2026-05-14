@@ -12,10 +12,11 @@ const productBaseSchema = z.object({
 
 export const createProductSchema = productBaseSchema;
 
-export const updateProductSchema = productBaseSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  { message: 'At least one field is required' }
-);
+export const updateProductSchema = productBaseSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one field is required'
+  });
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;

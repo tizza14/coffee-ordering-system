@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 import { ApiError } from '../../utils/ApiError';
-import { hashGuestToken, createLookupCode, createGuestToken } from '../../utils/crypto';
+import {
+  hashGuestToken,
+  createLookupCode,
+  createGuestToken
+} from '../../utils/crypto';
 import { ProductModel } from '../products/product.model';
 import * as pointService from '../points/point.service';
 import * as notificationService from '../notifications/notification.service';
@@ -21,7 +25,13 @@ const allowedTransitions: Record<string, string[]> = {
   cancelled: []
 };
 
-type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'preparing'
+  | 'ready'
+  | 'completed'
+  | 'cancelled';
 
 function toOrderResponse(order: OrderDocument) {
   return {
@@ -53,7 +63,9 @@ async function buildOrderItems(items: CreateOrderInput['items']) {
     _id: { $in: productIds },
     isAvailable: true
   });
-  const productById = new Map(products.map((product) => [String(product._id), product]));
+  const productById = new Map(
+    products.map((product) => [String(product._id), product])
+  );
 
   const orderItems = items.map((item) => {
     const product = productById.get(item.productId);
@@ -69,11 +81,17 @@ async function buildOrderItems(items: CreateOrderInput['items']) {
     };
   });
 
-  const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalAmount = orderItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
   return { orderItems, totalAmount };
 }
 
-export async function createMemberOrder(userId: string, input: CreateOrderInput) {
+export async function createMemberOrder(
+  userId: string,
+  input: CreateOrderInput
+) {
   const { orderItems, totalAmount } = await buildOrderItems(input.items);
   const order = await OrderModel.create({
     userId: new mongoose.Types.ObjectId(userId),
@@ -103,7 +121,10 @@ export async function createGuestOrder(input: CreateGuestOrderInput) {
   };
 }
 
-export async function createRedeemOrder(userId: string, input: CreateRedeemOrderInput) {
+export async function createRedeemOrder(
+  userId: string,
+  input: CreateRedeemOrderInput
+) {
   const product = await ProductModel.findOne({
     _id: input.productId,
     isAvailable: true,
@@ -111,7 +132,11 @@ export async function createRedeemOrder(userId: string, input: CreateRedeemOrder
   });
 
   if (!product) {
-    throw new ApiError(400, 'PRODUCT_NOT_REDEEMABLE', 'Product is not redeemable');
+    throw new ApiError(
+      400,
+      'PRODUCT_NOT_REDEEMABLE',
+      'Product is not redeemable'
+    );
   }
 
   const remainingPoints = await pointService.deductPointsForRedemption(userId);
@@ -139,17 +164,27 @@ export async function createRedeemOrder(userId: string, input: CreateRedeemOrder
   };
 }
 
-export async function getGuestOrder(lookupCode: string, phone?: string, guestToken?: string) {
+export async function getGuestOrder(
+  lookupCode: string,
+  phone?: string,
+  guestToken?: string
+) {
   const order = await OrderModel.findOne({ orderLookupCode: lookupCode });
   if (!order) {
     throw new ApiError(404, 'ORDER_NOT_FOUND', 'Order not found');
   }
 
   const phoneMatches = Boolean(phone && order.guestInfo?.phone === phone);
-  const tokenMatches = Boolean(guestToken && order.guestTokenHash === hashGuestToken(guestToken));
+  const tokenMatches = Boolean(
+    guestToken && order.guestTokenHash === hashGuestToken(guestToken)
+  );
 
   if (!phoneMatches && !tokenMatches) {
-    throw new ApiError(401, 'GUEST_LOOKUP_INVALID', 'Invalid guest lookup information');
+    throw new ApiError(
+      401,
+      'GUEST_LOOKUP_INVALID',
+      'Invalid guest lookup information'
+    );
   }
 
   return toOrderResponse(order);
@@ -162,7 +197,9 @@ export interface StaffOrdersQuery {
   limit: number;
 }
 
-export async function listStaffOrders(query: StaffOrdersQuery = { page: 1, limit: 20 }) {
+export async function listStaffOrders(
+  query: StaffOrdersQuery = { page: 1, limit: 20 }
+) {
   const filter: Record<string, unknown> = {};
   if (query.status) {
     filter.status = query.status;
@@ -174,7 +211,10 @@ export async function listStaffOrders(query: StaffOrdersQuery = { page: 1, limit
 
   const skip = (query.page - 1) * query.limit;
   const [orders, total] = await Promise.all([
-    OrderModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(query.limit),
+    OrderModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit),
     OrderModel.countDocuments(filter)
   ]);
 
@@ -184,7 +224,10 @@ export async function listStaffOrders(query: StaffOrdersQuery = { page: 1, limit
   };
 }
 
-export async function getOrderById(orderId: string, actor: { id: string; role: string }) {
+export async function getOrderById(
+  orderId: string,
+  actor: { id: string; role: string }
+) {
   const order = await OrderModel.findById(orderId);
   if (!order) {
     throw new ApiError(404, 'ORDER_NOT_FOUND', 'Order not found');
@@ -202,7 +245,9 @@ export async function getOrderById(orderId: string, actor: { id: string; role: s
 }
 
 export async function listMyOrders(userId: string) {
-  const orders = await OrderModel.find({ userId: new mongoose.Types.ObjectId(userId) }).sort({
+  const orders = await OrderModel.find({
+    userId: new mongoose.Types.ObjectId(userId)
+  }).sort({
     createdAt: -1
   });
   return { data: orders.map(toOrderResponse) };
@@ -220,24 +265,40 @@ export async function updateOrderStatus(
 
   if (actor.role === 'user') {
     const ownsOrder = order.userId && String(order.userId) === actor.id;
-    if (!ownsOrder || order.status !== 'pending' || nextStatus !== 'cancelled') {
-      throw new ApiError(403, 'ORDER_ACCESS_DENIED', 'Cannot update this order');
+    if (
+      !ownsOrder ||
+      order.status !== 'pending' ||
+      nextStatus !== 'cancelled'
+    ) {
+      throw new ApiError(
+        403,
+        'ORDER_ACCESS_DENIED',
+        'Cannot update this order'
+      );
     }
 
     order.status = nextStatus;
     await order.save();
     await returnRedeemedPointsIfCancelled(order);
-    
+
     await notifyStatusUpdate(order);
-    
+
     return toOrderResponse(order);
   }
 
   if (!allowedTransitions[order.status].includes(nextStatus)) {
-    throw new ApiError(400, 'INVALID_STATUS_TRANSITION', 'Invalid order status transition');
+    throw new ApiError(
+      400,
+      'INVALID_STATUS_TRANSITION',
+      'Invalid order status transition'
+    );
   }
 
-  if (order.status === 'pending' && nextStatus === 'accepted' && order.paymentStatus !== 'paid') {
+  if (
+    order.status === 'pending' &&
+    nextStatus === 'accepted' &&
+    order.paymentStatus !== 'paid'
+  ) {
     throw new ApiError(400, 'PAYMENT_NOT_PAID', 'Order is not paid');
   }
 
@@ -269,7 +330,7 @@ async function returnRedeemedPointsIfCancelled(order: OrderDocument) {
 
 async function notifyStatusUpdate(order: OrderDocument) {
   const message = `Order ${order.orderLookupCode || order._id} status updated to ${order.status}`;
-  
+
   // Create notification for user/guest
   const notification = await notificationService.createNotification({
     userId: order.userId ? String(order.userId) : undefined,

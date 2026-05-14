@@ -37,13 +37,18 @@ describe('productAdminStore', () => {
 
     await store.loadProducts();
 
-    expect(mockedProductApi.getProducts).toHaveBeenCalledWith({ available: false });
+    expect(mockedProductApi.getProducts).toHaveBeenCalledWith({
+      available: false
+    });
     expect(store.products).toHaveLength(1);
   });
 
   it('creates, updates, and deletes a product locally', async () => {
     mockedProductApi.createProduct.mockResolvedValue(product);
-    mockedProductApi.updateProduct.mockResolvedValue({ ...product, name: 'Americano' });
+    mockedProductApi.updateProduct.mockResolvedValue({
+      ...product,
+      name: 'Americano'
+    });
     mockedProductApi.deleteProduct.mockResolvedValue();
     const store = useProductAdminStore();
 
@@ -60,7 +65,9 @@ describe('productAdminStore', () => {
     await store.deleteProduct('p1');
 
     expect(store.products).toHaveLength(0);
-    expect(mockedProductApi.updateProduct).toHaveBeenCalledWith('p1', { name: 'Americano' });
+    expect(mockedProductApi.updateProduct).toHaveBeenCalledWith('p1', {
+      name: 'Americano'
+    });
     expect(mockedProductApi.deleteProduct).toHaveBeenCalledWith('p1');
   });
 });

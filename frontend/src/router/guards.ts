@@ -1,6 +1,9 @@
 export type RouteRole = 'guest' | 'user' | 'staff' | 'admin';
 
-export function canAccessRoute(allowedRoles: RouteRole[], currentRole: RouteRole) {
+export function canAccessRoute(
+  allowedRoles: RouteRole[],
+  currentRole: RouteRole
+) {
   return allowedRoles.includes(currentRole);
 }
 

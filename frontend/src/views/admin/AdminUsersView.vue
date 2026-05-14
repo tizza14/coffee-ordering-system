@@ -1,13 +1,11 @@
 <template>
   <section class="min-h-[calc(100vh-64px)] bg-stone-100 p-4 sm:p-6">
-    <header class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
+    <header
+      class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
+    >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">
-          Admin Users
-        </h1>
-        <p class="m-0 text-slate-600">
-          View and manage user roles.
-        </p>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">Admin Users</h1>
+        <p class="m-0 text-slate-600">View and manage user roles.</p>
       </div>
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
@@ -18,10 +16,7 @@
       </button>
     </header>
 
-    <p
-      v-if="errorMessage"
-      class="mb-4 font-bold text-red-700"
-    >
+    <p v-if="errorMessage" class="mb-4 font-bold text-red-700">
       {{ errorMessage }}
     </p>
 
@@ -32,10 +27,7 @@
       Loading users...
     </p>
 
-    <div
-      v-else
-      class="grid gap-3"
-    >
+    <div v-else class="grid gap-3">
       <div
         v-for="user in userStore.users"
         :key="user.id"
@@ -48,9 +40,7 @@
           <p class="m-0 text-sm text-slate-500">
             {{ user.email }}
           </p>
-          <p class="m-0 text-sm text-slate-500">
-            Points: {{ user.points }}
-          </p>
+          <p class="m-0 text-sm text-slate-500">Points: {{ user.points }}</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -63,17 +53,19 @@
           <select
             class="min-h-9 rounded-md border border-stone-400 px-2 text-sm"
             :value="user.role"
-            @change="onRoleChange(user.id, ($event.target as HTMLSelectElement).value as 'user' | 'staff' | 'admin')"
+            @change="
+              onRoleChange(
+                user.id,
+                ($event.target as HTMLSelectElement).value as
+                  | 'user'
+                  | 'staff'
+                  | 'admin'
+              )
+            "
           >
-            <option value="user">
-              user
-            </option>
-            <option value="staff">
-              staff
-            </option>
-            <option value="admin">
-              admin
-            </option>
+            <option value="user">user</option>
+            <option value="staff">staff</option>
+            <option value="admin">admin</option>
           </select>
         </div>
       </div>
@@ -122,7 +114,10 @@ const userStore = useUserAdminStore();
 const errorMessage = ref('');
 
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(userStore.pagination.total / userStore.pagination.limit))
+  Math.max(
+    1,
+    Math.ceil(userStore.pagination.total / userStore.pagination.limit)
+  )
 );
 
 function roleBadgeClass(role: User['role']) {

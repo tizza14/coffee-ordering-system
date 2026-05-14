@@ -1,13 +1,13 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6">
+  <section
+    class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6"
+  >
     <form
       class="grid w-full max-w-[420px] gap-4 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">
-          Register
-        </h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">Register</h1>
         <p class="m-0 text-slate-600">
           Create an account to earn points on paid orders.
         </p>
@@ -22,7 +22,7 @@
           autocomplete="name"
           maxlength="50"
           required
-        >
+        />
       </label>
 
       <label class="grid gap-1.5 font-semibold">
@@ -33,7 +33,7 @@
           type="email"
           autocomplete="email"
           required
-        >
+        />
       </label>
 
       <label class="grid gap-1.5 font-semibold">
@@ -45,13 +45,10 @@
           autocomplete="new-password"
           minlength="8"
           required
-        >
+        />
       </label>
 
-      <p
-        v-if="errorMessage"
-        class="m-0 font-semibold text-red-700"
-      >
+      <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
         {{ errorMessage }}
       </p>
 

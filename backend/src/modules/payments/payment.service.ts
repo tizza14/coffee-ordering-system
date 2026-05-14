@@ -64,11 +64,19 @@ export async function requestLinePay(orderId: string, actor: PaymentActor) {
   const order = await findOrderForPayment(orderId, actor);
 
   if (order.orderType !== 'purchase') {
-    throw new ApiError(400, 'PAYMENT_REQUEST_NOT_ALLOWED', 'Redeem orders do not use Line Pay');
+    throw new ApiError(
+      400,
+      'PAYMENT_REQUEST_NOT_ALLOWED',
+      'Redeem orders do not use Line Pay'
+    );
   }
 
   if (!['unpaid', 'payment_failed'].includes(order.paymentStatus)) {
-    throw new ApiError(400, 'PAYMENT_REQUEST_NOT_ALLOWED', 'Order cannot start payment');
+    throw new ApiError(
+      400,
+      'PAYMENT_REQUEST_NOT_ALLOWED',
+      'Order cannot start payment'
+    );
   }
 
   const merchantOrderId = createMerchantOrderId(String(order._id));
@@ -127,7 +135,11 @@ export async function confirmLinePay(
   const order = await findOrderForPayment(orderId, actor);
 
   if (order.linePayTransactionId !== transactionId) {
-    throw new ApiError(403, 'ORDER_ACCESS_DENIED', 'Transaction does not belong to this order');
+    throw new ApiError(
+      403,
+      'ORDER_ACCESS_DENIED',
+      'Transaction does not belong to this order'
+    );
   }
 
   const payment = await PaymentModel.findOne({
@@ -150,13 +162,21 @@ export async function confirmLinePay(
     };
   }
 
-  const linePayResult = await linePayClient.confirmPayment(transactionId, order.totalAmount, 'TWD');
+  const linePayResult = await linePayClient.confirmPayment(
+    transactionId,
+    order.totalAmount,
+    'TWD'
+  );
   payment.rawResponse = linePayResult.rawResponse;
 
   if (linePayResult.amount !== order.totalAmount) {
     payment.status = 'payment_failed';
     await payment.save();
-    throw new ApiError(409, 'PAYMENT_AMOUNT_MISMATCH', 'Payment amount mismatch');
+    throw new ApiError(
+      409,
+      'PAYMENT_AMOUNT_MISMATCH',
+      'Payment amount mismatch'
+    );
   }
 
   payment.status = 'paid';
@@ -216,7 +236,11 @@ export async function cancelLinePay(orderId: string, actor: PaymentActor) {
   const order = await findOrderForPayment(orderId, actor);
 
   if (order.paymentStatus === 'paid') {
-    throw new ApiError(400, 'PAYMENT_REQUEST_NOT_ALLOWED', 'Order is already paid');
+    throw new ApiError(
+      400,
+      'PAYMENT_REQUEST_NOT_ALLOWED',
+      'Order is already paid'
+    );
   }
 
   if (['payment_pending', 'unpaid'].includes(order.paymentStatus)) {

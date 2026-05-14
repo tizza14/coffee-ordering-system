@@ -2,7 +2,13 @@ import mongoose, { Schema, type InferSchemaType } from 'mongoose';
 
 const productSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true, minlength: 1, maxlength: 80 },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 1,
+      maxlength: 80
+    },
     price: { type: Number, required: true, min: 0 },
     category: { type: String, enum: ['coffee', 'dessert'], required: true },
     description: { type: String, default: '' },

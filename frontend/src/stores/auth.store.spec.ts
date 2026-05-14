@@ -28,7 +28,10 @@ describe('authStore', () => {
     });
 
     const authStore = useAuthStore();
-    await authStore.login({ email: 'alice@example.com', password: 'password123' });
+    await authStore.login({
+      email: 'alice@example.com',
+      password: 'password123'
+    });
 
     expect(authStore.user?.email).toBe('alice@example.com');
     expect(authStore.accessToken).toBe('token');

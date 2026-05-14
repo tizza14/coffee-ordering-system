@@ -43,7 +43,11 @@ export async function listUsers(query: UserListQuery) {
 }
 
 export async function updateUserRole(id: string, input: UpdateRoleInput) {
-  const user = await UserModel.findByIdAndUpdate(id, { role: input.role }, { new: true });
+  const user = await UserModel.findByIdAndUpdate(
+    id,
+    { role: input.role },
+    { new: true }
+  );
 
   if (!user) {
     throw new ApiError(404, 'RESOURCE_NOT_FOUND', 'User not found');

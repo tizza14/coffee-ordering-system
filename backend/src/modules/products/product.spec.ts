@@ -1,7 +1,11 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 import { ProductModel } from './product.model';
 import { UserModel } from '../users/user.model';
 
@@ -22,7 +26,9 @@ async function loginAs(role: 'user' | 'admin') {
     role
   });
 
-  const response = await request(app).post('/api/auth/login').send({ email, password });
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
   return response.body.accessToken as string;
 }
 
@@ -110,7 +116,9 @@ describe('Product API', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(deleteResponse.status).toBe(204);
-    await expect(ProductModel.findById(createResponse.body.id)).resolves.toBeNull();
+    await expect(
+      ProductModel.findById(createResponse.body.id)
+    ).resolves.toBeNull();
   });
 
   it('rejects redeemable products with non-fixed redeem points', async () => {

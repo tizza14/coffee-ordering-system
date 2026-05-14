@@ -17,35 +17,48 @@ function getParam(value: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-export const listProducts = asyncHandler(async (req: Request, res: Response) => {
-  const category =
-    req.query.category === 'coffee' || req.query.category === 'dessert'
-      ? req.query.category
-      : undefined;
-  const available =
-    req.query.available === undefined ? true : String(req.query.available) === 'true';
+export const listProducts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const category =
+      req.query.category === 'coffee' || req.query.category === 'dessert'
+        ? req.query.category
+        : undefined;
+    const available =
+      req.query.available === undefined
+        ? true
+        : String(req.query.available) === 'true';
 
-  const result = await productService.listProducts({
-    category,
-    available,
-    page: parsePage(req.query.page),
-    limit: parseLimit(req.query.limit)
-  });
+    const result = await productService.listProducts({
+      category,
+      available,
+      page: parsePage(req.query.page),
+      limit: parseLimit(req.query.limit)
+    });
 
-  res.json(result);
-});
+    res.json(result);
+  }
+);
 
-export const createProduct = asyncHandler(async (req: Request, res: Response) => {
-  const product = await productService.createProduct(req.body);
-  res.status(201).json(product);
-});
+export const createProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    const product = await productService.createProduct(req.body);
+    res.status(201).json(product);
+  }
+);
 
-export const updateProduct = asyncHandler(async (req: Request, res: Response) => {
-  const product = await productService.updateProduct(getParam(req.params.id), req.body);
-  res.json(product);
-});
+export const updateProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    const product = await productService.updateProduct(
+      getParam(req.params.id),
+      req.body
+    );
+    res.json(product);
+  }
+);
 
-export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
-  await productService.deleteProduct(getParam(req.params.id));
-  res.status(204).send();
-});
+export const deleteProduct = asyncHandler(
+  async (req: Request, res: Response) => {
+    await productService.deleteProduct(getParam(req.params.id));
+    res.status(204).send();
+  }
+);

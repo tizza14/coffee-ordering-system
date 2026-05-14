@@ -26,7 +26,9 @@ beforeEach(() => {
 afterEach(clearTestDb);
 afterAll(disconnectTestDb);
 
-async function createProduct(input: Partial<{ name: string; price: number; isRedeemable: boolean }> = {}) {
+async function createProduct(
+  input: Partial<{ name: string; price: number; isRedeemable: boolean }> = {}
+) {
   return ProductModel.create({
     name: input.name ?? 'E2E Latte',
     price: input.price ?? 150,
@@ -38,7 +40,10 @@ async function createProduct(input: Partial<{ name: string; price: number; isRed
   });
 }
 
-async function createUser(role: 'user' | 'staff' | 'admin', email = `${role}@example.com`) {
+async function createUser(
+  role: 'user' | 'staff' | 'admin',
+  email = `${role}@example.com`
+) {
   const password = 'password123';
   const user = await UserModel.create({
     name: role,
@@ -48,7 +53,9 @@ async function createUser(role: 'user' | 'staff' | 'admin', email = `${role}@exa
     points: 0
   });
 
-  const loginResponse = await request(app).post('/api/auth/login').send({ email, password });
+  const loginResponse = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
   return {
     user,
     token: loginResponse.body.accessToken as string,
@@ -59,8 +66,14 @@ async function createUser(role: 'user' | 'staff' | 'admin', email = `${role}@exa
 describe('E2E API flows', () => {
   it('runs member checkout through payment, points, staff status update, and notifications', async () => {
     const product = await createProduct({ price: 150 });
-    const { user, token: userToken } = await createUser('user', 'member@example.com');
-    const { token: staffToken } = await createUser('staff', 'staff@example.com');
+    const { user, token: userToken } = await createUser(
+      'user',
+      'member@example.com'
+    );
+    const { token: staffToken } = await createUser(
+      'staff',
+      'staff@example.com'
+    );
     mockedLinePayClient.confirmPayment.mockResolvedValue({
       transactionId: 'txn-e2e',
       amount: 300,
@@ -99,7 +112,9 @@ describe('E2E API flows', () => {
 
     expect(staffListResponse.status).toBe(200);
     expect(staffListResponse.body.data).toEqual(
-      expect.arrayContaining([expect.objectContaining({ id: orderResponse.body.id })])
+      expect.arrayContaining([
+        expect.objectContaining({ id: orderResponse.body.id })
+      ])
     );
 
     const acceptResponse = await request(app)
@@ -122,20 +137,26 @@ describe('E2E API flows', () => {
       ])
     );
 
-    await expect(UserModel.findById(user._id)).resolves.toMatchObject({ points: 3 });
-    await expect(OrderModel.findById(orderResponse.body.id)).resolves.toMatchObject({
+    await expect(UserModel.findById(user._id)).resolves.toMatchObject({
+      points: 3
+    });
+    await expect(
+      OrderModel.findById(orderResponse.body.id)
+    ).resolves.toMatchObject({
       paymentStatus: 'paid',
       status: 'accepted',
       paidAmount: 300,
       pointsEarned: 3
     });
-    await expect(PaymentModel.findOne({ orderId: orderResponse.body.id })).resolves.toMatchObject({
+    await expect(
+      PaymentModel.findOne({ orderId: orderResponse.body.id })
+    ).resolves.toMatchObject({
       status: 'paid',
       amount: 300
     });
-    await expect(NotificationModel.countDocuments({ orderId: orderResponse.body.id })).resolves.toBe(
-      2
-    );
+    await expect(
+      NotificationModel.countDocuments({ orderId: orderResponse.body.id })
+    ).resolves.toBe(2);
   });
 
   it('runs guest checkout through token payment and guest notification lookup', async () => {
@@ -191,13 +212,18 @@ describe('E2E API flows', () => {
 
     expect(notificationResponse.status).toBe(200);
     expect(notificationResponse.body.data).toEqual(
-      expect.arrayContaining([expect.objectContaining({ type: 'order_paid', audience: 'guest' })])
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'order_paid', audience: 'guest' })
+      ])
     );
   });
 
   it('promotes a user to staff and allows access after the promoted user logs in again', async () => {
     const product = await createProduct({ price: 120 });
-    const { token: adminToken } = await createUser('admin', 'admin@example.com');
+    const { token: adminToken } = await createUser(
+      'admin',
+      'admin@example.com'
+    );
     const promoted = await createUser('user', 'promoted@example.com');
 
     const initialStaffResponse = await request(app)
@@ -241,8 +267,14 @@ describe('E2E API flows', () => {
   });
 
   it('runs admin product management through create, hidden listing, update, public listing, and delete', async () => {
-    const { token: adminToken } = await createUser('admin', 'product-admin@example.com');
-    const { token: userToken } = await createUser('user', 'product-user@example.com');
+    const { token: adminToken } = await createUser(
+      'admin',
+      'product-admin@example.com'
+    );
+    const { token: userToken } = await createUser(
+      'user',
+      'product-user@example.com'
+    );
 
     const forbiddenCreateResponse = await request(app)
       .post('/api/products')
@@ -282,11 +314,15 @@ describe('E2E API flows', () => {
     expect(publicHiddenResponse.status).toBe(200);
     expect(publicHiddenResponse.body.data).toHaveLength(0);
 
-    const hiddenListResponse = await request(app).get('/api/products?available=false');
+    const hiddenListResponse = await request(app).get(
+      '/api/products?available=false'
+    );
 
     expect(hiddenListResponse.status).toBe(200);
     expect(hiddenListResponse.body.data).toEqual(
-      expect.arrayContaining([expect.objectContaining({ id: createResponse.body.id })])
+      expect.arrayContaining([
+        expect.objectContaining({ id: createResponse.body.id })
+      ])
     );
 
     const updateResponse = await request(app)
@@ -297,7 +333,9 @@ describe('E2E API flows', () => {
     expect(updateResponse.status).toBe(200);
     expect(updateResponse.body).toMatchObject({ price: 95, isAvailable: true });
 
-    const publicCoffeeResponse = await request(app).get('/api/products?category=coffee');
+    const publicCoffeeResponse = await request(app).get(
+      '/api/products?category=coffee'
+    );
 
     expect(publicCoffeeResponse.status).toBe(200);
     expect(publicCoffeeResponse.body.data).toEqual(
@@ -315,11 +353,16 @@ describe('E2E API flows', () => {
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(deleteResponse.status).toBe(204);
-    await expect(ProductModel.findById(createResponse.body.id)).resolves.toBeNull();
+    await expect(
+      ProductModel.findById(createResponse.body.id)
+    ).resolves.toBeNull();
   });
 
   it('runs redemption after earned points and returns points when the redeem order is cancelled', async () => {
-    const purchaseProduct = await createProduct({ name: 'Point Bundle', price: 300 });
+    const purchaseProduct = await createProduct({
+      name: 'Point Bundle',
+      price: 300
+    });
     const redeemProduct = await createProduct({
       name: 'Reward Coffee',
       price: 100,
@@ -336,7 +379,9 @@ describe('E2E API flows', () => {
     const orderResponse = await request(app)
       .post('/api/orders')
       .set('Authorization', `Bearer ${token}`)
-      .send({ items: [{ productId: String(purchaseProduct._id), quantity: 1 }] });
+      .send({
+        items: [{ productId: String(purchaseProduct._id), quantity: 1 }]
+      });
 
     await request(app)
       .post('/api/payments/line-pay/request')
@@ -347,7 +392,9 @@ describe('E2E API flows', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ orderId: orderResponse.body.id, transactionId: 'txn-e2e' });
 
-    await expect(UserModel.findById(user._id)).resolves.toMatchObject({ points: 3 });
+    await expect(UserModel.findById(user._id)).resolves.toMatchObject({
+      points: 3
+    });
 
     const redeemResponse = await request(app)
       .post('/api/orders/redeem')
@@ -361,7 +408,9 @@ describe('E2E API flows', () => {
       pointsRedeemed: 3,
       remainingPoints: 0
     });
-    await expect(UserModel.findById(user._id)).resolves.toMatchObject({ points: 0 });
+    await expect(UserModel.findById(user._id)).resolves.toMatchObject({
+      points: 0
+    });
 
     const cancelResponse = await request(app)
       .patch(`/api/orders/${redeemResponse.body.id}/status`)
@@ -370,8 +419,12 @@ describe('E2E API flows', () => {
 
     expect(cancelResponse.status).toBe(200);
     expect(cancelResponse.body.status).toBe('cancelled');
-    await expect(UserModel.findById(user._id)).resolves.toMatchObject({ points: 3 });
-    await expect(OrderModel.findById(redeemResponse.body.id)).resolves.toMatchObject({
+    await expect(UserModel.findById(user._id)).resolves.toMatchObject({
+      points: 3
+    });
+    await expect(
+      OrderModel.findById(redeemResponse.body.id)
+    ).resolves.toMatchObject({
       status: 'cancelled',
       pointsRedeemed: 0
     });

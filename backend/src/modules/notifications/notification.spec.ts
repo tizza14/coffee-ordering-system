@@ -1,7 +1,11 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 import { UserModel } from '../users/user.model';
 import { OrderModel } from '../orders/order.model';
 import { NotificationModel } from './notification.model';
@@ -23,14 +27,18 @@ async function loginAs(role: 'user' | 'staff' | 'admin') {
     role
   });
 
-  const response = await request(app).post('/api/auth/login').send({ email, password });
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
   return response.body.accessToken as string;
 }
 
 describe('Notification API', () => {
   it('lists notifications for member', async () => {
     const token = await loginAs('user');
-    const userResponse = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+    const userResponse = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
     const userId = userResponse.body.user.id;
 
     await NotificationModel.create({
@@ -41,7 +49,9 @@ describe('Notification API', () => {
       message: 'Test notification'
     });
 
-    const response = await request(app).get('/api/notifications').set('Authorization', `Bearer ${token}`);
+    const response = await request(app)
+      .get('/api/notifications')
+      .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveLength(1);
@@ -64,7 +74,9 @@ describe('Notification API', () => {
       message: 'Guest notification'
     });
 
-    const response = await request(app).get('/api/notifications/guest/GUEST123?phone=0912345678');
+    const response = await request(app).get(
+      '/api/notifications/guest/GUEST123?phone=0912345678'
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveLength(1);
@@ -79,14 +91,18 @@ describe('Notification API', () => {
       totalAmount: 0
     });
 
-    const response = await request(app).get('/api/notifications/guest/GUEST123?phone=0987654321');
+    const response = await request(app).get(
+      '/api/notifications/guest/GUEST123?phone=0987654321'
+    );
 
     expect(response.status).toBe(401);
   });
 
   it('marks notification as read for member', async () => {
     const token = await loginAs('user');
-    const userResponse = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
+    const userResponse = await request(app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${token}`);
     const userId = userResponse.body.user.id;
 
     const notif = await NotificationModel.create({
@@ -121,8 +137,9 @@ describe('Notification API', () => {
       message: 'Guest notification'
     });
 
-    const response = await request(app)
-      .patch(`/api/notifications/${notif._id}/read?lookupCode=GUEST123&phone=0912345678`);
+    const response = await request(app).patch(
+      `/api/notifications/${notif._id}/read?lookupCode=GUEST123&phone=0912345678`
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.isRead).toBe(true);

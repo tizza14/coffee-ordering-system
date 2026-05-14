@@ -7,10 +7,14 @@ const app = createApp();
 describe('CORS', () => {
   // TC-027
   it('allows configured CLIENT_ORIGIN', async () => {
-    const response = await request(app).options('/api/products').set('Origin', env.clientOrigin);
+    const response = await request(app)
+      .options('/api/products')
+      .set('Origin', env.clientOrigin);
 
     expect(response.status).toBe(204);
-    expect(response.headers['access-control-allow-origin']).toBe(env.clientOrigin);
+    expect(response.headers['access-control-allow-origin']).toBe(
+      env.clientOrigin
+    );
   });
 
   // TC-028
@@ -19,7 +23,9 @@ describe('CORS', () => {
       .get('/api/products')
       .set('Origin', 'http://evil.example.com');
 
-    expect(response.headers['access-control-allow-origin']).not.toBe('http://evil.example.com');
+    expect(response.headers['access-control-allow-origin']).not.toBe(
+      'http://evil.example.com'
+    );
   });
 
   // TC-030

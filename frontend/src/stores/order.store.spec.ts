@@ -47,24 +47,36 @@ describe('orderStore', () => {
   });
 
   it('stores guest token after guest order', async () => {
-    mockedOrderApi.createGuestOrder.mockResolvedValue({ ...order, guestToken: 'guest-token' });
+    mockedOrderApi.createGuestOrder.mockResolvedValue({
+      ...order,
+      guestToken: 'guest-token'
+    });
     const orderStore = useOrderStore();
 
-    await orderStore.createGuestOrder(cartItems, { name: 'Guest', phone: '0912345678' });
+    await orderStore.createGuestOrder(cartItems, {
+      name: 'Guest',
+      phone: '0912345678'
+    });
 
     expect(orderStore.guestToken).toBe('guest-token');
   });
 
   it('loads staff orders and updates an order status', async () => {
     mockedOrderApi.getStaffOrders.mockResolvedValue({ data: [order] });
-    mockedOrderApi.updateOrderStatus.mockResolvedValue({ ...order, status: 'accepted' });
+    mockedOrderApi.updateOrderStatus.mockResolvedValue({
+      ...order,
+      status: 'accepted'
+    });
     const orderStore = useOrderStore();
 
     await orderStore.loadStaffOrders();
     await orderStore.updateStaffOrderStatus('o1', 'accepted');
 
     expect(mockedOrderApi.getStaffOrders).toHaveBeenCalled();
-    expect(mockedOrderApi.updateOrderStatus).toHaveBeenCalledWith('o1', 'accepted');
+    expect(mockedOrderApi.updateOrderStatus).toHaveBeenCalledWith(
+      'o1',
+      'accepted'
+    );
     expect(orderStore.staffOrders[0].status).toBe('accepted');
   });
 });

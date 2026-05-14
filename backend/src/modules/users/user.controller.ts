@@ -22,8 +22,10 @@ export const listUsers = asyncHandler(async (req: Request, res: Response) => {
   res.json(result);
 });
 
-export const updateUserRole = asyncHandler(async (req: Request, res: Response) => {
-  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const user = await userService.updateUserRole(id, req.body);
-  res.json(user);
-});
+export const updateUserRole = asyncHandler(
+  async (req: Request, res: Response) => {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const user = await userService.updateUserRole(id, req.body);
+    res.json(user);
+  }
+);

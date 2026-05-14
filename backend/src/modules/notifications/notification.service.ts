@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import { ApiError } from '../../utils/ApiError';
-import { NotificationModel, type NotificationDocument } from './notification.model';
+import {
+  NotificationModel,
+  type NotificationDocument
+} from './notification.model';
 
 export async function createNotification(data: {
   userId?: string;

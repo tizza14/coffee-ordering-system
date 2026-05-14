@@ -1,6 +1,9 @@
 import { ProductModel } from './product.model';
 import { ApiError } from '../../utils/ApiError';
-import type { CreateProductInput, UpdateProductInput } from './product.validators';
+import type {
+  CreateProductInput,
+  UpdateProductInput
+} from './product.validators';
 
 export interface ProductListQuery {
   category?: 'coffee' | 'dessert';
@@ -12,11 +15,15 @@ export interface ProductListQuery {
 export async function listProducts(query: ProductListQuery) {
   const filter: Record<string, unknown> = {};
   if (query.category) filter.category = query.category;
-  if (typeof query.available === 'boolean') filter.isAvailable = query.available;
+  if (typeof query.available === 'boolean')
+    filter.isAvailable = query.available;
 
   const skip = (query.page - 1) * query.limit;
   const [products, total] = await Promise.all([
-    ProductModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(query.limit),
+    ProductModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit),
     ProductModel.countDocuments(filter)
   ]);
 

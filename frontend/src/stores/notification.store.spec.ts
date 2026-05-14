@@ -27,13 +27,18 @@ describe('notificationStore', () => {
   });
 
   it('loads member notifications and pushes socket notification', async () => {
-    mockedNotificationApi.getNotifications.mockResolvedValue({ data: [notification] });
+    mockedNotificationApi.getNotifications.mockResolvedValue({
+      data: [notification]
+    });
     const notificationStore = useNotificationStore();
 
     await notificationStore.loadMemberNotifications();
     notificationStore.push({ ...notification, id: 'n2' });
 
-    expect(notificationStore.items.map((item) => item.id)).toEqual(['n2', 'n1']);
+    expect(notificationStore.items.map((item) => item.id)).toEqual([
+      'n2',
+      'n1'
+    ]);
   });
 
   it('marks notification read', async () => {

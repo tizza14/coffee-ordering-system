@@ -1,7 +1,11 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 import { UserModel } from './user.model';
 
 const app = createApp();
@@ -21,7 +25,9 @@ async function loginAs(role: 'user' | 'staff' | 'admin') {
     role
   });
 
-  const response = await request(app).post('/api/auth/login').send({ email, password });
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
   return response.body.accessToken as string;
 }
 
@@ -29,8 +35,20 @@ describe('User API', () => {
   it('admin can list all users', async () => {
     const adminToken = await loginAs('admin');
     await UserModel.create([
-      { name: 'Alice', email: 'alice@example.com', password: 'x', role: 'user', points: 5 },
-      { name: 'Bob', email: 'bob@example.com', password: 'x', role: 'staff', points: 0 }
+      {
+        name: 'Alice',
+        email: 'alice@example.com',
+        password: 'x',
+        role: 'user',
+        points: 5
+      },
+      {
+        name: 'Bob',
+        email: 'bob@example.com',
+        password: 'x',
+        role: 'staff',
+        points: 0
+      }
     ]);
 
     const response = await request(app)

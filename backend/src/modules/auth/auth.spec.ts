@@ -1,6 +1,10 @@
 import request from 'supertest';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 
 const app = createApp();
 

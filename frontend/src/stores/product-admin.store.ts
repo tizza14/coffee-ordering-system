@@ -21,9 +21,14 @@ export const useProductAdminStore = defineStore('productAdmin', {
       this.products = [product, ...this.products];
       return product;
     },
-    async updateProduct(id: string, payload: Partial<productApi.ProductPayload>) {
+    async updateProduct(
+      id: string,
+      payload: Partial<productApi.ProductPayload>
+    ) {
       const product = await productApi.updateProduct(id, payload);
-      this.products = this.products.map((item) => (item.id === product.id ? product : item));
+      this.products = this.products.map((item) =>
+        item.id === product.id ? product : item
+      );
       return product;
     },
     async deleteProduct(id: string) {

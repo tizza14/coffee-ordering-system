@@ -20,8 +20,19 @@ export interface Order {
   items: OrderItem[];
   totalAmount: number;
   orderType: 'purchase' | 'redeem';
-  paymentStatus: 'unpaid' | 'payment_pending' | 'paid' | 'payment_failed' | 'refunded';
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  paymentStatus:
+    | 'unpaid'
+    | 'payment_pending'
+    | 'paid'
+    | 'payment_failed'
+    | 'refunded';
+  status:
+    | 'pending'
+    | 'accepted'
+    | 'preparing'
+    | 'ready'
+    | 'completed'
+    | 'cancelled';
   paidAmount: number;
   pointsEarned: number;
   pointsRedeemed: number;
@@ -72,11 +83,17 @@ export async function updateOrderStatus(
   orderId: string,
   status: 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled'
 ) {
-  const response = await http.patch<Order>(`/orders/${orderId}/status`, { status });
+  const response = await http.patch<Order>(`/orders/${orderId}/status`, {
+    status
+  });
   return response.data;
 }
 
-export async function getGuestOrder(lookupCode: string, phone?: string, guestToken?: string) {
+export async function getGuestOrder(
+  lookupCode: string,
+  phone?: string,
+  guestToken?: string
+) {
   const response = await http.get<Order>(`/orders/guest/${lookupCode}`, {
     params: phone ? { phone } : undefined,
     headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined

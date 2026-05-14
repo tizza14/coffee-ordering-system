@@ -1,7 +1,11 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 import { OrderModel } from '../orders/order.model';
 import { ProductModel } from '../products/product.model';
 import { UserModel } from '../users/user.model';
@@ -53,8 +57,13 @@ async function loginAsUser() {
     points: 0
   });
 
-  const response = await request(app).post('/api/auth/login').send({ email, password });
-  return { token: response.body.accessToken as string, userId: String(user._id) };
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
+  return {
+    token: response.body.accessToken as string,
+    userId: String(user._id)
+  };
 }
 
 async function createMemberOrder(quantity = 2) {

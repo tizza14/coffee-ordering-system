@@ -1,52 +1,43 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+  <section
+    class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]"
+  >
     <form
       class="grid gap-4 rounded-lg border border-stone-300 bg-white p-6"
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">
-          Checkout
-        </h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">Checkout</h1>
         <p class="m-0 text-slate-600">
           Create an order and continue to Line Pay.
         </p>
       </div>
 
       <fieldset class="grid gap-3 border-0 p-0">
-        <legend class="font-bold">
-          Order type
-        </legend>
+        <legend class="font-bold">Order type</legend>
         <label class="flex items-center gap-2">
           <input
             v-model="mode"
             type="radio"
             value="member"
             :disabled="!authStore.isAuthenticated"
-          >
+          />
           Member order
         </label>
         <label class="flex items-center gap-2">
-          <input
-            v-model="mode"
-            type="radio"
-            value="guest"
-          >
+          <input v-model="mode" type="radio" value="guest" />
           Guest order
         </label>
       </fieldset>
 
-      <div
-        v-if="mode === 'guest'"
-        class="grid gap-3"
-      >
+      <div v-if="mode === 'guest'" class="grid gap-3">
         <label class="grid gap-1.5 font-semibold">
           Name
           <input
             v-model="guestName"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             required
-          >
+          />
         </label>
         <label class="grid gap-1.5 font-semibold">
           Phone
@@ -55,7 +46,7 @@
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
             required
-          >
+          />
         </label>
         <label class="grid gap-1.5 font-semibold">
           Email
@@ -63,34 +54,32 @@
             v-model="guestEmail"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             type="email"
-          >
+          />
         </label>
       </div>
 
-      <p
-        v-if="errorMessage"
-        class="m-0 font-semibold text-red-700"
-      >
+      <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
         {{ errorMessage }}
       </p>
 
       <button
         class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white disabled:opacity-60"
         type="submit"
-        :disabled="cartStore.items.length === 0 || orderStore.isLoading || paymentStore.isLoading"
+        :disabled="
+          cartStore.items.length === 0 ||
+          orderStore.isLoading ||
+          paymentStore.isLoading
+        "
       >
         Continue to payment
       </button>
     </form>
 
-    <aside class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6">
-      <h2 class="m-0 text-xl font-bold">
-        Order summary
-      </h2>
-      <p
-        v-if="cartStore.items.length === 0"
-        class="m-0 text-slate-600"
-      >
+    <aside
+      class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6"
+    >
+      <h2 class="m-0 text-xl font-bold">Order summary</h2>
+      <p v-if="cartStore.items.length === 0" class="m-0 text-slate-600">
         Cart is empty.
       </p>
       <ul class="grid list-none gap-3 p-0">
@@ -139,7 +128,10 @@ async function submit() {
             phone: guestPhone.value,
             email: guestEmail.value || undefined
           });
-    const payment = await paymentStore.requestLinePay(order.id, orderStore.guestToken || undefined);
+    const payment = await paymentStore.requestLinePay(
+      order.id,
+      orderStore.guestToken || undefined
+    );
     cartStore.clearCart();
     window.location.assign(payment.paymentUrl);
   } catch {

@@ -19,7 +19,11 @@ orderRoutes.post(
   validateBody(createOrderSchema),
   orderController.createMemberOrder
 );
-orderRoutes.post('/guest', validateBody(createGuestOrderSchema), orderController.createGuestOrder);
+orderRoutes.post(
+  '/guest',
+  validateBody(createGuestOrderSchema),
+  orderController.createGuestOrder
+);
 orderRoutes.post(
   '/redeem',
   authenticate,
@@ -28,9 +32,24 @@ orderRoutes.post(
   orderController.createRedeemOrder
 );
 orderRoutes.get('/guest/:lookupCode', orderController.getGuestOrder);
-orderRoutes.get('/my', authenticate, authorize(['user', 'admin']), orderController.listMyOrders);
-orderRoutes.get('/', authenticate, authorize(['staff', 'admin']), orderController.listStaffOrders);
-orderRoutes.get('/:id', authenticate, authorize(['user', 'staff', 'admin']), orderController.getOrderById);
+orderRoutes.get(
+  '/my',
+  authenticate,
+  authorize(['user', 'admin']),
+  orderController.listMyOrders
+);
+orderRoutes.get(
+  '/',
+  authenticate,
+  authorize(['staff', 'admin']),
+  orderController.listStaffOrders
+);
+orderRoutes.get(
+  '/:id',
+  authenticate,
+  authorize(['user', 'staff', 'admin']),
+  orderController.getOrderById
+);
 orderRoutes.patch(
   '/:id/status',
   authenticate,

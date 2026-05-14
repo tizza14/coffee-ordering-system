@@ -15,7 +15,10 @@ export async function authenticateSocket(
 
   if (token) {
     try {
-      const payload = jwt.verify(token, env.jwtSecret) as { userId: string; role: string };
+      const payload = jwt.verify(token, env.jwtSecret) as {
+        userId: string;
+        role: string;
+      };
       socket.data.user = { id: payload.userId, role: payload.role };
       return next();
     } catch {
@@ -29,7 +32,10 @@ export async function authenticateSocket(
     try {
       const order = await OrderModel.findOne({ orderLookupCode });
       if (order && order.guestTokenHash === hashGuestToken(guestToken)) {
-        socket.data.guest = { orderId: String(order._id), lookupCode: orderLookupCode };
+        socket.data.guest = {
+          orderId: String(order._id),
+          lookupCode: orderLookupCode
+        };
         return next();
       }
     } catch {

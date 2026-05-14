@@ -8,9 +8,13 @@ export const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (err?.name === 'ZodError') {
-    res.status(400).json({ message: 'Validation error', code: 'VALIDATION_ERROR' });
+    res
+      .status(400)
+      .json({ message: 'Validation error', code: 'VALIDATION_ERROR' });
     return;
   }
 
-  res.status(500).json({ message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
+  res
+    .status(500)
+    .json({ message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' });
 };

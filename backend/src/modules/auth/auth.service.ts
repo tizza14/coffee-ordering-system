@@ -12,7 +12,12 @@ function signAccessToken(user: { id: string; role: string }) {
   });
 }
 
-function toAuthUser(user: { _id: unknown; name: string; email: string; role: string }) {
+function toAuthUser(user: {
+  _id: unknown;
+  name: string;
+  email: string;
+  role: string;
+}) {
   return {
     id: String(user._id),
     name: user.name,
@@ -46,12 +51,20 @@ export async function register(input: RegisterInput) {
 export async function login(input: LoginInput) {
   const user = await UserModel.findOne({ email: input.email });
   if (!user) {
-    throw new ApiError(401, 'AUTH_INVALID_CREDENTIALS', 'Invalid email or password');
+    throw new ApiError(
+      401,
+      'AUTH_INVALID_CREDENTIALS',
+      'Invalid email or password'
+    );
   }
 
   const isValidPassword = await bcrypt.compare(input.password, user.password);
   if (!isValidPassword) {
-    throw new ApiError(401, 'AUTH_INVALID_CREDENTIALS', 'Invalid email or password');
+    throw new ApiError(
+      401,
+      'AUTH_INVALID_CREDENTIALS',
+      'Invalid email or password'
+    );
   }
 
   const authUser = toAuthUser(user);

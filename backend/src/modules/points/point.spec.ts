@@ -1,7 +1,11 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import { createApp } from '../../app';
-import { clearTestDb, connectTestDb, disconnectTestDb } from '../../test/testDb';
+import {
+  clearTestDb,
+  connectTestDb,
+  disconnectTestDb
+} from '../../test/testDb';
 import { ProductModel } from '../products/product.model';
 import { UserModel } from '../users/user.model';
 import { OrderModel } from '../orders/order.model';
@@ -26,7 +30,9 @@ async function loginAsUser(points = 0) {
     role: 'user',
     points
   });
-  const response = await request(app).post('/api/auth/login').send({ email, password });
+  const response = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
   return { token: response.body.accessToken, userId: String(user._id) };
 }
 
@@ -62,8 +68,14 @@ describe('Points & Redemption System', () => {
       });
 
       // Request & Confirm
-      await request(app).post('/api/payments/line-pay/request').set('Authorization', `Bearer ${token}`).send({ orderId });
-      await request(app).post('/api/payments/line-pay/confirm').set('Authorization', `Bearer ${token}`).send({ orderId, transactionId: 'txn-123' });
+      await request(app)
+        .post('/api/payments/line-pay/request')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ orderId });
+      await request(app)
+        .post('/api/payments/line-pay/confirm')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ orderId, transactionId: 'txn-123' });
 
       // Verify points
       const user = await UserModel.findById(userId);
@@ -99,8 +111,14 @@ describe('Points & Redemption System', () => {
         rawResponse: {}
       });
 
-      await request(app).post('/api/payments/line-pay/request').set('X-Guest-Token', guestToken).send({ orderId });
-      await request(app).post('/api/payments/line-pay/confirm').set('X-Guest-Token', guestToken).send({ orderId, transactionId: 'txn-guest' });
+      await request(app)
+        .post('/api/payments/line-pay/request')
+        .set('X-Guest-Token', guestToken)
+        .send({ orderId });
+      await request(app)
+        .post('/api/payments/line-pay/confirm')
+        .set('X-Guest-Token', guestToken)
+        .send({ orderId, transactionId: 'txn-guest' });
 
       const order = await OrderModel.findById(orderId);
       expect(order?.paymentStatus).toBe('paid');

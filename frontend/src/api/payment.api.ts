@@ -25,7 +25,11 @@ export async function requestLinePay(orderId: string, guestToken?: string) {
   return response.data;
 }
 
-export async function confirmLinePay(orderId: string, transactionId: string, guestToken?: string) {
+export async function confirmLinePay(
+  orderId: string,
+  transactionId: string,
+  guestToken?: string
+) {
   const response = await http.post<LinePayConfirmResponse>(
     '/payments/line-pay/confirm',
     { orderId, transactionId },

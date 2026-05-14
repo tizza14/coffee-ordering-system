@@ -73,7 +73,11 @@ export async function requestPayment(
 
   return {
     transactionId: String(rawResponse.info?.transactionId ?? ''),
-    paymentUrl: String(rawResponse.info?.paymentUrl?.web ?? rawResponse.info?.paymentUrl?.app ?? ''),
+    paymentUrl: String(
+      rawResponse.info?.paymentUrl?.web ??
+        rawResponse.info?.paymentUrl?.app ??
+        ''
+    ),
     rawResponse
   };
 }

@@ -21,11 +21,18 @@ export async function getNotifications() {
   return response.data;
 }
 
-export async function getGuestNotifications(lookupCode: string, phone?: string, guestToken?: string) {
-  const response = await http.get<NotificationListResponse>(`/notifications/guest/${lookupCode}`, {
-    params: phone ? { phone } : undefined,
-    headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined
-  });
+export async function getGuestNotifications(
+  lookupCode: string,
+  phone?: string,
+  guestToken?: string
+) {
+  const response = await http.get<NotificationListResponse>(
+    `/notifications/guest/${lookupCode}`,
+    {
+      params: phone ? { phone } : undefined,
+      headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined
+    }
+  );
   return response.data;
 }
 

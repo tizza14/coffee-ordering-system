@@ -11,7 +11,9 @@ export async function connectTestDb() {
 export async function clearTestDb() {
   if (mongoose.connection.db) {
     const collections = await mongoose.connection.db.collections();
-    await Promise.all(collections.map((collection) => collection.deleteMany({})));
+    await Promise.all(
+      collections.map((collection) => collection.deleteMany({}))
+    );
   }
 }
 

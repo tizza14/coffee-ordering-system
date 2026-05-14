@@ -1,13 +1,13 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+  <section
+    class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6 lg:grid-cols-[360px_minmax(0,1fr)]"
+  >
     <form
       class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-5"
       @submit.prevent="saveProduct"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">
-          Admin Products
-        </h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">Admin Products</h1>
         <p class="m-0 text-slate-600">
           Manage shop products and redeemable items.
         </p>
@@ -19,7 +19,7 @@
           v-model="form.name"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
           required
-        >
+        />
       </label>
       <label class="grid gap-1.5 font-semibold">
         Price
@@ -29,7 +29,7 @@
           min="0"
           required
           type="number"
-        >
+        />
       </label>
       <label class="grid gap-1.5 font-semibold">
         Category
@@ -37,12 +37,8 @@
           v-model="form.category"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
         >
-          <option value="coffee">
-            Coffee
-          </option>
-          <option value="dessert">
-            Dessert
-          </option>
+          <option value="coffee">Coffee</option>
+          <option value="dessert">Dessert</option>
         </select>
       </label>
       <label class="grid gap-1.5 font-semibold">
@@ -54,24 +50,15 @@
       </label>
 
       <label class="flex items-center gap-2 font-semibold">
-        <input
-          v-model="form.isAvailable"
-          type="checkbox"
-        >
+        <input v-model="form.isAvailable" type="checkbox" />
         Available
       </label>
       <label class="flex items-center gap-2 font-semibold">
-        <input
-          v-model="form.isRedeemable"
-          type="checkbox"
-        >
+        <input v-model="form.isRedeemable" type="checkbox" />
         Redeemable for 3 points
       </label>
 
-      <p
-        v-if="errorMessage"
-        class="m-0 font-bold text-red-700"
-      >
+      <p v-if="errorMessage" class="m-0 font-bold text-red-700">
         {{ errorMessage }}
       </p>
 
@@ -94,10 +81,10 @@
     </form>
 
     <div class="grid content-start gap-3">
-      <header class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
-        <h2 class="m-0 text-xl font-bold text-slate-800">
-          Products
-        </h2>
+      <header
+        class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
+      >
+        <h2 class="m-0 text-xl font-bold text-slate-800">Products</h2>
         <button
           class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
           type="button"
@@ -113,16 +100,15 @@
       >
         Loading products...
       </p>
-      <ul
-        v-else
-        class="grid list-none gap-3 p-0"
-      >
+      <ul v-else class="grid list-none gap-3 p-0">
         <li
           v-for="product in productStore.products"
           :key="product.id"
           class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4"
         >
-          <div class="flex items-start justify-between gap-4 max-[760px]:flex-col">
+          <div
+            class="flex items-start justify-between gap-4 max-[760px]:flex-col"
+          >
             <div>
               <h3 class="m-0 text-lg font-bold text-slate-800">
                 {{ product.name }}
@@ -134,12 +120,18 @@
             <strong>NT$ {{ product.price }}</strong>
           </div>
           <div class="flex flex-wrap gap-2">
-            <span class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700">
+            <span
+              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
+            >
               {{ product.category }}
             </span>
             <span
               class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
-              :class="product.isAvailable ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-slate-600'"
+              :class="
+                product.isAvailable
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-stone-200 text-slate-600'
+              "
             >
               {{ product.isAvailable ? 'available' : 'hidden' }}
             </span>
