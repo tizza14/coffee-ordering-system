@@ -1,0 +1,32 @@
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/coffee_ordering
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
+      LINE_PAY_CHANNEL_ID: ${LINE_PAY_CHANNEL_ID:?LINE_PAY_CHANNEL_ID is required}
+      LINE_PAY_CHANNEL_SECRET: ${LINE_PAY_CHANNEL_SECRET:?LINE_PAY_CHANNEL_SECRET is required}
+      LINE_PAY_API_BASE_URL: ${LINE_PAY_API_BASE_URL:-https://sandbox-api-pay.line.me}
+      LINE_PAY_CONFIRM_URL: ${LINE_PAY_CONFIRM_URL:-http://localhost:5173/payments/line-pay/confirm}
+      LINE_PAY_CANCEL_URL: ${LINE_PAY_CANCEL_URL:-http://localhost:5173/payments/line-pay/cancel}
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:
