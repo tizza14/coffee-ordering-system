@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   category: 'coffee' | 'dessert';
   description: string;
+  imageUrl?: string;
   isAvailable: boolean;
   isRedeemable: boolean;
   redeemPoints: number;

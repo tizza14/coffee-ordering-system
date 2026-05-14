@@ -38,18 +38,26 @@
           :key="product.id"
           class="flex items-center justify-between gap-4 rounded-lg border border-stone-300 bg-white p-4 max-[820px]:flex-col max-[820px]:items-stretch"
         >
-          <div class="grid gap-1.5">
-            <span
-              class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
-              >{{ product.category }}</span
-            >
-            <h2 class="m-0 text-xl font-bold text-slate-800">
-              {{ product.name }}
-            </h2>
-            <p class="m-0 text-slate-600">
-              {{ product.description || 'No description' }}
-            </p>
-            <strong>NT$ {{ product.price }}</strong>
+          <div class="flex min-w-0 gap-4">
+            <img
+              v-if="product.imageUrl"
+              :src="product.imageUrl"
+              :alt="product.name"
+              class="h-24 w-24 shrink-0 rounded-lg object-cover"
+            />
+            <div class="grid gap-1.5">
+              <span
+                class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
+                >{{ product.category }}</span
+              >
+              <h2 class="m-0 text-xl font-bold text-slate-800">
+                {{ product.name }}
+              </h2>
+              <p class="m-0 text-slate-600">
+                {{ product.description || 'No description' }}
+              </p>
+              <strong>NT$ {{ product.price }}</strong>
+            </div>
           </div>
           <div
             class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch"

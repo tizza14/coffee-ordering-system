@@ -48,6 +48,21 @@
           class="min-h-24 rounded-md border border-stone-400 px-2.5 py-2"
         />
       </label>
+      <label class="grid gap-1.5 font-semibold">
+        Image URL
+        <input
+          v-model="form.imageUrl"
+          class="min-h-10 rounded-md border border-stone-400 px-2.5"
+          placeholder="https://..."
+          type="url"
+        />
+        <img
+          v-if="form.imageUrl"
+          :src="form.imageUrl"
+          alt="preview"
+          class="h-32 w-32 rounded-lg object-cover"
+        />
+      </label>
 
       <label class="flex items-center gap-2 font-semibold">
         <input v-model="form.isAvailable" type="checkbox" />
@@ -177,6 +192,7 @@ const form = reactive({
   price: 0,
   category: 'coffee' as Product['category'],
   description: '',
+  imageUrl: '',
   isAvailable: true,
   isRedeemable: false
 });
@@ -187,6 +203,7 @@ function resetForm() {
   form.price = 0;
   form.category = 'coffee';
   form.description = '';
+  form.imageUrl = '';
   form.isAvailable = true;
   form.isRedeemable = false;
 }
@@ -197,6 +214,7 @@ function editProduct(product: Product) {
   form.price = product.price;
   form.category = product.category;
   form.description = product.description;
+  form.imageUrl = product.imageUrl ?? '';
   form.isAvailable = product.isAvailable;
   form.isRedeemable = product.isRedeemable;
 }

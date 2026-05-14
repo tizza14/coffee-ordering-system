@@ -5,6 +5,7 @@ const productBaseSchema = z.object({
   price: z.number().int().min(0),
   category: z.enum(['coffee', 'dessert']),
   description: z.string().trim().max(500).optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
   isAvailable: z.boolean().optional(),
   isRedeemable: z.boolean().optional(),
   redeemPoints: z.literal(3).optional()

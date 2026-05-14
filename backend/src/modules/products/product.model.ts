@@ -12,6 +12,7 @@ const productSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     category: { type: String, enum: ['coffee', 'dessert'], required: true },
     description: { type: String, default: '' },
+    imageUrl: { type: String, default: '' },
     isAvailable: { type: Boolean, default: true },
     isRedeemable: { type: Boolean, default: false },
     redeemPoints: { type: Number, enum: [3], default: 3 }
