@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 15:20 +08:00
+Last updated: 2026-05-14 15:34 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -10,7 +10,7 @@ Backend core features are implemented through product listing/admin CRUD, authen
 
 Frontend features are implemented through shop/auth/cart, checkout, payment confirmation, member order history, guest tracking, staff order handling, and admin product management.
 
-All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted.
+All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
 
 ## Backend Progress
 
@@ -429,8 +429,14 @@ Latest result:
 
 - lint passed
 - test passed: 9 suites, 19 tests
-- e2e passed: 18 tests
+- e2e passed: 36 tests
 - build passed
+
+RWD verification:
+
+- Playwright now runs both `chromium` desktop and `mobile-chrome` Pixel 5 projects.
+- Latest frontend E2E result: 36 tests passed.
+- Global navigation, shop, checkout, auth, order tracking, staff, and admin views have responsive layout baselines.
 
 ## Environment Notes
 
@@ -446,7 +452,7 @@ Status: Accepted
 Implemented:
 
 - Playwright 1.60 installed with Chromium browser.
-- `playwright.config.ts` configured for `frontend/e2e/` with Chromium project and `webServer` auto-start.
+- `playwright.config.ts` configured for `frontend/e2e/` with Chromium desktop and Pixel 5 mobile projects plus `webServer` auto-start.
 - `npm run e2e` script added to `frontend/package.json`.
 - `vitest.config.ts` scoped to `src/**/*.spec.ts` to exclude Playwright specs from Vitest.
 - `e2e/helpers.ts` mock interceptors for products and auth APIs.
@@ -458,7 +464,7 @@ Implemented:
 
 Verified:
 
-- 18 Playwright tests pass (all using mock API interceptors; no real backend required).
+- 36 Playwright tests pass across desktop and mobile projects (all using mock API interceptors; no real backend required).
 - `vitest run` still passes 9 suites, 19 tests after scope fix.
 
 ## CORS / FS-016
@@ -473,5 +479,5 @@ Implemented:
 ## Next Recommended Work
 
 1. Add deployment documentation for production environment variables and service startup order.
-2. Commit the frontend Playwright E2E smoke test addition.
+2. Commit the RWD baseline and development-standard updates.
 3. Push commits to `origin/main` when ready.

@@ -1,6 +1,6 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-6">
-    <article class="grid w-full max-w-lg gap-3 rounded-lg border border-stone-300 bg-white p-6">
+  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6">
+    <article class="grid w-full max-w-lg gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6">
       <h1 class="m-0 text-2xl font-bold">
         Line Pay Confirm
       </h1>

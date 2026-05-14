@@ -2409,6 +2409,8 @@ const allowedTransitions = {
 * 對應 Business Rules 已實作。
 * 對應 Acceptance Criteria 已驗收。
 * 對應 Test Cases 已建立並通過。
+* Frontend UI 必須支援 mobile / tablet / desktop RWD，不得只完成桌機版。
+* Frontend UI 變更必須通過 Playwright desktop 與 mobile smoke tests。
 * Traceability Matrix 已更新 Status。
 * 無 lint error。
 * 無 test failure。
@@ -2424,6 +2426,7 @@ const allowedTransitions = {
 | Package manager | 使用 npm，不使用 pnpm 或 yarn |
 | TypeScript | 前後端都必須啟用 `strict: true` |
 | Frontend CSS | 使用 Tailwind CSS v4，透過 `@tailwindcss/vite` 與 `src/tailwind.css` 匯入全域樣式 |
+| Frontend RWD | Mobile-first；所有頁面需支援 mobile / tablet / desktop，使用 Tailwind responsive utilities |
 | Lint | 前後端都必須使用 ESLint |
 | Format | 前後端都必須使用 Prettier |
 | Frontend unit test | 使用 Vitest |

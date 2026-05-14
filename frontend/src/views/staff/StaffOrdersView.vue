@@ -1,5 +1,5 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-6">
+  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6">
     <header class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
       <div>
         <h1 class="m-0 text-2xl font-bold text-slate-800">

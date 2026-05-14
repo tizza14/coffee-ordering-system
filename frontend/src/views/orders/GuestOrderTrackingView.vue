@@ -1,7 +1,7 @@
 <template>
-  <section class="grid gap-4 bg-stone-100 p-6">
+  <section class="grid gap-4 bg-stone-100 p-4 sm:p-6">
     <form
-      class="grid max-w-xl gap-3 rounded-lg border border-stone-300 bg-white p-6"
+      class="grid max-w-xl gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="load"
     >
       <h1 class="m-0 text-2xl font-bold">
@@ -42,7 +42,7 @@
 
     <article
       v-if="orderStore.currentOrder"
-      class="grid gap-3 rounded-lg border border-stone-300 bg-white p-6"
+      class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
     >
       <h2 class="m-0 text-xl font-bold">
         {{ orderStore.currentOrder.orderLookupCode }}

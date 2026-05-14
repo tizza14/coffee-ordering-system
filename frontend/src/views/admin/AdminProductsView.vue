@@ -1,5 +1,5 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6 lg:grid-cols-[360px_minmax(0,1fr)]">
     <form
       class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-5"
       @submit.prevent="saveProduct"
@@ -94,7 +94,7 @@
     </form>
 
     <div class="grid content-start gap-3">
-      <header class="flex items-center justify-between gap-4">
+      <header class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
         <h2 class="m-0 text-xl font-bold text-slate-800">
           Products
         </h2>
@@ -150,7 +150,7 @@
               {{ product.redeemPoints }} pts
             </span>
           </div>
-          <footer class="flex gap-2">
+          <footer class="flex flex-wrap gap-2">
             <button
               class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
               type="button"

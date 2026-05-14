@@ -1,5 +1,5 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-6 bg-stone-100 p-6 max-[820px]:grid-cols-1">
+  <section class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1">
     <div class="min-w-0">
       <header class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch">
         <div>
@@ -10,7 +10,7 @@
             Available coffee and desserts
           </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <button
             v-for="option in categoryOptions"
             :key="option.value"
@@ -74,7 +74,7 @@
       </ul>
     </div>
 
-    <aside class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4">
+    <aside class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first">
       <div class="flex items-center justify-between gap-4">
         <h2 class="m-0 text-xl font-bold text-slate-800">
           Cart

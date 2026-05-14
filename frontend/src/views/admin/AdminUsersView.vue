@@ -1,6 +1,6 @@
 <template>
-  <section class="min-h-[calc(100vh-64px)] bg-stone-100 p-6">
-    <header class="mb-5 flex items-center justify-between gap-4">
+  <section class="min-h-[calc(100vh-64px)] bg-stone-100 p-4 sm:p-6">
+    <header class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
       <div>
         <h1 class="m-0 text-2xl font-bold text-slate-800">
           Admin Users
@@ -53,7 +53,7 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <span
             class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
             :class="roleBadgeClass(user.role)"
@@ -88,7 +88,7 @@
 
     <div
       v-if="userStore.pagination.total > userStore.pagination.limit"
-      class="mt-4 flex items-center gap-3"
+      class="mt-4 flex flex-wrap items-center gap-3"
     >
       <button
         class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-50"

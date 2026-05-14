@@ -1,7 +1,7 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-6">
+  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6">
     <form
-      class="grid w-full max-w-[420px] gap-4 rounded-lg border border-stone-300 bg-white p-6"
+      class="grid w-full max-w-[420px] gap-4 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="submit"
     >
       <div>

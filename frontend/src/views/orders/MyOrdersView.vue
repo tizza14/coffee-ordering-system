@@ -1,5 +1,5 @@
 <template>
-  <section class="grid gap-4 bg-stone-100 p-6">
+  <section class="grid gap-4 bg-stone-100 p-4 sm:p-6">
     <h1 class="m-0 text-2xl font-bold">
       My Orders
     </h1>

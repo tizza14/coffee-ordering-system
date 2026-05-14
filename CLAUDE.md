@@ -92,6 +92,17 @@ Events emitted: `order_updated` (order status changes), `notification` (new noti
 
 **Views** organized under `views/`: `auth/`, `shop/`, `orders/`, `payments/`, `staff/`, `admin/`.
 
+### Frontend RWD Standards
+
+- Every new or changed view must work at mobile, tablet, and desktop widths. Treat mobile as a first-class layout, not an afterthought.
+- Use Tailwind responsive utilities (`sm:`, `md:`, `lg:`, `max-[...]`) to control layout changes. Prefer single-column mobile layouts and switch to multi-column layouts only when there is enough width.
+- Global navigation must remain usable on narrow screens. If links cannot fit, allow wrapping or horizontal overflow inside the nav instead of letting text overlap or leave the viewport.
+- Page-level spacing should be responsive: use smaller padding on mobile (`p-4`) and larger padding from `sm:` or `lg:` upward.
+- Cards, forms, order rows, product rows, and admin controls must wrap or stack on small screens. Do not rely on fixed desktop widths unless paired with a mobile fallback.
+- Avoid text overflow in buttons, badges, table-like rows, and cards. Use wrapping, `min-w-0`, responsive grids, or flex wrapping where content can grow.
+- Playwright E2E must include both desktop Chromium and mobile Chromium projects for frontend smoke flows. RWD-related changes are not accepted until `npm run e2e` passes.
+- Before marking frontend work done, run `npm run lint`, `npm test`, `npm run e2e`, and `npm run build` from `frontend/`.
+
 ## Key Business Rules
 
 - `totalAmount` is always computed backend-side from product prices; never trust the frontend amount.
@@ -157,3 +168,4 @@ PATCH  /api/users/:id/role                admin
 - Don't switch package managers (use `npm`)
 - Don't change the test framework (backend: Jest, frontend: Vitest)
 - Each `npm test` must pass before a feature is considered done, along with `npm run lint` and `npm run build`
+- Frontend UI changes must satisfy the RWD standards above and pass Playwright desktop/mobile smoke tests

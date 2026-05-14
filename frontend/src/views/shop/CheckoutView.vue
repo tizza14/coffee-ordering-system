@@ -1,5 +1,5 @@
 <template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-6 bg-stone-100 p-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]">
     <form
       class="grid gap-4 rounded-lg border border-stone-300 bg-white p-6"
       @submit.prevent="submit"
