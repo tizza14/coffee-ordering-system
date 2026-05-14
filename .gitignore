@@ -40,3 +40,6 @@ Desktop.ini
 .claude/
 *.swp
 *.swo
+
+# Claude Code project instructions (local only)
+CLAUDE.md
