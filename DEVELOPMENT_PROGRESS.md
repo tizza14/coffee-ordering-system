@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 18:05 +08:00
+Last updated: 2026-05-14 19:30 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -12,7 +12,12 @@ Frontend features are implemented through shop/auth/cart, checkout, payment conf
 
 All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
 
-CI Pipeline and containerization are complete. All planned feature specs through `FS-016` are implemented and tested. Frontend container deployment now uses Nginx with SPA fallback to prevent direct route refresh 404s. Remaining optional items: API documentation (Swagger) and cloud deployment.
+All planned feature specs through `FS-016` are implemented, tested, and deployed. CI Pipeline, containerization, Swagger API documentation, cloud deployment, demo seed, and product imageUrl are all complete. Project is fully shipped.
+
+**Live URLs:**
+- Frontend: https://coffee-ordering-system-delta.vercel.app
+- Backend: https://coffee-ordering-system-60aw.onrender.com
+- Swagger: https://coffee-ordering-system-60aw.onrender.com/api-docs
 
 ## Backend Progress
 
@@ -502,55 +507,79 @@ Implemented:
 - `cors.spec.ts`: TC-027 (allowed origin), TC-028 (disallowed origin), TC-030 (preflight OPTIONS).
 - `test/websocket.spec.ts`: TC-029 (Socket.io polling handshake does not echo CORS header for disallowed origin).
 
-## Next Optional Work
+## Swagger API Documentation
 
-1. API documentation (Swagger/OpenAPI) — spec marks this as optional.
-2. Cloud deployment (Vercel for frontend, Render/EC2 for backend, MongoDB Atlas) — requires external accounts.
+Status: Accepted
 
-## Current Handoff Notes
+Implemented:
 
-Status at 2026-05-14 18:05 +08:00:
+- `swagger-jsdoc` + `swagger-ui-express` installed as production dependencies.
+- `backend/src/config/swagger.ts`: OpenAPI 3.0 definition with shared schemas (User, Product, Order, Notification, ApiError, Pagination) and security schemes (bearerAuth, guestToken).
+- JSDoc `@openapi` annotations added to all route files: auth, products, orders, payments, notifications, users.
+- Mounted at `/api-docs` (Swagger UI) and `/api-docs.json` (raw JSON spec).
+- Live: https://coffee-ordering-system-60aw.onrender.com/api-docs
 
-- Working tree has local uncommitted frontend containerization changes for review.
-- Do not push automatically; user wants to review before any push.
-- Git still warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level ignore rules still work.
-- Frontend container files are now present:
-  - `frontend/Dockerfile`
-  - `frontend/nginx.conf`
-  - `frontend/.dockerignore`
-- Root `docker-compose.yml` now includes `frontend` on host port `5173`, served by Nginx on container port `80`.
-- The Nginx SPA fallback fixes direct refresh on Vue routes by returning `index.html` for app routes.
+## Cloud Deployment
 
-Seed / local database state:
+Status: Accepted
 
-- `npm run seed` currently fails if no MongoDB is listening on `localhost:27017`.
-- The seed script falls back to `mongodb://localhost:27017/coffee_ordering` when `MONGODB_URI` is not set.
-- `docker-compose.yml` exists, but `docker compose up -d mongodb` may still fail before startup because Compose interpolates required backend env variables:
-  - `JWT_SECRET`
-  - `LINE_PAY_CHANNEL_ID`
-  - `LINE_PAY_CHANNEL_SECRET`
-- Docker Desktop is installed, but Docker daemon was not running:
-  - `com.docker.service` status was `Stopped`.
-  - Docker API connection failed at `npipe:////./pipe/dockerDesktopLinuxEngine`.
-- Attempt to start Docker Desktop was interrupted by the user before completion.
+Implemented:
 
-Recommended next local setup path:
+- **MongoDB Atlas**: M0 Free cluster, Singapore region (`ap-southeast-1`). Network Access set to `0.0.0.0/0` for Render dynamic IPs.
+- **Render (Backend)**: Docker container deployment from `backend/Dockerfile`. Environment variables injected via Render dashboard. URL: `https://coffee-ordering-system-60aw.onrender.com`.
+- **Vercel (Frontend)**: Connects to GitHub `main` branch, root directory `frontend/`. `VITE_API_BASE_URL` and `VITE_SOCKET_URL` set as environment variables. URL: `https://coffee-ordering-system-delta.vercel.app`.
+- **Vercel SPA routing**: `frontend/vercel.json` added with `rewrites` rule (`/(.*) → /index.html`) to prevent 404 on direct Vue route access.
 
-1. Start Docker Desktop manually or allow the agent to start `com.docker.service`.
-2. Either run MongoDB directly:
-   ```powershell
-   docker run --name coffee-mongo -p 27017:27017 -d mongo:7
-   ```
-   or provide compose env values and run:
-   ```powershell
-   $env:JWT_SECRET="dev-secret"
-   $env:LINE_PAY_CHANNEL_ID="dev-channel"
-   $env:LINE_PAY_CHANNEL_SECRET="dev-secret"
-   docker compose up -d mongodb
-   ```
-3. Run:
-   ```powershell
-   cd backend
-   npm run seed
-   ```
-4. Consider updating `src/scripts/seed.ts` to load `.env` via `dotenv.config()` and to print a clearer MongoDB startup hint on `ECONNREFUSED`.
+## Product imageUrl
+
+Status: Accepted
+
+Implemented:
+
+- `ProductModel`: added `imageUrl: { type: String, default: '' }`.
+- `product.validators.ts`: added `imageUrl: z.string().url().optional().or(z.literal(''))`.
+- `frontend/src/api/product.api.ts`: added `imageUrl?: string` to `Product` interface.
+- `ProductListView.vue`: shows 96×96 rounded image when `imageUrl` is present.
+- `AdminProductsView.vue`: added Image URL input field with live preview below input.
+
+## Demo Seed Script
+
+Status: Accepted
+
+Implemented:
+
+- `backend/src/scripts/seed.ts`: clears all users and products, then creates 3 demo accounts and 10 products with Unsplash image URLs.
+- `npm run seed` script added to `backend/package.json`.
+- Run against Atlas: `MONGODB_URI=<atlas-uri> npm run seed`
+
+Demo accounts (after seed):
+
+| Role  | Email           | Password |
+|-------|-----------------|----------|
+| Admin | admin@demo.com  | demo1234 |
+| Staff | staff@demo.com  | demo1234 |
+| User  | user@demo.com   | demo1234 |
+
+## Local Development Setup
+
+To run the full stack locally with Docker:
+
+```powershell
+# Create a .env file or export variables
+$env:JWT_SECRET="dev-secret"
+$env:LINE_PAY_CHANNEL_ID="dev-channel"
+$env:LINE_PAY_CHANNEL_SECRET="dev-secret"
+
+# Start all services
+docker compose up --build
+
+# Seed demo data (in a separate terminal)
+cd backend
+$env:MONGODB_URI="mongodb://localhost:27017/coffee_ordering"
+npm run seed
+```
+
+Services:
+- Frontend: http://localhost:5173 (Nginx serving Vite build)
+- Backend: http://localhost:3000
+- MongoDB: localhost:27017
