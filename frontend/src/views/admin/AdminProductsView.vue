@@ -1,0 +1,241 @@
+<template>
+  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+    <form
+      class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-5"
+      @submit.prevent="saveProduct"
+    >
+      <div>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">
+          Admin Products
+        </h1>
+        <p class="m-0 text-slate-600">
+          Manage shop products and redeemable items.
+        </p>
+      </div>
+
+      <label class="grid gap-1.5 font-semibold">
+        Name
+        <input
+          v-model="form.name"
+          class="min-h-10 rounded-md border border-stone-400 px-2.5"
+          required
+        >
+      </label>
+      <label class="grid gap-1.5 font-semibold">
+        Price
+        <input
+          v-model.number="form.price"
+          class="min-h-10 rounded-md border border-stone-400 px-2.5"
+          min="0"
+          required
+          type="number"
+        >
+      </label>
+      <label class="grid gap-1.5 font-semibold">
+        Category
+        <select
+          v-model="form.category"
+          class="min-h-10 rounded-md border border-stone-400 px-2.5"
+        >
+          <option value="coffee">
+            Coffee
+          </option>
+          <option value="dessert">
+            Dessert
+          </option>
+        </select>
+      </label>
+      <label class="grid gap-1.5 font-semibold">
+        Description
+        <textarea
+          v-model="form.description"
+          class="min-h-24 rounded-md border border-stone-400 px-2.5 py-2"
+        />
+      </label>
+
+      <label class="flex items-center gap-2 font-semibold">
+        <input
+          v-model="form.isAvailable"
+          type="checkbox"
+        >
+        Available
+      </label>
+      <label class="flex items-center gap-2 font-semibold">
+        <input
+          v-model="form.isRedeemable"
+          type="checkbox"
+        >
+        Redeemable for 3 points
+      </label>
+
+      <p
+        v-if="errorMessage"
+        class="m-0 font-bold text-red-700"
+      >
+        {{ errorMessage }}
+      </p>
+
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
+          type="submit"
+        >
+          {{ editingId ? 'Update' : 'Create' }}
+        </button>
+        <button
+          v-if="editingId"
+          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+          type="button"
+          @click="resetForm"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+
+    <div class="grid content-start gap-3">
+      <header class="flex items-center justify-between gap-4">
+        <h2 class="m-0 text-xl font-bold text-slate-800">
+          Products
+        </h2>
+        <button
+          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+          type="button"
+          @click="loadProducts"
+        >
+          Refresh
+        </button>
+      </header>
+
+      <p
+        v-if="productStore.isLoading"
+        class="m-0 rounded-lg border border-stone-300 bg-white p-4"
+      >
+        Loading products...
+      </p>
+      <ul
+        v-else
+        class="grid list-none gap-3 p-0"
+      >
+        <li
+          v-for="product in productStore.products"
+          :key="product.id"
+          class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4"
+        >
+          <div class="flex items-start justify-between gap-4 max-[760px]:flex-col">
+            <div>
+              <h3 class="m-0 text-lg font-bold text-slate-800">
+                {{ product.name }}
+              </h3>
+              <p class="m-0 text-slate-600">
+                {{ product.description || 'No description' }}
+              </p>
+            </div>
+            <strong>NT$ {{ product.price }}</strong>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700">
+              {{ product.category }}
+            </span>
+            <span
+              class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
+              :class="product.isAvailable ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-200 text-slate-600'"
+            >
+              {{ product.isAvailable ? 'available' : 'hidden' }}
+            </span>
+            <span
+              v-if="product.isRedeemable"
+              class="rounded-full bg-amber-100 px-2 py-1 text-xs font-extrabold uppercase text-amber-800"
+            >
+              {{ product.redeemPoints }} pts
+            </span>
+          </div>
+          <footer class="flex gap-2">
+            <button
+              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
+              type="button"
+              @click="editProduct(product)"
+            >
+              Edit
+            </button>
+            <button
+              class="min-h-9 rounded-md border border-red-700 bg-white px-3 font-bold text-red-700"
+              type="button"
+              @click="productStore.deleteProduct(product.id)"
+            >
+              Delete
+            </button>
+          </footer>
+        </li>
+      </ul>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+import { onMounted, reactive, ref } from 'vue';
+import type { Product } from '../../api/product.api';
+import { useProductAdminStore } from '../../stores/product-admin.store';
+
+const productStore = useProductAdminStore();
+const editingId = ref('');
+const errorMessage = ref('');
+const form = reactive({
+  name: '',
+  price: 0,
+  category: 'coffee' as Product['category'],
+  description: '',
+  isAvailable: true,
+  isRedeemable: false
+});
+
+function resetForm() {
+  editingId.value = '';
+  form.name = '';
+  form.price = 0;
+  form.category = 'coffee';
+  form.description = '';
+  form.isAvailable = true;
+  form.isRedeemable = false;
+}
+
+function editProduct(product: Product) {
+  editingId.value = product.id;
+  form.name = product.name;
+  form.price = product.price;
+  form.category = product.category;
+  form.description = product.description;
+  form.isAvailable = product.isAvailable;
+  form.isRedeemable = product.isRedeemable;
+}
+
+async function saveProduct() {
+  errorMessage.value = '';
+  const payload = {
+    ...form,
+    redeemPoints: 3 as const
+  };
+
+  try {
+    if (editingId.value) {
+      await productStore.updateProduct(editingId.value, payload);
+    } else {
+      await productStore.createProduct(payload);
+    }
+    resetForm();
+  } catch {
+    errorMessage.value = 'Unable to save product.';
+  }
+}
+
+async function loadProducts() {
+  errorMessage.value = '';
+  try {
+    await productStore.loadProducts();
+  } catch {
+    errorMessage.value = 'Unable to load products.';
+  }
+}
+
+onMounted(loadProducts);
+</script>
