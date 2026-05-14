@@ -1,0 +1,37 @@
+import { expect, test } from '@playwright/test';
+import { mockAuth, mockProducts } from './helpers';
+
+test.describe('Authentication', () => {
+  test('login page renders form', async ({ page }) => {
+    await page.goto('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
+  });
+
+  test('register page renders form', async ({ page }) => {
+    await page.goto('/register');
+    await expect(page.locator('text=Name')).toBeVisible();
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+  });
+
+  test('login with wrong password shows error', async ({ page }) => {
+    await mockAuth(page);
+    await page.goto('/login');
+    await page.fill('input[type="email"]', 'nobody@example.com');
+    await page.fill('input[type="password"]', 'wrongpassword');
+    await page.click('button[type="submit"]');
+    await expect(page.getByText('Unable to login with those credentials.')).toBeVisible();
+  });
+
+  test('successful login navigates to products', async ({ page }) => {
+    await mockAuth(page);
+    await mockProducts(page);
+    await page.goto('/login');
+    await page.fill('input[type="email"]', 'buyer@example.com');
+    await page.fill('input[type="password"]', 'password123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('/products');
+    await expect(page.getByText('Latte')).toBeVisible();
+  });
+});

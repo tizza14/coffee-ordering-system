@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 15:06 +08:00
+Last updated: 2026-05-14 15:20 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -10,7 +10,7 @@ Backend core features are implemented through product listing/admin CRUD, authen
 
 Frontend features are implemented through shop/auth/cart, checkout, payment confirmation, member order history, guest tracking, staff order handling, and admin product management.
 
-All planned feature specs through `FS-016` now have an implemented and verified path. Backend E2E / integration hardening is accepted with cross-module API flow coverage.
+All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted.
 
 ## Backend Progress
 
@@ -407,6 +407,7 @@ Backend commands run from `backend`:
 ```powershell
 npm.cmd run lint
 npm.cmd test
+npm.cmd run e2e
 npm.cmd run build
 ```
 
@@ -428,6 +429,7 @@ Latest result:
 
 - lint passed
 - test passed: 9 suites, 19 tests
+- e2e passed: 18 tests
 - build passed
 
 ## Environment Notes
@@ -437,8 +439,39 @@ Latest result:
 - Frontend `vitest` and `vite build` may need elevated execution in this environment because esbuild can attempt to read sandbox-blocked paths.
 - Git currently warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level `.gitignore` still works.
 
+## E2E Tests (Playwright)
+
+Status: Accepted
+
+Implemented:
+
+- Playwright 1.60 installed with Chromium browser.
+- `playwright.config.ts` configured for `frontend/e2e/` with Chromium project and `webServer` auto-start.
+- `npm run e2e` script added to `frontend/package.json`.
+- `vitest.config.ts` scoped to `src/**/*.spec.ts` to exclude Playwright specs from Vitest.
+- `e2e/helpers.ts` mock interceptors for products and auth APIs.
+- Test files:
+  - `e2e/product-shop.spec.ts`: product list, category filter, add to cart.
+  - `e2e/auth.spec.ts`: login/register form, wrong password error, successful login redirect.
+  - `e2e/checkout.spec.ts`: empty cart, guest form, order summary with cart items, guest lookup page.
+  - `e2e/staff-admin.spec.ts`: unauthenticated route guards, session-loss redirect, normal user navigation.
+
+Verified:
+
+- 18 Playwright tests pass (all using mock API interceptors; no real backend required).
+- `vitest run` still passes 9 suites, 19 tests after scope fix.
+
+## CORS / FS-016
+
+Status: Accepted
+
+Implemented:
+
+- `cors.spec.ts`: TC-027 (allowed origin), TC-028 (disallowed origin), TC-030 (preflight OPTIONS).
+- `test/websocket.spec.ts`: TC-029 (Socket.io polling handshake does not echo CORS header for disallowed origin).
+
 ## Next Recommended Work
 
-1. Prepare the first commit once the working tree is reviewed.
-2. Consider browser-level E2E smoke tests for the main UI flows if a browser test runner is added.
-3. Add deployment/runtime documentation for production environment variables and service startup.
+1. Add deployment documentation for production environment variables and service startup order.
+2. Commit the frontend Playwright E2E smoke test addition.
+3. Push commits to `origin/main` when ready.
