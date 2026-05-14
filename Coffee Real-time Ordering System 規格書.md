@@ -300,6 +300,7 @@ const requiredRedeemPoints = 3
   price: Number,
   category: 'coffee' | 'dessert',
   description: String,
+  imageUrl: String,
   isAvailable: Boolean,
   isRedeemable: Boolean,
   redeemPoints: Number
@@ -311,6 +312,7 @@ const requiredRedeemPoints = 3
 * `name`：required
 * `price`：required，需大於等於 0
 * `category`：enum `coffee` 或 `dessert`
+* `imageUrl`：選填，商品圖片 URL（需為有效 URL 格式或空字串）
 * `isAvailable`：預設為 `true`
 * `isRedeemable`：是否可用點數兌換，預設為 `false`
 * `redeemPoints`：兌換所需點數，可兌換商品預設為 3
@@ -531,6 +533,7 @@ Response:
       "price": 120,
       "category": "coffee",
       "description": "Milk coffee",
+      "imageUrl": "https://images.unsplash.com/photo-1509042239860?w=400",
       "isAvailable": true
     }
   ],
@@ -552,6 +555,7 @@ Request:
   "price": 120,
   "category": "coffee",
   "description": "Milk coffee",
+  "imageUrl": "https://images.unsplash.com/photo-1509042239860?w=400",
   "isAvailable": true
 }
 ```
@@ -1460,11 +1464,18 @@ frontend/
 
 ### 目標
 
-* 完成 Test Specifications 中列出的測試案例
-* API 文件整理
-* 雲端部署
-* 容器化部署規格
-* GitHub Actions CI/CD
+* 完成 Test Specifications 中列出的測試案例 ✅
+* API 文件整理（Swagger） ✅
+* 雲端部署 ✅
+* 容器化部署規格 ✅
+* GitHub Actions CI/CD ✅
+
+### 實際部署架構
+
+* Frontend：Vercel — `https://coffee-ordering-system-delta.vercel.app`
+* Backend：Docker container on Render — `https://coffee-ordering-system-60aw.onrender.com`
+* Database：MongoDB Atlas（M0 Free，Singapore region）
+* Local development：Docker Compose 啟動 Backend + MongoDB（`docker-compose up --build`）
 
 ### 建議部署架構
 
@@ -1477,15 +1488,27 @@ frontend/
 
 ### CI/CD 工具
 
-* GitHub Actions
+* GitHub Actions（`.github/workflows/ci.yml`）
 
 ---
 
 ### Pipeline
 
 ```
-push → test → build → deploy
+push → lint → test → build
 ```
+
+### Swagger API 文件
+
+* 路徑：`/api-docs`（Swagger UI）、`/api-docs.json`（raw OpenAPI JSON）
+* 實作：`swagger-jsdoc` + `swagger-ui-express`，JSDoc 標註於各 route 檔案
+* 線上網址：`https://coffee-ordering-system-60aw.onrender.com/api-docs`
+
+### Demo 資料 Seed
+
+* 腳本：`backend/src/scripts/seed.ts`
+* 指令：`MONGODB_URI=<atlas-uri> npm run seed`
+* 建立 3 個展示帳號（admin / staff / user）與 10 個商品（含 Unsplash 圖片 URL）
 
 ---
 
@@ -1686,8 +1709,8 @@ const http = axios.create({
 
 * 訂單流程完整且不可錯誤跳轉
 * WebSocket 可即時通知
-* 系統可部署並運行於雲端
-* API 有文件（Swagger 可選）
+* 系統可部署並運行於雲端 ✅（Render + Vercel + MongoDB Atlas）
+* API 有文件（Swagger 可選）✅（`/api-docs`）
 * 具備基本單元測試與整合測試
 * 權限控管符合 RBAC 規則
 * 對應 `AC-010`：訂單狀態更新後，User / Guest 追蹤頁應於 1 秒內更新。
@@ -2493,7 +2516,9 @@ const allowedTransitions = {
 | Backend WebSocket test | 使用 Jest + socket.io-client |
 | Backend integration test DB | 使用 `mongodb-memory-server` |
 | External payment API test | 測試中必須 mock `linePay.client.ts`，不可在 CI 呼叫真實 Line Pay API |
-| CI command | CI 必須執行 install、lint、test、build；容器化完成後需加入 Docker image build |
+| CI command | CI 執行 install、lint、test、build（`.github/workflows/ci.yml`，兩個並行 job：backend / frontend）|
+| Swagger | `swagger-jsdoc` + `swagger-ui-express`，掛載於 `/api-docs` |
+| Demo seed | `backend/src/scripts/seed.ts`，`npm run seed` 寫入展示帳號與商品資料 |
 
 ### 測試 DB 規則
 

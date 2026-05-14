@@ -104,7 +104,7 @@
 
 實際成果：
 
-* `ProductModel`：name / price / category / description / isAvailable / isRedeemable / redeemPoints
+* `ProductModel`：name / price / category / description / imageUrl / isAvailable / isRedeemable / redeemPoints
 * `GET /api/products`（public，預設只回傳 isAvailable=true）
 * `POST /api/products`、`PUT /api/products/:id`、`DELETE /api/products/:id`（admin only）
 * `isRedeemable` 商品固定 `redeemPoints = 3`，非 3 的值被 Zod 拒絕
@@ -281,7 +281,7 @@
 實際成果：
 
 * Tailwind CSS v4（`@tailwindcss/vite`）
-* `ProductListView.vue`：商品列表、品類篩選、可兌換徽章、購物車側欄（加減移除清空）
+* `ProductListView.vue`：商品列表（含圖片）、品類篩選、可兌換徽章、購物車側欄（加減移除清空）
 * `LoginView.vue`、`RegisterView.vue`
 * `authStore`：login / register / logout / setSession
 * `cartStore`：addProduct / increment / decrement / removeProduct / clearCart / totalAmount
@@ -350,7 +350,7 @@
 實際成果：
 
 * `StaffOrdersView.vue`：顯示 paid + pending 訂單，一鍵 accept / reject
-* `AdminProductsView.vue`：商品列表（含下架品）+ 建立 / 編輯 / 刪除表單
+* `AdminProductsView.vue`：商品列表（含下架品）+ 建立 / 編輯 / 刪除表單（含 imageUrl 欄位與預覽）
 * `AdminUsersView.vue`：用戶列表（分頁）+ role 選單即時更新
 * `product-admin.store.ts`、`user-admin.store.ts`
 * `user.api.ts`：`GET /api/users`、`PATCH /api/users/:id/role`
@@ -400,6 +400,50 @@
 
 ---
 
+## Agent 12：雲端部署 / Swagger / Demo Seed
+
+### 範圍
+
+* Phase 7：雲端部署
+* Swagger API 文件
+* Demo 資料 Seed 腳本
+* 商品圖片欄位（imageUrl）
+
+### 任務
+
+* `backend/Dockerfile`（multi-stage build）
+* `backend/.dockerignore`
+* `docker-compose.yml`（root level，Backend + MongoDB）
+* `.github/workflows/ci.yml`（lint → test → build，兩個並行 job）
+* Swagger（`swagger-jsdoc` + `swagger-ui-express`，掛載於 `/api-docs`）
+* `backend/src/scripts/seed.ts`（展示帳號 + 商品資料）
+* `imageUrl` 欄位加入 ProductModel / validators / frontend API type
+* 部署至 Render（後端）+ Vercel（前端）+ MongoDB Atlas
+
+### 完成狀態：✅ 已完成
+
+實際成果：
+
+* `backend/Dockerfile`：multi-stage（builder → production），執行 `node dist/server.js`
+* `backend/.dockerignore`：排除 node_modules / dist / .env / test artifacts / .git
+* `docker-compose.yml`：mongodb（mongo:7）+ backend，secrets 全部由環境變數注入
+* `.github/workflows/ci.yml`：push/PR 到 main 觸發，backend / frontend 並行 job
+* Swagger：`/api-docs`（UI）、`/api-docs.json`（raw）；涵蓋所有 API endpoint
+* `seed.ts`：3 個展示帳號（admin/staff/user，密碼 demo1234）、10 個商品（含 Unsplash 圖片）
+* `ProductModel` 新增 `imageUrl: String`（optional）
+* `ProductListView.vue` 顯示商品圖片（96×96 rounded object-cover）
+* `AdminProductsView.vue` 新增 Image URL 輸入欄與即時預覽
+
+**線上網址：**
+
+| 服務 | URL |
+|------|-----|
+| 前端 | `https://coffee-ordering-system-delta.vercel.app` |
+| 後端 | `https://coffee-ordering-system-60aw.onrender.com` |
+| Swagger | `https://coffee-ordering-system-60aw.onrender.com/api-docs` |
+
+---
+
 # 3. 最終驗證結果
 
 | 指標 | 結果 |
@@ -412,6 +456,11 @@
 | 前端 E2E (Playwright) | ✅ 18 個測試 |
 | 前端 build | ✅ 通過（vue-tsc + vite build） |
 | **自動化測試合計** | **95 個** |
+| GitHub Actions CI | ✅ `.github/workflows/ci.yml` |
+| Docker / docker-compose | ✅ backend Dockerfile + docker-compose.yml |
+| Swagger API 文件 | ✅ `/api-docs` |
+| 雲端部署 | ✅ Render + Vercel + MongoDB Atlas |
+| Demo Seed | ✅ `npm run seed` |
 
 ---
 
@@ -480,17 +529,34 @@
 9.  Frontend Checkout / Orders / Guest  ✅ 完成
 10. Frontend Staff / Admin              ✅ 完成
 11. E2E / Integration Hardening         ✅ 完成
+12. 雲端部署 / Swagger / Demo Seed      ✅ 完成
 ```
 
 ---
 
 # 7. 總結
 
-`Coffee Real-time Ordering System` 已由 11 個 AI agent 階段分工完成，共實作：
+`Coffee Real-time Ordering System` 已由 12 個 AI agent 階段分工完成，共實作：
 
 * **後端 7 個模組**：auth、products、orders、payments、notifications、points、users
 * **前端 10 個畫面**：shop、login、register、checkout、my-orders、guest-tracking、line-pay-confirm、staff-orders、admin-products、admin-users
 * **95 個自動化測試**：後端 integration 58 個、前端 unit 19 個、Playwright E2E 18 個
 * **全部 FS-001 ～ FS-016 Accepted**，TC-001 ～ TC-030 覆蓋完整
+* **完整工程化**：GitHub Actions CI、Docker、docker-compose、Swagger API 文件、Demo Seed
+* **雲端部署**：Render（後端）+ Vercel（前端）+ MongoDB Atlas（資料庫）
 
-實踐驗證：依照 FS ID 與 Phase 拆分 agent，每個 agent 只處理明確邊界並在交棒前通過 lint / test / build，可以穩定完成一個中型全端 TypeScript 系統。
+| 服務 | URL |
+|------|-----|
+| 前端 | https://coffee-ordering-system-delta.vercel.app |
+| 後端 | https://coffee-ordering-system-60aw.onrender.com |
+| API 文件 | https://coffee-ordering-system-60aw.onrender.com/api-docs |
+
+展示帳號（執行 `npm run seed` 後可用）：
+
+| 角色 | Email | 密碼 |
+|------|-------|------|
+| 管理員 | admin@demo.com | demo1234 |
+| 店員 | staff@demo.com | demo1234 |
+| 會員 | user@demo.com | demo1234 |
+
+實踐驗證：依照 FS ID 與 Phase 拆分 agent，每個 agent 只處理明確邊界並在交棒前通過 lint / test / build，可以穩定完成一個中型全端 TypeScript 系統並完整部署至雲端。
