@@ -1475,14 +1475,14 @@ frontend/
 * Frontend：Vercel — `https://coffee-ordering-system-delta.vercel.app`
 * Backend：Docker container on Render — `https://coffee-ordering-system-60aw.onrender.com`
 * Database：MongoDB Atlas（M0 Free，Singapore region）
-* Local development：Docker Compose 啟動 Backend + MongoDB（`docker-compose up --build`）
+* Local development：Docker Compose 啟動 Frontend + Backend + MongoDB（`docker-compose up --build`）
 
 ### 建議部署架構
 
-* Frontend：Vercel
+* Frontend：Vercel 或 Nginx static container
 * Backend：Docker container on Render / AWS EC2 / container platform
 * Database：MongoDB Atlas
-* Local development：Docker Compose 可啟動 Backend + MongoDB，Frontend 可用本機 Vite 或獨立 container
+* Local development：Docker Compose 可啟動 Frontend + Backend + MongoDB，Frontend 也可用本機 Vite 開發模式
 
 ---
 
@@ -1558,16 +1558,16 @@ VITE_SOCKET_URL=http://localhost:3000
 
 ### Frontend container
 
-* Frontend 若部署至 Vercel，可使用平台原生 build/deploy，不強制容器化。
-* Frontend 若部署至 EC2、Render static site 以外的平台，應提供 frontend container。
-* Frontend production image 應先執行 `npm run build`，再用靜態檔 server（例如 Nginx）提供 `dist/`。
+* Frontend 若部署至 Vercel，可使用平台原生 build/deploy；若部署至容器平台，使用 `frontend/Dockerfile`。
+* Frontend production image 應先執行 `npm run build`，再用 Nginx 提供 `dist/`。
+* Nginx 必須支援 Vue Router history mode，使用 `try_files $uri $uri/ /index.html` 避免重新整理或直接進入內頁時出現 404。
 * `VITE_API_BASE_URL` 與 `VITE_SOCKET_URL` 必須依部署目標設定，不得寫死 localhost。
 
 ### Docker Compose
 
 * 專案應提供 root-level `docker-compose.yml` 作為 local integration environment。
-* Compose 至少應支援 Backend + MongoDB。
-* Compose 可選擇加入 Frontend service。
+* Compose 至少應支援 Frontend + Backend + MongoDB。
+* Frontend service 對外提供 `5173:80`，容器內由 Nginx 服務靜態檔。
 * Compose 只作為 local / staging-like 驗證用途，不等同 production 架構。
 * Production database 應使用 MongoDB Atlas 或雲端託管資料庫，不應使用 compose 內的 MongoDB。
 
@@ -2190,7 +2190,8 @@ And 不可扣除會員點數
 | NFR-009 | Security | CORS 不可使用 `origin: *`，必須限制為 `CLIENT_ORIGIN`。 |
 | NFR-010 | Compatibility | REST API、Socket.io、Line Pay redirect 流程需支援前後端分離部署。 |
 | NFR-011 | Deployability | Backend 必須可透過 Docker image 部署，runtime secrets 必須由環境變數注入。 |
-| NFR-012 | Portability | Local integration environment 應可透過 Docker Compose 啟動 Backend + MongoDB。 |
+| NFR-012 | Portability | Local integration environment 應可透過 Docker Compose 啟動 Frontend + Backend + MongoDB。 |
+| NFR-013 | Deployability | Frontend container 必須使用靜態檔 server，並支援 SPA fallback 避免 route refresh 404。 |
 
 ---
 
@@ -2505,7 +2506,8 @@ const allowedTransitions = {
 | Frontend CSS | 使用 Tailwind CSS v4，透過 `@tailwindcss/vite` 與 `src/tailwind.css` 匯入全域樣式 |
 | Frontend RWD | Mobile-first；所有頁面需支援 mobile / tablet / desktop，使用 Tailwind responsive utilities |
 | Backend container | Backend production deployment 必須支援 Docker image |
-| Local container orchestration | 使用 Docker Compose 建立 local Backend + MongoDB integration environment |
+| Frontend container | 使用 Vite build + Nginx static server，並以 SPA fallback 支援 Vue Router 重新整理 |
+| Local container orchestration | 使用 Docker Compose 建立 local Frontend + Backend + MongoDB integration environment |
 | Lint | 前後端都必須使用 ESLint |
 | Format | 前後端都必須使用 Prettier |
 | Frontend unit test | 使用 Vitest |

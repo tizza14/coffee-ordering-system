@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 17:32 +08:00
+Last updated: 2026-05-14 18:05 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -12,7 +12,7 @@ Frontend features are implemented through shop/auth/cart, checkout, payment conf
 
 All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
 
-CI Pipeline and containerization are complete. All planned feature specs through `FS-016` are implemented, tested, and pushed to origin/main. Remaining optional items: API documentation (Swagger) and cloud deployment.
+CI Pipeline and containerization are complete. All planned feature specs through `FS-016` are implemented and tested. Frontend container deployment now uses Nginx with SPA fallback to prevent direct route refresh 404s. Remaining optional items: API documentation (Swagger) and cloud deployment.
 
 ## Backend Progress
 
@@ -455,8 +455,10 @@ Implemented:
 
 - `backend/Dockerfile`: multi-stage build (builder → production). Runs `node dist/server.js`. Uses `npm ci --omit=dev` in production stage.
 - `backend/.dockerignore`: excludes `node_modules/`, `dist/`, `.env`, logs, test artifacts, `.git/`.
-- `docker-compose.yml` (root): starts `mongodb` (mongo:7) and `backend` services. All secrets injected via environment variables; `JWT_SECRET`, `LINE_PAY_CHANNEL_ID`, `LINE_PAY_CHANNEL_SECRET` are required at runtime.
-- Frontend container not implemented (Vercel deployment path).
+- `docker-compose.yml` (root): starts `mongodb` (mongo:7), `backend`, and `frontend` services. All backend secrets are injected via environment variables; `JWT_SECRET`, `LINE_PAY_CHANNEL_ID`, `LINE_PAY_CHANNEL_SECRET` are required at runtime.
+- `frontend/Dockerfile`: builds the Vite app with Node 20 and serves compiled `dist/` through Nginx.
+- `frontend/nginx.conf`: serves static assets and uses `try_files $uri $uri/ /index.html` so Vue Router browser refreshes do not return 404.
+- `frontend/.dockerignore`: excludes `node_modules/`, `dist/`, `.env`, test reports, cache files, and Git metadata.
 
 ## CI Pipeline
 
@@ -507,17 +509,23 @@ Implemented:
 
 ## Current Handoff Notes
 
-Status at 2026-05-14 17:32 +08:00:
+Status at 2026-05-14 18:05 +08:00:
 
-- Working tree had no tracked uncommitted changes before this handoff update.
+- Working tree has local uncommitted frontend containerization changes for review.
 - Do not push automatically; user wants to review before any push.
 - Git still warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level ignore rules still work.
+- Frontend container files are now present:
+  - `frontend/Dockerfile`
+  - `frontend/nginx.conf`
+  - `frontend/.dockerignore`
+- Root `docker-compose.yml` now includes `frontend` on host port `5173`, served by Nginx on container port `80`.
+- The Nginx SPA fallback fixes direct refresh on Vue routes by returning `index.html` for app routes.
 
 Seed / local database state:
 
 - `npm run seed` currently fails if no MongoDB is listening on `localhost:27017`.
 - The seed script falls back to `mongodb://localhost:27017/coffee_ordering` when `MONGODB_URI` is not set.
-- `docker-compose.yml` exists, but `docker compose up -d mongodb` currently fails before startup because Compose interpolates required backend env variables:
+- `docker-compose.yml` exists, but `docker compose up -d mongodb` may still fail before startup because Compose interpolates required backend env variables:
   - `JWT_SECRET`
   - `LINE_PAY_CHANNEL_ID`
   - `LINE_PAY_CHANNEL_SECRET`
