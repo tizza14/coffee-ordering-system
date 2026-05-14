@@ -48,6 +48,17 @@ VITE_API_BASE_URL=http://localhost:3000/api
 VITE_SOCKET_URL=http://localhost:3000
 ```
 
+## Containerization Standards
+
+- Backend production deployment must support Docker. The backend image should run compiled `dist/server.js`, not `ts-node-dev`.
+- Docker images must never bake in `.env`, JWT secrets, Line Pay secrets, MongoDB credentials, or local-only config.
+- Runtime config must be injected through environment variables.
+- Docker builds should use `npm ci` and the committed lockfile.
+- The project should provide a root `docker-compose.yml` for local Backend + MongoDB integration once containerization is implemented.
+- Compose is for local or staging-like verification only; production database should be MongoDB Atlas or another managed database.
+- Docker build contexts must exclude `node_modules/`, `dist/`, `.env`, test reports, Playwright artifacts, and Git metadata.
+- Containerization work must preserve existing Jest, Vitest, Playwright, lint, and build checks.
+
 ## Architecture
 
 ### Backend (`backend/src/`)
@@ -169,3 +180,4 @@ PATCH  /api/users/:id/role                admin
 - Don't change the test framework (backend: Jest, frontend: Vitest)
 - Each `npm test` must pass before a feature is considered done, along with `npm run lint` and `npm run build`
 - Frontend UI changes must satisfy the RWD standards above and pass Playwright desktop/mobile smoke tests
+- Deployment/runtime changes must follow the containerization standards above

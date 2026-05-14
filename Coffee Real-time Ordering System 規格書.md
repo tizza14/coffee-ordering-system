@@ -1463,13 +1463,15 @@ frontend/
 * 完成 Test Specifications 中列出的測試案例
 * API 文件整理
 * 雲端部署
+* 容器化部署規格
 * GitHub Actions CI/CD
 
 ### 建議部署架構
 
 * Frontend：Vercel
-* Backend：Render / AWS EC2
+* Backend：Docker container on Render / AWS EC2 / container platform
 * Database：MongoDB Atlas
+* Local development：Docker Compose 可啟動 Backend + MongoDB，Frontend 可用本機 Vite 或獨立 container
 
 ---
 
@@ -1518,6 +1520,55 @@ VITE_SOCKET_URL=http://localhost:3000
 * Socket.io 需設定相同的 `CLIENT_ORIGIN`。
 * 雲端部署後需確認 HTTPS 與 WebSocket 連線可正常升級。
 * Render / EC2 上需確認環境變數與 MongoDB Atlas IP allowlist。
+
+## 12.4 容器化部署規格
+
+### Backend container
+
+* Backend 必須提供 `backend/Dockerfile`。
+* Production image 必須執行編譯後的 `dist/server.js`，不可用 `ts-node-dev` 或 dev server 啟動 production。
+* Image build 必須使用 `npm ci`，並以 lockfile 為準。
+* Container 不得內建 `.env`、JWT secret、Line Pay secret 或 MongoDB credential。
+* 所有 runtime configuration 必須透過環境變數注入。
+* Container 必須 expose Backend `PORT`，預設為 `3000`。
+* Container 啟動前不應依賴本機檔案路徑或全域 npm package。
+
+### Frontend container
+
+* Frontend 若部署至 Vercel，可使用平台原生 build/deploy，不強制容器化。
+* Frontend 若部署至 EC2、Render static site 以外的平台，應提供 frontend container。
+* Frontend production image 應先執行 `npm run build`，再用靜態檔 server（例如 Nginx）提供 `dist/`。
+* `VITE_API_BASE_URL` 與 `VITE_SOCKET_URL` 必須依部署目標設定，不得寫死 localhost。
+
+### Docker Compose
+
+* 專案應提供 root-level `docker-compose.yml` 作為 local integration environment。
+* Compose 至少應支援 Backend + MongoDB。
+* Compose 可選擇加入 Frontend service。
+* Compose 只作為 local / staging-like 驗證用途，不等同 production 架構。
+* Production database 應使用 MongoDB Atlas 或雲端託管資料庫，不應使用 compose 內的 MongoDB。
+
+### Docker ignore
+
+* Backend 與 Frontend 必須提供 `.dockerignore` 或共用 ignore 規則。
+* Docker build context 不可包含：
+  * `node_modules/`
+  * `dist/`
+  * `.env`
+  * test reports
+  * Playwright artifacts
+  * Git metadata
+
+### Container verification
+
+* CI/CD 在容器化完成後必須至少執行：
+  * `npm ci`
+  * lint
+  * unit / integration tests
+  * build
+  * Docker image build
+* Backend container 必須可透過 `/health` 驗證啟動成功。
+* 容器化變更不得降低既有 Jest、Vitest、Playwright 測試覆蓋。
 
 ### CORS 固定規則
 
@@ -2115,6 +2166,8 @@ And 不可扣除會員點數
 | NFR-008 | Compatibility | Frontend 需支援桌面與手機瀏覽器基本操作。 |
 | NFR-009 | Security | CORS 不可使用 `origin: *`，必須限制為 `CLIENT_ORIGIN`。 |
 | NFR-010 | Compatibility | REST API、Socket.io、Line Pay redirect 流程需支援前後端分離部署。 |
+| NFR-011 | Deployability | Backend 必須可透過 Docker image 部署，runtime secrets 必須由環境變數注入。 |
+| NFR-012 | Portability | Local integration environment 應可透過 Docker Compose 啟動 Backend + MongoDB。 |
 
 ---
 
@@ -2411,6 +2464,7 @@ const allowedTransitions = {
 * 對應 Test Cases 已建立並通過。
 * Frontend UI 必須支援 mobile / tablet / desktop RWD，不得只完成桌機版。
 * Frontend UI 變更必須通過 Playwright desktop 與 mobile smoke tests。
+* 若變更 deployment/runtime 行為，必須同步更新容器化規格與部署文件。
 * Traceability Matrix 已更新 Status。
 * 無 lint error。
 * 無 test failure。
@@ -2427,6 +2481,8 @@ const allowedTransitions = {
 | TypeScript | 前後端都必須啟用 `strict: true` |
 | Frontend CSS | 使用 Tailwind CSS v4，透過 `@tailwindcss/vite` 與 `src/tailwind.css` 匯入全域樣式 |
 | Frontend RWD | Mobile-first；所有頁面需支援 mobile / tablet / desktop，使用 Tailwind responsive utilities |
+| Backend container | Backend production deployment 必須支援 Docker image |
+| Local container orchestration | 使用 Docker Compose 建立 local Backend + MongoDB integration environment |
 | Lint | 前後端都必須使用 ESLint |
 | Format | 前後端都必須使用 Prettier |
 | Frontend unit test | 使用 Vitest |
@@ -2437,7 +2493,7 @@ const allowedTransitions = {
 | Backend WebSocket test | 使用 Jest + socket.io-client |
 | Backend integration test DB | 使用 `mongodb-memory-server` |
 | External payment API test | 測試中必須 mock `linePay.client.ts`，不可在 CI 呼叫真實 Line Pay API |
-| CI command | CI 必須執行 install、lint、test、build |
+| CI command | CI 必須執行 install、lint、test、build；容器化完成後需加入 Docker image build |
 
 ### 測試 DB 規則
 

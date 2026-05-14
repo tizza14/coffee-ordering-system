@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 15:34 +08:00
+Last updated: 2026-05-14 15:42 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -11,6 +11,8 @@ Backend core features are implemented through product listing/admin CRUD, authen
 Frontend features are implemented through shop/auth/cart, checkout, payment confirmation, member order history, guest tracking, staff order handling, and admin product management.
 
 All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
+
+Containerization has been added to the specification for later implementation. Dockerfiles and Docker Compose are not implemented yet.
 
 ## Backend Progress
 
@@ -445,6 +447,20 @@ RWD verification:
 - Frontend `vitest` and `vite build` may need elevated execution in this environment because esbuild can attempt to read sandbox-blocked paths.
 - Git currently warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level `.gitignore` still works.
 
+## Containerization Spec
+
+Status: Specified, not implemented
+
+Added to the spec and development guidance:
+
+- Backend production deployment must support Docker image builds.
+- Backend container must run compiled `dist/server.js`.
+- Runtime secrets must be injected via environment variables, never baked into images.
+- Local integration environment should use Docker Compose for Backend + MongoDB.
+- Frontend container is optional when deploying through Vercel, but required for container-platform deployment.
+- Docker build contexts must exclude dependency folders, build outputs, `.env`, reports, Playwright artifacts, and Git metadata.
+- CI/CD should add Docker image build after containerization is implemented.
+
 ## E2E Tests (Playwright)
 
 Status: Accepted
@@ -478,6 +494,10 @@ Implemented:
 
 ## Next Recommended Work
 
-1. Add deployment documentation for production environment variables and service startup order.
-2. Commit the RWD baseline and development-standard updates.
+1. Implement containerization:
+   - backend Dockerfile
+   - frontend Dockerfile if needed for target platform
+   - root docker-compose.yml for local Backend + MongoDB
+   - .dockerignore files
+2. Add deployment/runtime documentation for production environment variables and service startup order.
 3. Push commits to `origin/main` when ready.
