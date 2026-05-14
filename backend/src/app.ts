@@ -1,6 +1,8 @@
 import cors from 'cors';
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
+import { swaggerSpec } from './config/swagger';
 import { errorMiddleware } from './middlewares/error.middleware';
 import { authRoutes } from './modules/auth/auth.routes';
 import { notificationRoutes } from './modules/notifications/notification.routes';
@@ -25,6 +27,11 @@ export function createApp() {
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
+  });
+
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api-docs.json', (_req, res) => {
+    res.json(swaggerSpec);
   });
 
   app.use('/api/auth', authRoutes);

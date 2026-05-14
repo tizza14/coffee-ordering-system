@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 15:42 +08:00
+Last updated: 2026-05-14 17:00 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -12,7 +12,7 @@ Frontend features are implemented through shop/auth/cart, checkout, payment conf
 
 All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
 
-Containerization has been added to the specification for later implementation. Dockerfiles and Docker Compose are not implemented yet.
+CI Pipeline and containerization are complete. All planned feature specs through `FS-016` are implemented, tested, and pushed to origin/main. Remaining optional items: API documentation (Swagger) and cloud deployment.
 
 ## Backend Progress
 
@@ -447,19 +447,27 @@ RWD verification:
 - Frontend `vitest` and `vite build` may need elevated execution in this environment because esbuild can attempt to read sandbox-blocked paths.
 - Git currently warns that it cannot read `C:\Users\mseke\.config\git\ignore`; repo-level `.gitignore` still works.
 
-## Containerization Spec
+## Containerization
 
-Status: Specified, not implemented
+Status: Accepted
 
-Added to the spec and development guidance:
+Implemented:
 
-- Backend production deployment must support Docker image builds.
-- Backend container must run compiled `dist/server.js`.
-- Runtime secrets must be injected via environment variables, never baked into images.
-- Local integration environment should use Docker Compose for Backend + MongoDB.
-- Frontend container is optional when deploying through Vercel, but required for container-platform deployment.
-- Docker build contexts must exclude dependency folders, build outputs, `.env`, reports, Playwright artifacts, and Git metadata.
-- CI/CD should add Docker image build after containerization is implemented.
+- `backend/Dockerfile`: multi-stage build (builder → production). Runs `node dist/server.js`. Uses `npm ci --omit=dev` in production stage.
+- `backend/.dockerignore`: excludes `node_modules/`, `dist/`, `.env`, logs, test artifacts, `.git/`.
+- `docker-compose.yml` (root): starts `mongodb` (mongo:7) and `backend` services. All secrets injected via environment variables; `JWT_SECRET`, `LINE_PAY_CHANNEL_ID`, `LINE_PAY_CHANNEL_SECRET` are required at runtime.
+- Frontend container not implemented (Vercel deployment path).
+
+## CI Pipeline
+
+Status: Accepted
+
+Implemented:
+
+- `.github/workflows/ci.yml`: triggers on push/PR to `main`.
+- Two parallel jobs: `backend` and `frontend`.
+- Each job runs: `npm ci` → lint → test → build.
+- Backend test env injects `JWT_SECRET` and dummy Line Pay keys; no real DB needed (uses `mongodb-memory-server`).
 
 ## E2E Tests (Playwright)
 
@@ -492,12 +500,7 @@ Implemented:
 - `cors.spec.ts`: TC-027 (allowed origin), TC-028 (disallowed origin), TC-030 (preflight OPTIONS).
 - `test/websocket.spec.ts`: TC-029 (Socket.io polling handshake does not echo CORS header for disallowed origin).
 
-## Next Recommended Work
+## Next Optional Work
 
-1. Implement containerization:
-   - backend Dockerfile
-   - frontend Dockerfile if needed for target platform
-   - root docker-compose.yml for local Backend + MongoDB
-   - .dockerignore files
-2. Add deployment/runtime documentation for production environment variables and service startup order.
-3. Push commits to `origin/main` when ready.
+1. API documentation (Swagger/OpenAPI) — spec marks this as optional.
+2. Cloud deployment (Vercel for frontend, Render/EC2 for backend, MongoDB Atlas) — requires external accounts.
