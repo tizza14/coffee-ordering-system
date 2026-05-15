@@ -12,7 +12,7 @@ import { productRoutes } from './modules/products/product.routes';
 import { userRoutes } from './modules/users/user.routes';
 
 export const corsOptions = {
-  origin: env.clientOrigin,
+  origin: env.clientOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Guest-Token'],
   credentials: true

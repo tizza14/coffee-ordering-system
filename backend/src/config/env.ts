@@ -2,6 +2,21 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const defaultClientOrigins = [
+  'http://localhost:5173',
+  'https://coffee-ordering-system-delta.vercel.app'
+];
+
+const configuredClientOrigins = process.env.CLIENT_ORIGIN
+  ? process.env.CLIENT_ORIGIN.split(',')
+  : [];
+
+const clientOrigins = Array.from(
+  new Set([...configuredClientOrigins, ...defaultClientOrigins])
+)
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: Number(process.env.PORT ?? 3000),
@@ -9,7 +24,8 @@ export const env = {
     process.env.MONGODB_URI ?? 'mongodb://localhost:27017/coffee_ordering',
   jwtSecret: process.env.JWT_SECRET ?? 'change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1d',
-  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
+  clientOrigins,
+  clientOrigin: clientOrigins[0],
   linePayChannelId: process.env.LINE_PAY_CHANNEL_ID ?? 'test-channel-id',
   linePayChannelSecret:
     process.env.LINE_PAY_CHANNEL_SECRET ?? 'test-channel-secret',

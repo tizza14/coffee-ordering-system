@@ -6,15 +6,11 @@ const app = createApp();
 
 describe('CORS', () => {
   // TC-027
-  it('allows configured CLIENT_ORIGIN', async () => {
-    const response = await request(app)
-      .options('/api/products')
-      .set('Origin', env.clientOrigin);
+  it.each(env.clientOrigins)('allows configured origin %s', async (origin) => {
+    const response = await request(app).options('/api/products').set('Origin', origin);
 
     expect(response.status).toBe(204);
-    expect(response.headers['access-control-allow-origin']).toBe(
-      env.clientOrigin
-    );
+    expect(response.headers['access-control-allow-origin']).toBe(origin);
   });
 
   // TC-028
