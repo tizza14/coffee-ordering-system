@@ -268,14 +268,14 @@ test.describe('Authenticated navigation', () => {
     await expect(page).toHaveURL('/products');
   });
 
-  test('direct protected staff URL after reload redirects to login without persisted session', async ({ page }) => {
+  test('direct protected staff URL redirects authenticated user without staff role', async ({ page }) => {
     await page.goto('/staff/orders');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/products');
   });
 
-  test('direct protected admin URL after reload redirects to login without persisted session', async ({ page }) => {
+  test('direct protected admin URL redirects authenticated user without admin role', async ({ page }) => {
     await page.goto('/admin/users');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/products');
   });
 
   test('normal user can open my orders through app navigation', async ({ page }) => {
@@ -284,6 +284,18 @@ test.describe('Authenticated navigation', () => {
     });
 
     await page.getByRole('navigation').getByRole('link', { name: 'My Orders' }).click();
+    await expect(page).toHaveURL('/orders/my');
+    await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible();
+  });
+
+  test('member session persists after reload', async ({ page }) => {
+    await page.route('**/api/orders/my', async (route) => {
+      await route.fulfill({ json: { data: [] } });
+    });
+
+    await page.goto('/orders/my');
+    await page.reload();
+
     await expect(page).toHaveURL('/orders/my');
     await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible();
   });

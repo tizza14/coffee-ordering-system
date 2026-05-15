@@ -12,6 +12,7 @@ const mockedAuthApi = vi.mocked(authApi);
 
 describe('authStore', () => {
   beforeEach(() => {
+    localStorage.clear();
     setActivePinia(createPinia());
     vi.resetAllMocks();
   });
@@ -36,6 +37,15 @@ describe('authStore', () => {
     expect(authStore.user?.email).toBe('alice@example.com');
     expect(authStore.accessToken).toBe('token');
     expect(authStore.isAuthenticated).toBe(true);
+    expect(JSON.parse(localStorage.getItem('coffee-ordering-auth') ?? '{}')).toEqual({
+      user: {
+        id: 'u1',
+        name: 'Alice',
+        email: 'alice@example.com',
+        role: 'user'
+      },
+      accessToken: 'token'
+    });
   });
 
   it('registers and clears session on logout', async () => {
@@ -60,5 +70,28 @@ describe('authStore', () => {
     expect(authStore.user).toBeNull();
     expect(authStore.accessToken).toBe('');
     expect(authStore.isAuthenticated).toBe(false);
+    expect(localStorage.getItem('coffee-ordering-auth')).toBeNull();
+  });
+
+  it('restores session from localStorage', () => {
+    localStorage.setItem(
+      'coffee-ordering-auth',
+      JSON.stringify({
+        user: {
+          id: 'u1',
+          name: 'Alice',
+          email: 'alice@example.com',
+          role: 'staff'
+        },
+        accessToken: 'stored-token'
+      })
+    );
+    setActivePinia(createPinia());
+
+    const authStore = useAuthStore();
+
+    expect(authStore.user?.role).toBe('staff');
+    expect(authStore.accessToken).toBe('stored-token');
+    expect(authStore.isAuthenticated).toBe(true);
   });
 });
