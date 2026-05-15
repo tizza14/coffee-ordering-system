@@ -77,6 +77,35 @@
       </article>
     </section>
 
+    <section
+      v-if="orderStore.todaySummary"
+      class="rounded-lg border border-stone-300 bg-white p-4"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="m-0 text-lg font-bold text-slate-800">今日銷售品項</h2>
+        <span class="text-sm font-bold text-slate-500">
+          已售 {{ orderStore.todaySummary.itemQuantity }} 件
+        </span>
+      </div>
+      <p
+        v-if="orderStore.todaySummary.soldItems.length === 0"
+        class="m-0 pt-3 text-slate-600"
+      >
+        尚無已付款品項。
+      </p>
+      <ul v-else class="grid list-none gap-2 p-0">
+        <li
+          v-for="item in orderStore.todaySummary.soldItems"
+          :key="item.productId"
+          class="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-t border-stone-200 pt-2 text-slate-800"
+        >
+          <strong>{{ item.name }}</strong>
+          <span class="font-bold">x {{ item.quantity }}</span>
+          <span>NT$ {{ item.revenue }}</span>
+        </li>
+      </ul>
+    </section>
+
     <p
       v-if="isLoading"
       class="m-0 rounded-lg border border-stone-300 bg-white p-4"

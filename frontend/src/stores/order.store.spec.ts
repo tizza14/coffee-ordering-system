@@ -101,6 +101,14 @@ describe('orderStore', () => {
       paidRevenue: 360,
       averagePaidOrderValue: 180,
       itemQuantity: 4,
+      soldItems: [
+        {
+          productId: 'p1',
+          name: 'Latte',
+          quantity: 4,
+          revenue: 480
+        }
+      ],
       guestOrders: 2,
       memberOrders: 1,
       statusCounts: {

@@ -40,6 +40,13 @@ type PaymentStatus =
   | 'payment_failed'
   | 'refunded';
 
+interface SoldItemSummary {
+  productId: string;
+  name: string;
+  quantity: number;
+  revenue: number;
+}
+
 function getTaipeiDayRange(now = new Date()) {
   const taipeiOffsetMs = 8 * 60 * 60 * 1000;
   const taipeiNow = new Date(now.getTime() + taipeiOffsetMs);
@@ -271,15 +278,29 @@ export async function getTodayStaffSummary(now = new Date()) {
   let guestOrders = 0;
   let memberOrders = 0;
   let itemQuantity = 0;
+  const soldItemsByProduct = new Map<string, SoldItemSummary>();
 
   for (const order of orders) {
     statusCounts[order.status as OrderStatus] += 1;
     paymentStatusCounts[order.paymentStatus as PaymentStatus] += 1;
-    itemQuantity += order.items.reduce((sum, item) => sum + item.quantity, 0);
 
     if (order.paymentStatus === 'paid') {
       paidOrders += 1;
       paidRevenue += order.paidAmount || order.totalAmount;
+      itemQuantity += order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+      for (const item of order.items) {
+        const productId = String(item.productId);
+        const current = soldItemsByProduct.get(productId) ?? {
+          productId,
+          name: item.name,
+          quantity: 0,
+          revenue: 0
+        };
+        current.quantity += item.quantity;
+        current.revenue += item.price * item.quantity;
+        soldItemsByProduct.set(productId, current);
+      }
     }
 
     if (order.userId) {
@@ -298,6 +319,9 @@ export async function getTodayStaffSummary(now = new Date()) {
     averagePaidOrderValue:
       paidOrders > 0 ? Math.round(paidRevenue / paidOrders) : 0,
     itemQuantity,
+    soldItems: Array.from(soldItemsByProduct.values()).sort(
+      (left, right) => right.quantity - left.quantity
+    ),
     guestOrders,
     memberOrders,
     statusCounts,

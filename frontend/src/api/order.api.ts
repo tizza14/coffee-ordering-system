@@ -52,6 +52,12 @@ export interface TodayOrderSummary {
   paidRevenue: number;
   averagePaidOrderValue: number;
   itemQuantity: number;
+  soldItems: Array<{
+    productId: string;
+    name: string;
+    quantity: number;
+    revenue: number;
+  }>;
   guestOrders: number;
   memberOrders: number;
   statusCounts: Record<Order['status'], number>;

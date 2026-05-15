@@ -249,7 +249,15 @@ describe('Order API', () => {
     expect(response.body.paidOrders).toBe(2);
     expect(response.body.paidRevenue).toBe(360);
     expect(response.body.averagePaidOrderValue).toBe(180);
-    expect(response.body.itemQuantity).toBe(4);
+    expect(response.body.itemQuantity).toBe(3);
+    expect(response.body.soldItems).toEqual([
+      {
+        productId: String(product._id),
+        name: 'Latte',
+        quantity: 3,
+        revenue: 360
+      }
+    ]);
     expect(response.body.guestOrders).toBe(2);
     expect(response.body.memberOrders).toBe(1);
     expect(response.body.statusCounts).toMatchObject({
