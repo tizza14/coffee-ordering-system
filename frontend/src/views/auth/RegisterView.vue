@@ -7,14 +7,14 @@
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Register</h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">註冊</h1>
         <p class="m-0 text-slate-600">
-          Create an account to earn points on paid orders.
+          建立帳號後即可累積已付款訂單的點數。
         </p>
       </div>
 
       <label class="grid gap-1.5 font-semibold">
-        Name
+        姓名
         <input
           v-model="name"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -26,7 +26,7 @@
       </label>
 
       <label class="grid gap-1.5 font-semibold">
-        Email
+        電子郵件
         <input
           v-model="email"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -37,7 +37,7 @@
       </label>
 
       <label class="grid gap-1.5 font-semibold">
-        Password
+        密碼
         <input
           v-model="password"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -57,7 +57,7 @@
         type="submit"
         :disabled="isSubmitting"
       >
-        {{ isSubmitting ? 'Creating account...' : 'Register' }}
+        {{ isSubmitting ? '建立帳號中...' : '註冊' }}
       </button>
     </form>
   </section>
@@ -87,7 +87,7 @@ async function submit() {
     });
     await router.push('/products');
   } catch {
-    errorMessage.value = 'Unable to create that account.';
+    errorMessage.value = '無法建立這個帳號。';
   } finally {
     isSubmitting.value = false;
   }

@@ -4,15 +4,15 @@
       class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Admin Users</h1>
-        <p class="m-0 text-slate-600">View and manage user roles.</p>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">使用者管理</h1>
+        <p class="m-0 text-slate-600">檢視並管理使用者角色。</p>
       </div>
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
         type="button"
         @click="loadUsers()"
       >
-        Refresh
+        重新整理
       </button>
     </header>
 
@@ -24,7 +24,7 @@
       v-if="userStore.isLoading"
       class="rounded-lg border border-stone-300 bg-white p-4"
     >
-      Loading users...
+      載入使用者中...
     </p>
 
     <div v-else class="grid gap-3">
@@ -40,7 +40,7 @@
           <p class="m-0 text-sm text-slate-500">
             {{ user.email }}
           </p>
-          <p class="m-0 text-sm text-slate-500">Points: {{ user.points }}</p>
+          <p class="m-0 text-sm text-slate-500">點數：{{ user.points }}</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -48,7 +48,7 @@
             class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
             :class="roleBadgeClass(user.role)"
           >
-            {{ user.role }}
+            {{ roleLabel(user.role) }}
           </span>
           <select
             class="min-h-9 rounded-md border border-stone-400 px-2 text-sm"
@@ -63,9 +63,9 @@
               )
             "
           >
-            <option value="user">user</option>
-            <option value="staff">staff</option>
-            <option value="admin">admin</option>
+            <option value="user">一般使用者</option>
+            <option value="staff">員工</option>
+            <option value="admin">管理者</option>
           </select>
         </div>
       </div>
@@ -74,7 +74,7 @@
         v-if="!userStore.isLoading && userStore.users.length === 0"
         class="rounded-lg border border-stone-300 bg-white p-4 text-slate-500"
       >
-        No users found.
+        尚未找到使用者。
       </div>
     </div>
 
@@ -88,10 +88,10 @@
         type="button"
         @click="goToPage(userStore.pagination.page - 1)"
       >
-        Prev
+        上一頁
       </button>
       <span class="text-sm text-slate-600">
-        Page {{ userStore.pagination.page }} / {{ totalPages }}
+        第 {{ userStore.pagination.page }} 頁 / 共 {{ totalPages }} 頁
       </span>
       <button
         class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-50"
@@ -99,7 +99,7 @@
         type="button"
         @click="goToPage(userStore.pagination.page + 1)"
       >
-        Next
+        下一頁
       </button>
     </div>
   </section>
@@ -120,6 +120,12 @@ const totalPages = computed(() =>
   )
 );
 
+function roleLabel(role: User['role']) {
+  if (role === 'admin') return '管理者';
+  if (role === 'staff') return '員工';
+  return '一般使用者';
+}
+
 function roleBadgeClass(role: User['role']) {
   if (role === 'admin') return 'bg-purple-100 text-purple-800';
   if (role === 'staff') return 'bg-blue-100 text-blue-800';
@@ -131,7 +137,7 @@ async function onRoleChange(id: string, role: User['role']) {
   try {
     await userStore.updateRole(id, role);
   } catch {
-    errorMessage.value = 'Unable to update role.';
+    errorMessage.value = '無法更新角色。';
   }
 }
 
@@ -140,7 +146,7 @@ async function loadUsers(page = 1) {
   try {
     await userStore.loadUsers(page);
   } catch {
-    errorMessage.value = 'Unable to load users.';
+    errorMessage.value = '無法載入使用者。';
   }
 }
 

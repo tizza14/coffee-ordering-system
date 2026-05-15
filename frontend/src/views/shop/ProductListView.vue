@@ -7,8 +7,8 @@
         class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch"
       >
         <div>
-          <h1 class="m-0 text-2xl font-bold text-slate-800">Products</h1>
-          <p class="m-0 text-slate-600">Available coffee and desserts</p>
+          <h1 class="m-0 text-2xl font-bold text-slate-800">商品</h1>
+          <p class="m-0 text-slate-600">可點選咖啡與甜點</p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
@@ -28,7 +28,7 @@
         </div>
       </header>
 
-      <p v-if="isLoading" class="py-4">Loading products...</p>
+      <p v-if="isLoading" class="py-4">載入商品中...</p>
       <p v-else-if="errorMessage" class="py-4 font-bold text-red-700">
         {{ errorMessage }}
       </p>
@@ -48,13 +48,14 @@
             <div class="grid gap-1.5">
               <span
                 class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
-                >{{ product.category }}</span
               >
+                {{ categoryLabel(product.category) }}
+              </span>
               <h2 class="m-0 text-xl font-bold text-slate-800">
                 {{ product.name }}
               </h2>
               <p class="m-0 text-slate-600">
-                {{ product.description || 'No description' }}
+                {{ product.description || '尚無說明' }}
               </p>
               <strong>NT$ {{ product.price }}</strong>
             </div>
@@ -66,14 +67,14 @@
               v-if="product.isRedeemable"
               class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
             >
-              {{ product.redeemPoints }} pts
+              可兌換 {{ product.redeemPoints }} 點
             </span>
             <button
               class="min-h-9 rounded-md border border-slate-800 bg-slate-800 px-3 font-bold text-white"
               type="button"
               @click="cartStore.addProduct(product)"
             >
-              Add
+              加入
             </button>
           </div>
         </li>
@@ -84,19 +85,19 @@
       class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-bold text-slate-800">Cart</h2>
+        <h2 class="m-0 text-xl font-bold text-slate-800">購物車</h2>
         <button
           class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-55"
           type="button"
           :disabled="cartStore.items.length === 0"
           @click="cartStore.clearCart()"
         >
-          Clear
+          清空
         </button>
       </div>
 
       <p v-if="cartStore.items.length === 0" class="py-4 text-slate-600">
-        No items selected.
+        目前尚未選擇商品。
       </p>
       <ul v-else class="grid list-none gap-3 p-0">
         <li
@@ -130,7 +131,7 @@
             class="col-span-full min-h-8 w-fit rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
             @click="cartStore.removeProduct(item.productId)"
           >
-            Remove
+            移除
           </button>
         </li>
       </ul>
@@ -138,14 +139,14 @@
       <footer
         class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
       >
-        <span>Total</span>
+        <span>總計</span>
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
       <RouterLink
         class="grid min-h-10 place-items-center rounded-md bg-slate-800 px-4 font-bold text-white no-underline"
         to="/checkout"
       >
-        Checkout
+        前往結帳
       </RouterLink>
     </aside>
   </section>
@@ -160,9 +161,9 @@ import { useCartStore } from '../../stores/cart.store';
 type CategoryFilter = 'all' | 'coffee' | 'dessert';
 
 const categoryOptions: Array<{ label: string; value: CategoryFilter }> = [
-  { label: 'All', value: 'all' },
-  { label: 'Coffee', value: 'coffee' },
-  { label: 'Dessert', value: 'dessert' }
+  { label: '全部', value: 'all' },
+  { label: '咖啡', value: 'coffee' },
+  { label: '甜點', value: 'dessert' }
 ];
 
 const cartStore = useCartStore();
@@ -170,6 +171,10 @@ const products = ref<Product[]>([]);
 const selectedCategory = ref<CategoryFilter>('all');
 const isLoading = ref(false);
 const errorMessage = ref('');
+
+function categoryLabel(value: Product['category']) {
+  return value === 'coffee' ? '咖啡' : '甜點';
+}
 
 const filteredProducts = computed(() => {
   if (selectedCategory.value === 'all') return products.value;
@@ -184,7 +189,7 @@ onMounted(async () => {
     const result = await getProducts();
     products.value = result.data;
   } catch {
-    errorMessage.value = 'Unable to load products.';
+    errorMessage.value = '無法載入商品。';
   } finally {
     isLoading.value = false;
   }

@@ -7,14 +7,14 @@
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Login</h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">登入</h1>
         <p class="m-0 text-slate-600">
-          Use your account to place member orders and earn points.
+          使用帳號登入後即可點會員訂單並累積點數。
         </p>
       </div>
 
       <label class="grid gap-1.5 font-semibold">
-        Email
+        電子郵件
         <input
           v-model="email"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -25,7 +25,7 @@
       </label>
 
       <label class="grid gap-1.5 font-semibold">
-        Password
+        密碼
         <input
           v-model="password"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -45,7 +45,7 @@
         type="submit"
         :disabled="isSubmitting"
       >
-        {{ isSubmitting ? 'Logging in...' : 'Login' }}
+        {{ isSubmitting ? '登入中...' : '登入' }}
       </button>
     </form>
   </section>
@@ -70,7 +70,7 @@ async function submit() {
     await authStore.login({ email: email.value, password: password.value });
     await router.push('/products');
   } catch {
-    errorMessage.value = 'Unable to login with those credentials.';
+    errorMessage.value = '無法使用這組帳密登入。';
   } finally {
     isSubmitting.value = false;
   }

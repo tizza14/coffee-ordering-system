@@ -1,28 +1,28 @@
 import { expect, test } from '@playwright/test';
 import { mockProducts } from './helpers';
 
-test.describe('Product shop', () => {
+test.describe('商品頁', () => {
   test.beforeEach(async ({ page }) => {
     await mockProducts(page);
   });
 
-  test('product list page loads and shows products nav', async ({ page }) => {
+  test('商品列表頁可正常顯示導覽與商品', async ({ page }) => {
     await page.goto('/products');
-    await expect(page.locator('text=Coffee Ordering')).toBeVisible();
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Checkout' })).toBeVisible();
+    await expect(page.locator('text=咖啡點餐系統')).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: '結帳' })).toBeVisible();
     await expect(page.getByText('Latte')).toBeVisible();
   });
 
-  test('category filter buttons are present', async ({ page }) => {
+  test('分類篩選按鈕可正常顯示', async ({ page }) => {
     await page.goto('/products');
-    await expect(page.locator('button:has-text("All")')).toBeVisible();
-    await expect(page.locator('button:has-text("Coffee")')).toBeVisible();
-    await expect(page.locator('button:has-text("Dessert")')).toBeVisible();
+    await expect(page.locator('button:has-text("全部")')).toBeVisible();
+    await expect(page.locator('button:has-text("咖啡")')).toBeVisible();
+    await expect(page.locator('button:has-text("甜點")')).toBeVisible();
   });
 
-  test('adds a product to the cart', async ({ page }) => {
+  test('可將商品加入購物車', async ({ page }) => {
     await page.goto('/products');
-    await page.locator('li', { hasText: 'Latte' }).getByRole('button', { name: 'Add' }).click();
+    await page.locator('li', { hasText: 'Latte' }).getByRole('button', { name: '加入' }).click();
     await expect(page.locator('aside').getByText('Latte')).toBeVisible();
     await expect(page.locator('aside footer').getByText('NT$ 120')).toBeVisible();
   });

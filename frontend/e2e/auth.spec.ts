@@ -11,7 +11,7 @@ test.describe('Authentication', () => {
 
   test('register page renders form', async ({ page }) => {
     await page.goto('/register');
-    await expect(page.locator('text=Name')).toBeVisible();
+    await expect(page.locator('text=姓名')).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
@@ -21,7 +21,7 @@ test.describe('Authentication', () => {
     await page.fill('input[type="email"]', 'nobody@example.com');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
-    await expect(page.getByText('Unable to login with those credentials.')).toBeVisible();
+    await expect(page.getByText('無法使用這組帳密登入。')).toBeVisible();
   });
 
   test('successful login navigates to products', async ({ page }) => {

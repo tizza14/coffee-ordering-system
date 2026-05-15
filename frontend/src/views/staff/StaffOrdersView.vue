@@ -4,15 +4,15 @@
       class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Staff Orders</h1>
-        <p class="m-0 text-slate-600">Paid orders waiting for preparation.</p>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">員工訂單</h1>
+        <p class="m-0 text-slate-600">查看已付款訂單並進行後續處理。</p>
       </div>
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
         type="button"
         @click="loadDashboard"
       >
-        Refresh
+        重新整理
       </button>
     </header>
 
@@ -22,7 +22,7 @@
     >
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <p class="m-0 text-sm font-bold uppercase text-slate-500">
-          Today's Revenue
+          今日營收
         </p>
         <strong class="text-2xl text-slate-800">
           NT$ {{ orderStore.todaySummary.paidRevenue }}
@@ -30,7 +30,7 @@
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <p class="m-0 text-sm font-bold uppercase text-slate-500">
-          Paid Orders
+          已付款訂單
         </p>
         <strong class="text-2xl text-slate-800">
           {{ orderStore.todaySummary.paidOrders }} /
@@ -39,7 +39,7 @@
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <p class="m-0 text-sm font-bold uppercase text-slate-500">
-          Items Sold
+          已售品項
         </p>
         <strong class="text-2xl text-slate-800">
           {{ orderStore.todaySummary.itemQuantity }}
@@ -47,7 +47,7 @@
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <p class="m-0 text-sm font-bold uppercase text-slate-500">
-          Avg. Paid Order
+          平均單筆金額
         </p>
         <strong class="text-2xl text-slate-800">
           NT$ {{ orderStore.todaySummary.averagePaidOrderValue }}
@@ -55,24 +55,21 @@
       </article>
     </section>
 
-    <section
-      v-if="orderStore.todaySummary"
-      class="grid gap-3 lg:grid-cols-2"
-    >
+    <section v-if="orderStore.todaySummary" class="grid gap-3 lg:grid-cols-2">
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="m-0 text-lg font-bold text-slate-800">Customer Mix</h2>
+        <h2 class="m-0 text-lg font-bold text-slate-800">客群比例</h2>
         <p class="m-0 text-slate-700">
-          Guests: {{ orderStore.todaySummary.guestOrders }} / Members:
+          訪客：{{ orderStore.todaySummary.guestOrders }} / 會員：
           {{ orderStore.todaySummary.memberOrders }}
         </p>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="m-0 text-lg font-bold text-slate-800">Order Status</h2>
+        <h2 class="m-0 text-lg font-bold text-slate-800">訂單狀態</h2>
         <p class="m-0 text-slate-700">
-          Pending: {{ orderStore.todaySummary.statusCounts.pending }} /
-          Preparing: {{ orderStore.todaySummary.statusCounts.preparing }} /
-          Ready: {{ orderStore.todaySummary.statusCounts.ready }} /
-          Completed: {{ orderStore.todaySummary.statusCounts.completed }}
+          待處理：{{ orderStore.todaySummary.statusCounts.pending }} /
+          製作中：{{ orderStore.todaySummary.statusCounts.preparing }} /
+          可取餐：{{ orderStore.todaySummary.statusCounts.ready }} /
+          已完成：{{ orderStore.todaySummary.statusCounts.completed }}
         </p>
       </article>
     </section>
@@ -87,10 +84,7 @@
           已售 {{ orderStore.todaySummary.itemQuantity }} 件
         </span>
       </div>
-      <p
-        v-if="soldItems.length === 0"
-        class="m-0 pt-3 text-slate-600"
-      >
+      <p v-if="soldItems.length === 0" class="m-0 pt-3 text-slate-600">
         尚無已付款品項。
       </p>
       <ul v-else class="grid list-none gap-2 p-0">
@@ -110,7 +104,7 @@
       v-if="isLoading"
       class="m-0 rounded-lg border border-stone-300 bg-white p-4"
     >
-      Loading orders...
+      載入訂單中...
     </p>
     <p
       v-else-if="errorMessage"
@@ -122,7 +116,7 @@
       v-else-if="orderStore.staffOrders.length === 0"
       class="m-0 rounded-lg border border-stone-300 bg-white p-4 text-slate-600"
     >
-      No paid pending orders.
+      目前沒有已付款待處理訂單。
     </p>
 
     <ul v-else class="grid list-none gap-3 p-0">
@@ -131,27 +125,25 @@
         :key="order.id"
         class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4"
       >
-        <div
-          class="flex items-start justify-between gap-4 max-[760px]:flex-col"
-        >
+        <div class="flex items-start justify-between gap-4 max-[760px]:flex-col">
           <div>
             <h2 class="m-0 text-xl font-bold text-slate-800">
-              Order {{ order.orderLookupCode || order.id.slice(-6) }}
+              訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
             </h2>
             <p class="m-0 text-slate-600">
-              {{ order.guestInfo?.name || order.userId || 'Member order' }}
+              {{ order.guestInfo?.name || order.userId || '會員訂單' }}
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
               class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
             >
-              {{ order.paymentStatus }}
+              {{ paymentStatusLabel(order.paymentStatus) }}
             </span>
             <span
               class="rounded-full bg-slate-800 px-2 py-1 text-xs font-extrabold uppercase text-white"
             >
-              {{ order.status }}
+              {{ statusLabel(order.status) }}
             </span>
           </div>
         </div>
@@ -180,7 +172,7 @@
               :disabled="isUpdating === order.id"
               @click="updateStatus(order.id, status)"
             >
-              {{ status }}
+              {{ statusButtonLabel(status) }}
             </button>
           </div>
         </footer>
@@ -214,6 +206,40 @@ function getNextStatuses(status: Order['status']) {
   return nextStatusesByStatus[status];
 }
 
+function statusLabel(status: Order['status']) {
+  const labels: Record<Order['status'], string> = {
+    pending: '待處理',
+    accepted: '已接單',
+    preparing: '製作中',
+    ready: '可取餐',
+    completed: '已完成',
+    cancelled: '已取消'
+  };
+  return labels[status];
+}
+
+function paymentStatusLabel(status: Order['paymentStatus']) {
+  const labels: Record<Order['paymentStatus'], string> = {
+    unpaid: '未付款',
+    payment_pending: '付款處理中',
+    paid: '已付款',
+    payment_failed: '付款失敗',
+    refunded: '已退款'
+  };
+  return labels[status];
+}
+
+function statusButtonLabel(status: OrderTransitionStatus) {
+  const labels: Record<OrderTransitionStatus, string> = {
+    accepted: '接單',
+    preparing: '製作中',
+    ready: '可取餐',
+    completed: '完成',
+    cancelled: '取消'
+  };
+  return labels[status];
+}
+
 async function loadDashboard() {
   isLoading.value = true;
   errorMessage.value = '';
@@ -223,23 +249,20 @@ async function loadDashboard() {
       orderStore.loadStaffOrders()
     ]);
   } catch {
-    errorMessage.value = 'Unable to load staff orders.';
+    errorMessage.value = '無法載入員工訂單。';
   } finally {
     isLoading.value = false;
   }
 }
 
-async function updateStatus(
-  orderId: string,
-  status: OrderTransitionStatus
-) {
+async function updateStatus(orderId: string, status: OrderTransitionStatus) {
   isUpdating.value = orderId;
   errorMessage.value = '';
   try {
     await orderStore.updateStaffOrderStatus(orderId, status);
     await orderStore.loadTodaySummary();
   } catch {
-    errorMessage.value = 'Unable to update order status.';
+    errorMessage.value = '無法更新訂單狀態。';
   } finally {
     isUpdating.value = '';
   }

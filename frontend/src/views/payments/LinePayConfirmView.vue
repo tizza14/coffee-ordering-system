@@ -33,15 +33,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { RouterLink } from 'vue-router';
+import { useRoute, RouterLink } from 'vue-router';
 import { useOrderStore } from '../../stores/order.store';
 import { usePaymentStore } from '../../stores/payment.store';
 
 const route = useRoute();
 const orderStore = useOrderStore();
 const paymentStore = usePaymentStore();
-const message = ref('Confirming payment...');
+const message = ref('正在確認付款...');
 const lookupCode = ref('');
 const guestToken = ref('');
 
@@ -68,7 +67,7 @@ onMounted(async () => {
   }
 
   if (!orderId || !transactionId) {
-    message.value = 'Missing payment confirmation parameters.';
+    message.value = '缺少付款確認參數。';
     return;
   }
 
@@ -78,9 +77,9 @@ onMounted(async () => {
       transactionId,
       guestToken.value || undefined
     );
-    message.value = 'Payment confirmed.';
+    message.value = '付款已完成。';
   } catch {
-    message.value = 'Unable to confirm payment.';
+    message.value = '無法確認付款。';
   }
 });
 </script>

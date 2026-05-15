@@ -7,14 +7,14 @@
       @submit.prevent="saveProduct"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Admin Products</h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">商品管理</h1>
         <p class="m-0 text-slate-600">
-          Manage shop products and redeemable items.
+          管理店內商品與可兌換品項。
         </p>
       </div>
 
       <label class="grid gap-1.5 font-semibold">
-        Name
+        商品名稱
         <input
           v-model="form.name"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -22,7 +22,7 @@
         />
       </label>
       <label class="grid gap-1.5 font-semibold">
-        Price
+        價格
         <input
           v-model.number="form.price"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -32,24 +32,24 @@
         />
       </label>
       <label class="grid gap-1.5 font-semibold">
-        Category
+        分類
         <select
           v-model="form.category"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
         >
-          <option value="coffee">Coffee</option>
-          <option value="dessert">Dessert</option>
+          <option value="coffee">咖啡</option>
+          <option value="dessert">甜點</option>
         </select>
       </label>
       <label class="grid gap-1.5 font-semibold">
-        Description
+        說明
         <textarea
           v-model="form.description"
           class="min-h-24 rounded-md border border-stone-400 px-2.5 py-2"
         />
       </label>
       <label class="grid gap-1.5 font-semibold">
-        Image URL
+        圖片網址
         <input
           v-model="form.imageUrl"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -59,18 +59,18 @@
         <img
           v-if="form.imageUrl"
           :src="form.imageUrl"
-          alt="preview"
+          alt="預覽"
           class="h-32 w-32 rounded-lg object-cover"
         />
       </label>
 
       <label class="flex items-center gap-2 font-semibold">
         <input v-model="form.isAvailable" type="checkbox" />
-        Available
+        上架中
       </label>
       <label class="flex items-center gap-2 font-semibold">
         <input v-model="form.isRedeemable" type="checkbox" />
-        Redeemable for 3 points
+        可用 3 點兌換
       </label>
 
       <p v-if="errorMessage" class="m-0 font-bold text-red-700">
@@ -82,7 +82,7 @@
           class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
           type="submit"
         >
-          {{ editingId ? 'Update' : 'Create' }}
+          {{ editingId ? '更新' : '新增' }}
         </button>
         <button
           v-if="editingId"
@@ -90,7 +90,7 @@
           type="button"
           @click="resetForm"
         >
-          Cancel
+          取消
         </button>
       </div>
     </form>
@@ -99,13 +99,13 @@
       <header
         class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
       >
-        <h2 class="m-0 text-xl font-bold text-slate-800">Products</h2>
+        <h2 class="m-0 text-xl font-bold text-slate-800">商品列表</h2>
         <button
           class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
           type="button"
           @click="loadProducts"
         >
-          Refresh
+          重新整理
         </button>
       </header>
 
@@ -113,7 +113,7 @@
         v-if="productStore.isLoading"
         class="m-0 rounded-lg border border-stone-300 bg-white p-4"
       >
-        Loading products...
+        載入商品中...
       </p>
       <ul v-else class="grid list-none gap-3 p-0">
         <li
@@ -129,7 +129,7 @@
                 {{ product.name }}
               </h3>
               <p class="m-0 text-slate-600">
-                {{ product.description || 'No description' }}
+                {{ product.description || '尚無說明' }}
               </p>
             </div>
             <strong>NT$ {{ product.price }}</strong>
@@ -138,7 +138,7 @@
             <span
               class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
             >
-              {{ product.category }}
+              {{ categoryLabel(product.category) }}
             </span>
             <span
               class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
@@ -148,13 +148,13 @@
                   : 'bg-stone-200 text-slate-600'
               "
             >
-              {{ product.isAvailable ? 'available' : 'hidden' }}
+              {{ product.isAvailable ? '上架' : '下架' }}
             </span>
             <span
               v-if="product.isRedeemable"
               class="rounded-full bg-amber-100 px-2 py-1 text-xs font-extrabold uppercase text-amber-800"
             >
-              {{ product.redeemPoints }} pts
+              {{ product.redeemPoints }} 點
             </span>
           </div>
           <footer class="flex flex-wrap gap-2">
@@ -163,14 +163,14 @@
               type="button"
               @click="editProduct(product)"
             >
-              Edit
+              編輯
             </button>
             <button
               class="min-h-9 rounded-md border border-red-700 bg-white px-3 font-bold text-red-700"
               type="button"
               @click="productStore.deleteProduct(product.id)"
             >
-              Delete
+              刪除
             </button>
           </footer>
         </li>
@@ -196,6 +196,10 @@ const form = reactive({
   isAvailable: true,
   isRedeemable: false
 });
+
+function categoryLabel(value: Product['category']) {
+  return value === 'coffee' ? '咖啡' : '甜點';
+}
 
 function resetForm() {
   editingId.value = '';
@@ -234,7 +238,7 @@ async function saveProduct() {
     }
     resetForm();
   } catch {
-    errorMessage.value = 'Unable to save product.';
+    errorMessage.value = '無法儲存商品。';
   }
 }
 
@@ -243,7 +247,7 @@ async function loadProducts() {
   try {
     await productStore.loadProducts();
   } catch {
-    errorMessage.value = 'Unable to load products.';
+    errorMessage.value = '無法載入商品。';
   }
 }
 

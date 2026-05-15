@@ -7,14 +7,14 @@
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">Checkout</h1>
+        <h1 class="m-0 text-2xl font-bold text-slate-800">結帳</h1>
         <p class="m-0 text-slate-600">
-          Create an order and continue to Line Pay.
+          建立訂單後將前往 Line Pay 付款。
         </p>
       </div>
 
       <fieldset class="grid gap-3 border-0 p-0">
-        <legend class="font-bold">Order type</legend>
+        <legend class="font-bold">訂單類型</legend>
         <label class="flex items-center gap-2">
           <input
             v-model="mode"
@@ -22,17 +22,17 @@
             value="member"
             :disabled="!authStore.isAuthenticated"
           />
-          Member order
+          會員點餐
         </label>
         <label class="flex items-center gap-2">
           <input v-model="mode" type="radio" value="guest" />
-          Guest order
+          訪客點餐
         </label>
       </fieldset>
 
       <div v-if="mode === 'guest'" class="grid gap-3">
         <label class="grid gap-1.5 font-semibold">
-          Name
+          姓名
           <input
             v-model="guestName"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -40,7 +40,7 @@
           />
         </label>
         <label class="grid gap-1.5 font-semibold">
-          Phone
+          手機
           <input
             v-model="guestPhone"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -49,7 +49,7 @@
           />
         </label>
         <label class="grid gap-1.5 font-semibold">
-          Email
+          電子郵件
           <input
             v-model="guestEmail"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
@@ -71,16 +71,16 @@
           paymentStore.isLoading
         "
       >
-        Continue to payment
+        前往付款
       </button>
     </form>
 
     <aside
       class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6"
     >
-      <h2 class="m-0 text-xl font-bold">Order summary</h2>
+      <h2 class="m-0 text-xl font-bold">訂單明細</h2>
       <p v-if="cartStore.items.length === 0" class="m-0 text-slate-600">
-        Cart is empty.
+        購物車沒有商品。
       </p>
       <ul class="grid list-none gap-3 p-0">
         <li
@@ -93,7 +93,7 @@
         </li>
       </ul>
       <footer class="flex justify-between border-t border-stone-300 pt-3">
-        <span>Total</span>
+        <span>總計</span>
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
     </aside>
@@ -135,7 +135,7 @@ async function submit() {
     cartStore.clearCart();
     window.location.assign(payment.paymentUrl);
   } catch {
-    errorMessage.value = 'Unable to create payment request.';
+    errorMessage.value = '無法建立付款請求。';
   }
 }
 </script>

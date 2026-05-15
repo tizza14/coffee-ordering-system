@@ -6,7 +6,7 @@
       class="shrink-0 rounded-md px-2 py-1 font-bold text-slate-800 no-underline transition-colors hover:bg-stone-100"
       to="/products"
     >
-      Coffee Ordering
+      咖啡點餐系統
     </RouterLink>
     <nav
       class="flex w-full items-center gap-3.5 overflow-x-auto pb-1 sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0"
@@ -16,21 +16,21 @@
         :exact-active-class="navActiveClass"
         to="/products"
       >
-        Products
+        商品
       </RouterLink>
       <RouterLink
         :class="navLinkClass"
         :exact-active-class="navActiveClass"
         to="/checkout"
       >
-        Checkout
+        結帳
       </RouterLink>
       <RouterLink
         :class="navLinkClass"
         :exact-active-class="navActiveClass"
         to="/orders/guest"
       >
-        Track
+        訂單追蹤
       </RouterLink>
       <RouterLink
         v-if="authStore.isAuthenticated"
@@ -48,7 +48,7 @@
         :exact-active-class="navActiveClass"
         to="/staff/orders"
       >
-        Staff
+        員工
       </RouterLink>
       <RouterLink
         v-if="authStore.user?.role === 'admin'"
@@ -56,7 +56,7 @@
         :exact-active-class="navActiveClass"
         to="/admin/products"
       >
-        Products
+        商品管理
       </RouterLink>
       <RouterLink
         v-if="authStore.user?.role === 'admin'"
@@ -64,7 +64,7 @@
         :exact-active-class="navActiveClass"
         to="/admin/users"
       >
-        Users
+        使用者管理
       </RouterLink>
       <RouterLink
         v-if="!authStore.isAuthenticated"
@@ -72,7 +72,7 @@
         :exact-active-class="navActiveClass"
         to="/login"
       >
-        Login
+        登入
       </RouterLink>
       <RouterLink
         v-if="!authStore.isAuthenticated"
@@ -80,7 +80,7 @@
         :exact-active-class="navActiveClass"
         to="/register"
       >
-        Register
+        註冊
       </RouterLink>
       <button
         v-if="authStore.isAuthenticated"
@@ -88,7 +88,7 @@
         type="button"
         @click="authStore.logout()"
       >
-        Logout
+        登出
       </button>
     </nav>
   </header>

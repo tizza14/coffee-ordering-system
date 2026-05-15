@@ -59,7 +59,7 @@ describe('ProductListView', () => {
     renderProductListView();
 
     await screen.findByText('Latte');
-    await fireEvent.click(screen.getAllByRole('button', { name: 'Add' })[0]);
+    await fireEvent.click(screen.getAllByRole('button', { name: '加入' })[0]);
 
     const cartStore = useCartStore();
     expect(cartStore.items).toHaveLength(1);
@@ -71,7 +71,7 @@ describe('ProductListView', () => {
     renderProductListView();
 
     await screen.findByText('Latte');
-    await fireEvent.click(screen.getByRole('button', { name: 'Dessert' }));
+    await fireEvent.click(screen.getByRole('button', { name: '甜點' }));
 
     await waitFor(() => {
       expect(screen.queryByText('Latte')).toBeNull();

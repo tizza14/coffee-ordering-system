@@ -25,41 +25,41 @@ async function loginAs(page: Page, email: string) {
   await expect(page).toHaveURL('/products');
 }
 
-test.describe('Route guards: unauthenticated', () => {
+test.describe('未登入路由保護', () => {
   test.beforeEach(async ({ page }) => {
     await mockProducts(page);
   });
 
-  test('redirects /staff/orders to /login when not logged in', async ({ page }) => {
+  test('未登入時會把 /staff/orders 導向 /login', async ({ page }) => {
     await page.goto('/staff/orders');
     await expect(page).toHaveURL('/login');
   });
 
-  test('redirects /admin/products to /login when not logged in', async ({ page }) => {
+  test('未登入時會把 /admin/products 導向 /login', async ({ page }) => {
     await page.goto('/admin/products');
     await expect(page).toHaveURL('/login');
   });
 
-  test('redirects /admin/users to /login when not logged in', async ({ page }) => {
+  test('未登入時會把 /admin/users 導向 /login', async ({ page }) => {
     await page.goto('/admin/users');
     await expect(page).toHaveURL('/login');
   });
 
-  test('redirects /orders/my to /login when not logged in', async ({ page }) => {
+  test('未登入時會把 /orders/my 導向 /login', async ({ page }) => {
     await page.goto('/orders/my');
     await expect(page).toHaveURL('/login');
   });
 
-  test('guest navigation does not show staff or admin links', async ({ page }) => {
+  test('訪客導覽不會顯示員工或管理者連結', async ({ page }) => {
     await page.goto('/products');
 
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Staff' })).toHaveCount(0);
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Users' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '員工' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '使用者管理' })).toHaveCount(0);
   });
 });
 
-test.describe('Staff and admin workflows', () => {
-  test('staff can view paid pending orders and accept an order', async ({ page }) => {
+test.describe('員工與管理者流程', () => {
+  test('員工可查看今日總結並接單', async ({ page }) => {
     let orderStatus = 'pending';
 
     await mockAuth(page, [staffUser]);
@@ -151,22 +151,20 @@ test.describe('Staff and admin workflows', () => {
     });
 
     await loginAs(page, 'staff@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: 'Staff' }).click();
+    await page.getByRole('navigation').getByRole('link', { name: '員工' }).click();
 
     await expect(page).toHaveURL('/staff/orders');
-    await expect(page.getByText("Today's Revenue")).toBeVisible();
+    await expect(page.getByText('今日營收')).toBeVisible();
     await expect(page.getByText('NT$ 360')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Order ABC123' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'preparing' })).toHaveCount(0);
-    await page.getByRole('button', { name: 'accepted' }).click();
-    await expect(
-      page.locator('span').filter({ hasText: /^accepted$/ })
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'preparing' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'ready' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: '訂單 ABC123' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '製作中' })).toHaveCount(0);
+    await page.getByRole('button', { name: '接單' }).click();
+    await expect(page.locator('span').filter({ hasText: /^已接單$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: '製作中' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '可取餐' })).toHaveCount(0);
   });
 
-  test('admin can create, edit, and delete products', async ({ page }) => {
+  test('管理者可新增、編輯與刪除商品', async ({ page }) => {
     const products = [
       {
         id: 'p1',
@@ -228,23 +226,23 @@ test.describe('Staff and admin workflows', () => {
     await loginAs(page, 'admin@example.com');
     await page.locator('a[href="/admin/products"]').click();
 
-    await expect(page.getByRole('heading', { name: 'Admin Products' })).toBeVisible();
-    await page.getByLabel('Name').fill('Espresso');
-    await page.getByLabel('Price').fill('90');
-    await page.getByLabel('Description').fill('Strong coffee');
-    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();
+    await page.getByLabel('商品名稱').fill('Espresso');
+    await page.getByLabel('價格').fill('90');
+    await page.getByLabel('說明').fill('Strong coffee');
+    await page.getByRole('button', { name: '新增' }).click();
     await expect(page.getByRole('heading', { name: 'Espresso' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Edit' }).first().click();
-    await page.getByLabel('Price').fill('95');
-    await page.getByRole('button', { name: 'Update' }).click();
+    await page.getByRole('button', { name: '編輯' }).first().click();
+    await page.getByLabel('價格').fill('95');
+    await page.getByRole('button', { name: '更新' }).click();
     await expect(page.getByText('NT$ 95')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Delete' }).first().click();
+    await page.getByRole('button', { name: '刪除' }).first().click();
     await expect(page.getByRole('heading', { name: 'Espresso' })).toHaveCount(0);
   });
 
-  test('admin can view users and change a user role', async ({ page }) => {
+  test('管理者可檢視使用者並修改角色', async ({ page }) => {
     let userRole = 'user';
 
     await mockAuth(page, [adminUser]);
@@ -288,16 +286,16 @@ test.describe('Staff and admin workflows', () => {
     });
 
     await loginAs(page, 'admin@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: 'Users' }).click();
+    await page.getByRole('navigation').getByRole('link', { name: '使用者管理' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Admin Users' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '使用者管理' })).toBeVisible();
     await expect(page.getByText('buyer@example.com')).toBeVisible();
     await page.getByRole('combobox').selectOption('staff');
-    await expect(page.locator('span').filter({ hasText: /^staff$/ })).toBeVisible();
+    await expect(page.locator('span').filter({ hasText: /^員工$/ })).toBeVisible();
   });
 });
 
-test.describe('Authenticated navigation', () => {
+test.describe('已登入導覽', () => {
   test.beforeEach(async ({ page }) => {
     await mockAuth(page);
     await mockProducts(page);
@@ -308,32 +306,32 @@ test.describe('Authenticated navigation', () => {
     await expect(page).toHaveURL('/products');
   });
 
-  test('normal user navigation does not show staff or admin links', async ({ page }) => {
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Staff' })).toHaveCount(0);
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Users' })).toHaveCount(0);
+  test('一般使用者不會看到員工或管理者連結', async ({ page }) => {
+    await expect(page.getByRole('navigation').getByRole('link', { name: '員工' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '使用者管理' })).toHaveCount(0);
   });
 
-  test('direct protected staff URL redirects authenticated user without staff role', async ({ page }) => {
+  test('沒有員工權限時，直接進入員工頁會被導回商品頁', async ({ page }) => {
     await page.goto('/staff/orders');
     await expect(page).toHaveURL('/products');
   });
 
-  test('direct protected admin URL redirects authenticated user without admin role', async ({ page }) => {
+  test('沒有管理者權限時，直接進入管理頁會被導回商品頁', async ({ page }) => {
     await page.goto('/admin/users');
     await expect(page).toHaveURL('/products');
   });
 
-  test('normal user can open my orders through app navigation', async ({ page }) => {
+  test('一般使用者可透過導覽進入點餐紀錄', async ({ page }) => {
     await page.route('**/api/orders/my', async (route) => {
       await route.fulfill({ json: { data: [] } });
     });
 
-    await page.getByRole('navigation').getByRole('link', { name: 'My Orders' }).click();
+    await page.getByRole('navigation').getByRole('link', { name: '點餐紀錄' }).click();
     await expect(page).toHaveURL('/orders/my');
-    await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
   });
 
-  test('member session persists after reload', async ({ page }) => {
+  test('會員 session 在重新整理後仍存在', async ({ page }) => {
     await page.route('**/api/orders/my', async (route) => {
       await route.fulfill({ json: { data: [] } });
     });
@@ -342,6 +340,6 @@ test.describe('Authenticated navigation', () => {
     await page.reload();
 
     await expect(page).toHaveURL('/orders/my');
-    await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
   });
 });
