@@ -17,6 +17,15 @@ const clientOrigins = Array.from(
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const linePayChannelId =
+  process.env.LINE_PAY_CHANNEL_ID ?? 'test-channel-id';
+const linePayChannelSecret =
+  process.env.LINE_PAY_CHANNEL_SECRET ?? 'test-channel-secret';
+const defaultFrontendUrl =
+  process.env.NODE_ENV === 'production'
+    ? 'https://coffee-ordering-system-delta.vercel.app'
+    : 'http://localhost:5173';
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: Number(process.env.PORT ?? 3000),
@@ -26,15 +35,21 @@ export const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1d',
   clientOrigins,
   clientOrigin: clientOrigins[0],
-  linePayChannelId: process.env.LINE_PAY_CHANNEL_ID ?? 'test-channel-id',
-  linePayChannelSecret:
-    process.env.LINE_PAY_CHANNEL_SECRET ?? 'test-channel-secret',
+  linePayChannelId,
+  linePayChannelSecret,
+  linePayMock:
+    process.env.LINE_PAY_MOCK === 'true' ||
+    (process.env.NODE_ENV !== 'test' &&
+      (['test-channel-id', 'your-channel-id'].includes(linePayChannelId) ||
+        ['test-channel-secret', 'your-channel-secret'].includes(
+          linePayChannelSecret
+        ))),
   linePayApiBaseUrl:
     process.env.LINE_PAY_API_BASE_URL ?? 'https://sandbox-api-pay.line.me',
   linePayConfirmUrl:
     process.env.LINE_PAY_CONFIRM_URL ??
-    'http://localhost:5173/payments/line-pay/confirm',
+    `${defaultFrontendUrl}/payments/line-pay/confirm`,
   linePayCancelUrl:
     process.env.LINE_PAY_CANCEL_URL ??
-    'http://localhost:5173/payments/line-pay/cancel'
+    `${defaultFrontendUrl}/payments/line-pay/cancel`
 };

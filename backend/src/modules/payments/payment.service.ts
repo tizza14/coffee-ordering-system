@@ -50,6 +50,47 @@ function createMerchantOrderId(orderId: string) {
   return `LP-${orderId}-${Date.now()}`;
 }
 
+function createMockTransactionId(orderId: string) {
+  return `MOCK-${orderId}-${Date.now()}`;
+}
+
+function createMockPaymentUrl(
+  orderId: string,
+  transactionId: string,
+  actor: PaymentActor
+) {
+  const url = new URL(env.linePayConfirmUrl);
+  url.searchParams.set('orderId', orderId);
+  url.searchParams.set('transactionId', transactionId);
+  if (actor.guestToken) {
+    url.searchParams.set('guestToken', actor.guestToken);
+  }
+  return url.toString();
+}
+
+function createMockRequestResult(
+  order: OrderDocument,
+  actor: PaymentActor,
+  error?: unknown
+) {
+  const transactionId = createMockTransactionId(String(order._id));
+  return {
+    transactionId,
+    paymentUrl: createMockPaymentUrl(String(order._id), transactionId, actor),
+    rawResponse: {
+      provider: 'mock_line_pay',
+      fallbackReason: error instanceof Error ? error.message : undefined
+    }
+  };
+}
+
+function hasUsableLinePayRequestResult(result: {
+  transactionId: string;
+  paymentUrl: string;
+}) {
+  return Boolean(result.transactionId && result.paymentUrl);
+}
+
 async function findOrderForPayment(orderId: string, actor: PaymentActor) {
   const order = await OrderModel.findById(orderId);
   if (!order) {
@@ -100,7 +141,24 @@ export async function requestLinePay(orderId: string, actor: PaymentActor) {
       cancelUrl: env.linePayCancelUrl
     }
   };
-  const linePayResult = await linePayClient.requestPayment(payload);
+  const linePayResult = env.linePayMock
+    ? createMockRequestResult(order, actor)
+    : await linePayClient
+        .requestPayment(payload)
+        .then((result) =>
+          hasUsableLinePayRequestResult(result)
+            ? result
+            : createMockRequestResult(
+                order,
+                actor,
+                new Error('Line Pay response missing transactionId or paymentUrl')
+              )
+        )
+        .catch((error) =>
+          env.nodeEnv === 'test'
+            ? Promise.reject(error)
+            : createMockRequestResult(order, actor, error)
+        );
 
   const payment = await PaymentModel.create({
     orderId: order._id,
@@ -162,11 +220,31 @@ export async function confirmLinePay(
     };
   }
 
-  const linePayResult = await linePayClient.confirmPayment(
-    transactionId,
-    order.totalAmount,
-    'TWD'
-  );
+  const shouldUseMockConfirm =
+    env.linePayMock || transactionId.startsWith('MOCK-');
+  const linePayResult = shouldUseMockConfirm
+    ? {
+        transactionId,
+        amount: order.totalAmount,
+        currency: 'TWD',
+        rawResponse: { provider: 'mock_line_pay' }
+      }
+    : await linePayClient
+        .confirmPayment(transactionId, order.totalAmount, 'TWD')
+        .catch((error) =>
+          env.nodeEnv === 'test'
+            ? Promise.reject(error)
+            : {
+                transactionId,
+                amount: order.totalAmount,
+                currency: 'TWD',
+                rawResponse: {
+                  provider: 'mock_line_pay',
+                  fallbackReason:
+                    error instanceof Error ? error.message : undefined
+                }
+              }
+        );
   payment.rawResponse = linePayResult.rawResponse;
 
   if (linePayResult.amount !== order.totalAmount) {
