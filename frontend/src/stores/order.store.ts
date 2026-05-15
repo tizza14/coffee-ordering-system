@@ -104,7 +104,11 @@ export const useOrderStore = defineStore('orders', {
       this.staffOrders = result.data;
     },
     async loadTodaySummary() {
-      this.todaySummary = await orderApi.getTodayOrderSummary();
+      const summary = await orderApi.getTodayOrderSummary();
+      this.todaySummary = {
+        ...summary,
+        soldItems: summary.soldItems ?? []
+      };
       return this.todaySummary;
     },
     async updateStaffOrderStatus(

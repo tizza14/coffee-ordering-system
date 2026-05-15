@@ -88,14 +88,14 @@
         </span>
       </div>
       <p
-        v-if="orderStore.todaySummary.soldItems.length === 0"
+        v-if="soldItems.length === 0"
         class="m-0 pt-3 text-slate-600"
       >
         尚無已付款品項。
       </p>
       <ul v-else class="grid list-none gap-2 p-0">
         <li
-          v-for="item in orderStore.todaySummary.soldItems"
+          v-for="item in soldItems"
           :key="item.productId"
           class="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-t border-stone-200 pt-2 text-slate-800"
         >
@@ -190,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
 import type { Order } from '../../api/order.api';
 
@@ -208,6 +208,7 @@ const orderStore = useOrderStore();
 const isLoading = ref(false);
 const isUpdating = ref('');
 const errorMessage = ref('');
+const soldItems = computed(() => orderStore.todaySummary?.soldItems ?? []);
 
 function getNextStatuses(status: Order['status']) {
   return nextStatusesByStatus[status];

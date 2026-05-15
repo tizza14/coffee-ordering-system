@@ -52,7 +52,7 @@ export interface TodayOrderSummary {
   paidRevenue: number;
   averagePaidOrderValue: number;
   itemQuantity: number;
-  soldItems: Array<{
+  soldItems?: Array<{
     productId: string;
     name: string;
     quantity: number;
