@@ -95,26 +95,13 @@
   <main class="min-h-screen">
     <RouterView />
   </main>
-  <aside
-    v-if="latestNotification"
-    class="fixed right-4 top-20 z-50 grid max-w-sm gap-1 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-xl"
-    role="status"
-    aria-live="polite"
-  >
-    <p class="m-0 text-sm font-extrabold uppercase">最新通知</p>
-    <strong>{{ latestNotification.message }}</strong>
-  </aside>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
-import { useNotificationStore } from './stores/notification.store';
 
 const authStore = useAuthStore();
-const notificationStore = useNotificationStore();
-const latestNotification = computed(() => notificationStore.items[0]);
 const navLinkClass =
   'inline-flex min-h-9 shrink-0 items-center rounded-md border border-transparent px-3 font-bold text-slate-800 no-underline transition-colors hover:border-stone-300 hover:bg-stone-100';
 const navActiveClass =
