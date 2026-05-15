@@ -38,31 +38,12 @@
         </strong>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <button
-          class="flex w-full items-center justify-between gap-2 text-left"
-          type="button"
-          :aria-expanded="soldItemsOpen"
-          @click="soldItemsOpen = !soldItemsOpen"
-        >
-          <p class="m-0 text-sm font-bold uppercase text-slate-500">已售品項</p>
-          <span class="text-xs text-slate-400">{{ soldItemsOpen ? '收合' : '明細' }}</span>
-        </button>
+        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+          已售品項
+        </p>
         <strong class="text-2xl text-slate-800">
           {{ orderStore.todaySummary.itemQuantity }}
         </strong>
-        <ul v-if="soldItemsOpen && soldItems.length > 0" class="mt-3 grid list-none gap-1.5 border-t border-stone-200 p-0 pt-3">
-          <li
-            v-for="item in soldItems"
-            :key="item.productId"
-            class="flex items-center justify-between gap-2 text-sm text-slate-700"
-          >
-            <span class="min-w-0 truncate">{{ item.name }}</span>
-            <span class="shrink-0 font-bold">x{{ item.quantity }}</span>
-          </li>
-        </ul>
-        <p v-if="soldItemsOpen && soldItems.length === 0" class="m-0 mt-3 border-t border-stone-200 pt-3 text-sm text-slate-500">
-          尚無已售品項。
-        </p>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <p class="m-0 text-sm font-bold uppercase text-slate-500">
@@ -201,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
 import type { Order } from '../../api/order.api';
 
@@ -219,8 +200,6 @@ const orderStore = useOrderStore();
 const isLoading = ref(false);
 const isUpdating = ref('');
 const errorMessage = ref('');
-const soldItemsOpen = ref(false);
-const soldItems = computed(() => orderStore.todaySummary?.soldItems ?? []);
 
 function getNextStatuses(status: Order['status']) {
   return nextStatusesByStatus[status];
