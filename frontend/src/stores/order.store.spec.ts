@@ -8,6 +8,7 @@ vi.mock('../api/order.api', () => ({
   createGuestOrder: vi.fn(),
   getMyOrders: vi.fn(),
   getStaffOrders: vi.fn(),
+  getTodayOrderSummary: vi.fn(),
   getGuestOrder: vi.fn(),
   updateOrderStatus: vi.fn()
 }));
@@ -89,5 +90,40 @@ describe('orderStore', () => {
       'accepted'
     );
     expect(orderStore.staffOrders[0].status).toBe('accepted');
+  });
+
+  it('loads today staff summary', async () => {
+    mockedOrderApi.getTodayOrderSummary.mockResolvedValue({
+      date: '2026-05-15',
+      timezone: 'Asia/Taipei',
+      totalOrders: 3,
+      paidOrders: 2,
+      paidRevenue: 360,
+      averagePaidOrderValue: 180,
+      itemQuantity: 4,
+      guestOrders: 2,
+      memberOrders: 1,
+      statusCounts: {
+        pending: 1,
+        accepted: 0,
+        preparing: 0,
+        ready: 1,
+        completed: 1,
+        cancelled: 0
+      },
+      paymentStatusCounts: {
+        unpaid: 1,
+        payment_pending: 0,
+        paid: 2,
+        payment_failed: 0,
+        refunded: 0
+      }
+    });
+    const orderStore = useOrderStore();
+
+    await orderStore.loadTodaySummary();
+
+    expect(orderStore.todaySummary?.paidRevenue).toBe(360);
+    expect(orderStore.todaySummary?.timezone).toBe('Asia/Taipei');
   });
 });

@@ -164,6 +164,13 @@ orderRoutes.post(
  */
 orderRoutes.get('/guest/:lookupCode', orderController.getGuestOrder);
 
+orderRoutes.get(
+  '/summary/today',
+  authenticate,
+  authorize(['staff', 'admin']),
+  orderController.getTodayStaffSummary
+);
+
 /**
  * @openapi
  * /orders/my:

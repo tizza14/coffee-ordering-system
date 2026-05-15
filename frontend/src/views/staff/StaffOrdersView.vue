@@ -10,11 +10,72 @@
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
         type="button"
-        @click="loadOrders"
+        @click="loadDashboard"
       >
         Refresh
       </button>
     </header>
+
+    <section
+      v-if="orderStore.todaySummary"
+      class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+    >
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+          Today's Revenue
+        </p>
+        <strong class="text-2xl text-slate-800">
+          NT$ {{ orderStore.todaySummary.paidRevenue }}
+        </strong>
+      </article>
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+          Paid Orders
+        </p>
+        <strong class="text-2xl text-slate-800">
+          {{ orderStore.todaySummary.paidOrders }} /
+          {{ orderStore.todaySummary.totalOrders }}
+        </strong>
+      </article>
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+          Items Sold
+        </p>
+        <strong class="text-2xl text-slate-800">
+          {{ orderStore.todaySummary.itemQuantity }}
+        </strong>
+      </article>
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+          Avg. Paid Order
+        </p>
+        <strong class="text-2xl text-slate-800">
+          NT$ {{ orderStore.todaySummary.averagePaidOrderValue }}
+        </strong>
+      </article>
+    </section>
+
+    <section
+      v-if="orderStore.todaySummary"
+      class="grid gap-3 lg:grid-cols-2"
+    >
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <h2 class="m-0 text-lg font-bold text-slate-800">Customer Mix</h2>
+        <p class="m-0 text-slate-700">
+          Guests: {{ orderStore.todaySummary.guestOrders }} / Members:
+          {{ orderStore.todaySummary.memberOrders }}
+        </p>
+      </article>
+      <article class="rounded-lg border border-stone-300 bg-white p-4">
+        <h2 class="m-0 text-lg font-bold text-slate-800">Order Status</h2>
+        <p class="m-0 text-slate-700">
+          Pending: {{ orderStore.todaySummary.statusCounts.pending }} /
+          Preparing: {{ orderStore.todaySummary.statusCounts.preparing }} /
+          Ready: {{ orderStore.todaySummary.statusCounts.ready }} /
+          Completed: {{ orderStore.todaySummary.statusCounts.completed }}
+        </p>
+      </article>
+    </section>
 
     <p
       v-if="isLoading"
@@ -123,11 +184,14 @@ function getNextStatuses(status: Order['status']) {
   return nextStatusesByStatus[status];
 }
 
-async function loadOrders() {
+async function loadDashboard() {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    await orderStore.loadStaffOrders();
+    await Promise.all([
+      orderStore.loadTodaySummary(),
+      orderStore.loadStaffOrders()
+    ]);
   } catch {
     errorMessage.value = 'Unable to load staff orders.';
   } finally {
@@ -143,6 +207,7 @@ async function updateStatus(
   errorMessage.value = '';
   try {
     await orderStore.updateStaffOrderStatus(orderId, status);
+    await orderStore.loadTodaySummary();
   } catch {
     errorMessage.value = 'Unable to update order status.';
   } finally {
@@ -150,5 +215,5 @@ async function updateStatus(
   }
 }
 
-onMounted(loadOrders);
+onMounted(loadDashboard);
 </script>

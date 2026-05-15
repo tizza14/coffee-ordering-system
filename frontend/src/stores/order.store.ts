@@ -48,6 +48,7 @@ export const useOrderStore = defineStore('orders', {
       currentOrder: null as orderApi.Order | null,
       myOrders: [] as orderApi.Order[],
       staffOrders: [] as orderApi.Order[],
+      todaySummary: null as orderApi.TodayOrderSummary | null,
       guestToken: guestTrackingSession?.guestToken ?? '',
       guestLookupCode: guestTrackingSession?.lookupCode ?? '',
       guestPhone: guestTrackingSession?.phone ?? '',
@@ -101,6 +102,10 @@ export const useOrderStore = defineStore('orders', {
     async loadStaffOrders() {
       const result = await orderApi.getStaffOrders();
       this.staffOrders = result.data;
+    },
+    async loadTodaySummary() {
+      this.todaySummary = await orderApi.getTodayOrderSummary();
+      return this.todaySummary;
     },
     async updateStaffOrderStatus(
       orderId: string,

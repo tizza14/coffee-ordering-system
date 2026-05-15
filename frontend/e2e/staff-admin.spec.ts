@@ -64,6 +64,38 @@ test.describe('Staff and admin workflows', () => {
 
     await mockAuth(page, [staffUser]);
     await mockProducts(page);
+    await page.route('**/api/orders/summary/today', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          date: '2026-05-15',
+          timezone: 'Asia/Taipei',
+          totalOrders: 3,
+          paidOrders: 2,
+          paidRevenue: 360,
+          averagePaidOrderValue: 180,
+          itemQuantity: 4,
+          guestOrders: 2,
+          memberOrders: 1,
+          statusCounts: {
+            pending: 1,
+            accepted: 0,
+            preparing: 0,
+            ready: 1,
+            completed: 1,
+            cancelled: 0
+          },
+          paymentStatusCounts: {
+            unpaid: 1,
+            payment_pending: 0,
+            paid: 2,
+            payment_failed: 0,
+            refunded: 0
+          }
+        })
+      });
+    });
     await page.route('**/api/orders', async (route) => {
       if (route.request().method() !== 'GET') {
         await route.fallback();
@@ -122,6 +154,8 @@ test.describe('Staff and admin workflows', () => {
     await page.getByRole('navigation').getByRole('link', { name: 'Staff' }).click();
 
     await expect(page).toHaveURL('/staff/orders');
+    await expect(page.getByText("Today's Revenue")).toBeVisible();
+    await expect(page.getByText('NT$ 360')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Order ABC123' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'preparing' })).toHaveCount(0);
     await page.getByRole('button', { name: 'accepted' }).click();

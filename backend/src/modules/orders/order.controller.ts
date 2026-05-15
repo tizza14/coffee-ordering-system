@@ -59,6 +59,13 @@ export const listStaffOrders = asyncHandler(
   }
 );
 
+export const getTodayStaffSummary = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const summary = await orderService.getTodayStaffSummary();
+    res.json(summary);
+  }
+);
+
 export const listMyOrders = asyncHandler(
   async (req: Request, res: Response) => {
     const orders = await orderService.listMyOrders(req.user!.id);

@@ -33,6 +33,26 @@ type OrderStatus =
   | 'completed'
   | 'cancelled';
 
+type PaymentStatus =
+  | 'unpaid'
+  | 'payment_pending'
+  | 'paid'
+  | 'payment_failed'
+  | 'refunded';
+
+function getTaipeiDayRange(now = new Date()) {
+  const taipeiOffsetMs = 8 * 60 * 60 * 1000;
+  const taipeiNow = new Date(now.getTime() + taipeiOffsetMs);
+  const startTaipei = Date.UTC(
+    taipeiNow.getUTCFullYear(),
+    taipeiNow.getUTCMonth(),
+    taipeiNow.getUTCDate()
+  );
+  const start = new Date(startTaipei - taipeiOffsetMs);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
 function toOrderResponse(order: OrderDocument) {
   return {
     id: String(order._id),
@@ -221,6 +241,67 @@ export async function listStaffOrders(
   return {
     data: orders.map(toOrderResponse),
     pagination: { page: query.page, limit: query.limit, total }
+  };
+}
+
+export async function getTodayStaffSummary(now = new Date()) {
+  const { start, end } = getTaipeiDayRange(now);
+  const orders = await OrderModel.find({
+    createdAt: { $gte: start, $lt: end }
+  });
+
+  const statusCounts: Record<OrderStatus, number> = {
+    pending: 0,
+    accepted: 0,
+    preparing: 0,
+    ready: 0,
+    completed: 0,
+    cancelled: 0
+  };
+  const paymentStatusCounts: Record<PaymentStatus, number> = {
+    unpaid: 0,
+    payment_pending: 0,
+    paid: 0,
+    payment_failed: 0,
+    refunded: 0
+  };
+
+  let paidRevenue = 0;
+  let paidOrders = 0;
+  let guestOrders = 0;
+  let memberOrders = 0;
+  let itemQuantity = 0;
+
+  for (const order of orders) {
+    statusCounts[order.status as OrderStatus] += 1;
+    paymentStatusCounts[order.paymentStatus as PaymentStatus] += 1;
+    itemQuantity += order.items.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (order.paymentStatus === 'paid') {
+      paidOrders += 1;
+      paidRevenue += order.paidAmount || order.totalAmount;
+    }
+
+    if (order.userId) {
+      memberOrders += 1;
+    } else {
+      guestOrders += 1;
+    }
+  }
+
+  return {
+    date: start.toISOString().slice(0, 10),
+    timezone: 'Asia/Taipei',
+    totalOrders: orders.length,
+    paidOrders,
+    paidRevenue,
+    averagePaidOrderValue:
+      paidOrders > 0 ? Math.round(paidRevenue / paidOrders) : 0,
+    itemQuantity,
+    guestOrders,
+    memberOrders,
+    statusCounts,
+    paymentStatusCounts
   };
 }
 

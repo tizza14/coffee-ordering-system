@@ -181,6 +181,88 @@ describe('Order API', () => {
     expect(response.body.status).toBe('accepted');
   });
 
+  it("returns today's customer spending summary for staff", async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+    const user = await UserModel.create({
+      name: 'member',
+      email: 'member@example.com',
+      password: await bcrypt.hash('password123', 10),
+      role: 'user'
+    });
+
+    await OrderModel.create([
+      {
+        userId: user._id,
+        items: [
+          {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 2
+          }
+        ],
+        totalAmount: 240,
+        paidAmount: 240,
+        paymentStatus: 'paid',
+        status: 'completed'
+      },
+      {
+        guestInfo: { name: 'Guest', phone: '0912345678' },
+        orderLookupCode: 'TODAY001',
+        items: [
+          {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 1
+          }
+        ],
+        totalAmount: 120,
+        paidAmount: 120,
+        paymentStatus: 'paid',
+        status: 'ready'
+      },
+      {
+        guestInfo: { name: 'Unpaid Guest', phone: '0912345679' },
+        orderLookupCode: 'TODAY002',
+        items: [
+          {
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 1
+          }
+        ],
+        totalAmount: 120,
+        paymentStatus: 'unpaid',
+        status: 'pending'
+      }
+    ]);
+
+    const response = await request(app)
+      .get('/api/orders/summary/today')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.totalOrders).toBe(3);
+    expect(response.body.paidOrders).toBe(2);
+    expect(response.body.paidRevenue).toBe(360);
+    expect(response.body.averagePaidOrderValue).toBe(180);
+    expect(response.body.itemQuantity).toBe(4);
+    expect(response.body.guestOrders).toBe(2);
+    expect(response.body.memberOrders).toBe(1);
+    expect(response.body.statusCounts).toMatchObject({
+      completed: 1,
+      ready: 1,
+      pending: 1
+    });
+    expect(response.body.paymentStatusCounts).toMatchObject({
+      paid: 2,
+      unpaid: 1
+    });
+  });
+
   it('rejects accepting an unpaid order', async () => {
     const product = await createProduct();
     const staffToken = await loginAs('staff');

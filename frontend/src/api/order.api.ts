@@ -44,6 +44,20 @@ export interface OrderListResponse {
   data: Order[];
 }
 
+export interface TodayOrderSummary {
+  date: string;
+  timezone: string;
+  totalOrders: number;
+  paidOrders: number;
+  paidRevenue: number;
+  averagePaidOrderValue: number;
+  itemQuantity: number;
+  guestOrders: number;
+  memberOrders: number;
+  statusCounts: Record<Order['status'], number>;
+  paymentStatusCounts: Record<Order['paymentStatus'], number>;
+}
+
 export interface CreateOrderPayload {
   items: Array<{
     productId: string;
@@ -76,6 +90,11 @@ export async function getMyOrders() {
 
 export async function getStaffOrders() {
   const response = await http.get<OrderListResponse>('/orders');
+  return response.data;
+}
+
+export async function getTodayOrderSummary() {
+  const response = await http.get<TodayOrderSummary>('/orders/summary/today');
   return response.data;
 }
 
