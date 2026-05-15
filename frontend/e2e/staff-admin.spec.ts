@@ -117,10 +117,13 @@ test.describe('Staff and admin workflows', () => {
 
     await expect(page).toHaveURL('/staff/orders');
     await expect(page.getByRole('heading', { name: 'Order ABC123' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'preparing' })).toHaveCount(0);
     await page.getByRole('button', { name: 'accepted' }).click();
     await expect(
       page.locator('span').filter({ hasText: /^accepted$/ })
     ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'preparing' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ready' })).toHaveCount(0);
   });
 
   test('admin can create, edit, and delete products', async ({ page }) => {

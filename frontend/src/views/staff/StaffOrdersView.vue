@@ -83,7 +83,7 @@
           <strong>NT$ {{ order.totalAmount }}</strong>
           <div class="flex flex-wrap gap-2">
             <button
-              v-for="status in nextStatuses"
+              v-for="status in getNextStatuses(order.status)"
               :key="status"
               class="min-h-9 rounded-md border border-slate-800 bg-slate-800 px-3 font-bold text-white disabled:opacity-60"
               type="button"
@@ -102,18 +102,26 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
+import type { Order } from '../../api/order.api';
 
-const nextStatuses = [
-  'accepted',
-  'preparing',
-  'ready',
-  'completed',
-  'cancelled'
-] as const;
+type OrderTransitionStatus = Exclude<Order['status'], 'pending'>;
+
+const nextStatusesByStatus = {
+  pending: ['accepted', 'cancelled'],
+  accepted: ['preparing'],
+  preparing: ['ready'],
+  ready: ['completed'],
+  completed: [],
+  cancelled: []
+} as const satisfies Record<Order['status'], readonly OrderTransitionStatus[]>;
 const orderStore = useOrderStore();
 const isLoading = ref(false);
 const isUpdating = ref('');
 const errorMessage = ref('');
+
+function getNextStatuses(status: Order['status']) {
+  return nextStatusesByStatus[status];
+}
 
 async function loadOrders() {
   isLoading.value = true;
@@ -129,7 +137,7 @@ async function loadOrders() {
 
 async function updateStatus(
   orderId: string,
-  status: (typeof nextStatuses)[number]
+  status: OrderTransitionStatus
 ) {
   isUpdating.value = orderId;
   errorMessage.value = '';
