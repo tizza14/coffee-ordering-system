@@ -2,6 +2,24 @@ import type { Page } from '@playwright/test';
 
 const API = 'http://localhost:3000/api';
 
+interface MockUser {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  role: 'user' | 'staff' | 'admin';
+}
+
+const defaultUsers: MockUser[] = [
+  {
+    id: 'u1',
+    name: 'Buyer',
+    email: 'buyer@example.com',
+    password: 'password123',
+    role: 'user'
+  }
+];
+
 export async function mockProducts(page: Page) {
   await page.route(`${API}/products**`, async (route) => {
     await route.fulfill({
@@ -36,15 +54,24 @@ export async function mockProducts(page: Page) {
   });
 }
 
-export async function mockAuth(page: Page) {
+export async function mockAuth(page: Page, users: MockUser[] = defaultUsers) {
   await page.route(`${API}/auth/login`, async (route) => {
     const body = route.request().postDataJSON() as { email?: string; password?: string };
-    if (body.email === 'buyer@example.com' && body.password === 'password123') {
+    const user = users.find(
+      (item) => item.email === body.email && item.password === body.password
+    );
+
+    if (user) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          user: { id: 'u1', name: 'Buyer', email: body.email, role: 'user' },
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          },
           accessToken: 'mock-token'
         })
       });

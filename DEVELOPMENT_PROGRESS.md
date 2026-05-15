@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-14 19:30 +08:00
+Last updated: 2026-05-15 09:19 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -372,7 +372,7 @@ Verified:
 
 ### Staff / Admin
 
-Status: Partially Accepted
+Status: Accepted
 
 Traceability:
 
@@ -406,6 +406,9 @@ Verified:
 - Staff order store loading/status update.
 - Admin product store CRUD.
 - Admin user store loading and role update.
+- Playwright staff order workflow: staff logs in, opens paid pending orders, and accepts an order.
+- Playwright admin product workflow: admin creates, edits, and deletes a product.
+- Playwright admin user workflow: admin views users and changes a user role.
 
 ## Verification Summary
 
@@ -436,13 +439,13 @@ Latest result:
 
 - lint passed
 - test passed: 9 suites, 19 tests
-- e2e passed: 36 tests
+- e2e passed: 42 tests
 - build passed
 
 RWD verification:
 
 - Playwright now runs both `chromium` desktop and `mobile-chrome` Pixel 5 projects.
-- Latest frontend E2E result: 36 tests passed.
+- Latest frontend E2E result: 42 tests passed.
 - Global navigation, shop, checkout, auth, order tracking, staff, and admin views have responsive layout baselines.
 
 ## Environment Notes
@@ -495,7 +498,7 @@ Implemented:
 
 Verified:
 
-- 36 Playwright tests pass across desktop and mobile projects (all using mock API interceptors; no real backend required).
+- 42 Playwright tests pass across desktop and mobile projects (all using mock API interceptors; no real backend required).
 - `vitest run` still passes 9 suites, 19 tests after scope fix.
 
 ## CORS / FS-016
