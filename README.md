@@ -86,7 +86,7 @@ Seed creates 3 demo accounts and 10 products. It clears existing users and produ
 
 ```powershell
 cd backend
-$env:MONGODB_URI="mongodb+srv://<user>:<password>@<cluster-host>/?retryWrites=true&w=majority"
+$env:MONGODB_URI="mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority"
 npm run seed
 ```
 
@@ -114,5 +114,6 @@ npm run build
 ## Deployment Notes
 
 - Render backend must allow the Vercel frontend origin through `CLIENT_ORIGIN`.
+- Render backend `MONGODB_URI` must include the database name, for example `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
 - Demo payment can use `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
 - Staff order status transitions are strict. The UI only shows valid next actions, and the backend rejects invalid transitions with `INVALID_STATUS_TRANSITION`.

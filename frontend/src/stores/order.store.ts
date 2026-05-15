@@ -2,6 +2,14 @@ import { defineStore } from 'pinia';
 import type { CartItem } from './cart.store';
 import * as orderApi from '../api/order.api';
 
+const GUEST_TRACKING_STORAGE_KEY = 'coffee-ordering-guest-tracking';
+
+interface GuestTrackingSession {
+  lookupCode: string;
+  guestToken: string;
+  phone?: string;
+}
+
 function toOrderItems(items: CartItem[]) {
   return items.map((item) => ({
     productId: item.productId,
@@ -9,15 +17,50 @@ function toOrderItems(items: CartItem[]) {
   }));
 }
 
+function readGuestTrackingSession() {
+  if (typeof window === 'undefined') return null;
+
+  const value = window.localStorage.getItem(GUEST_TRACKING_STORAGE_KEY);
+  if (!value) return null;
+
+  try {
+    const session = JSON.parse(value) as GuestTrackingSession;
+    if (!session.lookupCode || !session.guestToken) return null;
+    return session;
+  } catch {
+    window.localStorage.removeItem(GUEST_TRACKING_STORAGE_KEY);
+    return null;
+  }
+}
+
+function writeGuestTrackingSession(session: GuestTrackingSession) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(
+    GUEST_TRACKING_STORAGE_KEY,
+    JSON.stringify(session)
+  );
+}
+
 export const useOrderStore = defineStore('orders', {
-  state: () => ({
-    currentOrder: null as orderApi.Order | null,
-    myOrders: [] as orderApi.Order[],
-    staffOrders: [] as orderApi.Order[],
-    guestToken: '',
-    isLoading: false
-  }),
+  state: () => {
+    const guestTrackingSession = readGuestTrackingSession();
+    return {
+      currentOrder: null as orderApi.Order | null,
+      myOrders: [] as orderApi.Order[],
+      staffOrders: [] as orderApi.Order[],
+      guestToken: guestTrackingSession?.guestToken ?? '',
+      guestLookupCode: guestTrackingSession?.lookupCode ?? '',
+      guestPhone: guestTrackingSession?.phone ?? '',
+      isLoading: false
+    };
+  },
   actions: {
+    setGuestTrackingSession(session: GuestTrackingSession) {
+      this.guestLookupCode = session.lookupCode;
+      this.guestToken = session.guestToken;
+      this.guestPhone = session.phone ?? '';
+      writeGuestTrackingSession(session);
+    },
     async createMemberOrder(items: CartItem[]) {
       this.isLoading = true;
       try {
@@ -39,7 +82,13 @@ export const useOrderStore = defineStore('orders', {
           guestInfo,
           items: toOrderItems(items)
         });
-        this.guestToken = this.currentOrder.guestToken ?? '';
+        if (this.currentOrder.orderLookupCode && this.currentOrder.guestToken) {
+          this.setGuestTrackingSession({
+            lookupCode: this.currentOrder.orderLookupCode,
+            guestToken: this.currentOrder.guestToken,
+            phone: guestInfo.phone
+          });
+        }
         return this.currentOrder;
       } finally {
         this.isLoading = false;
@@ -73,7 +122,13 @@ export const useOrderStore = defineStore('orders', {
         phone,
         guestToken
       );
-      if (guestToken) this.guestToken = guestToken;
+      if (guestToken && this.currentOrder.orderLookupCode) {
+        this.setGuestTrackingSession({
+          lookupCode: this.currentOrder.orderLookupCode,
+          guestToken,
+          phone
+        });
+      }
       return this.currentOrder;
     }
   }

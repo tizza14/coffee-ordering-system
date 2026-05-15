@@ -55,13 +55,16 @@ function createMockTransactionId(orderId: string) {
 }
 
 function createMockPaymentUrl(
-  orderId: string,
+  order: OrderDocument,
   transactionId: string,
   actor: PaymentActor
 ) {
   const url = new URL(env.linePayConfirmUrl);
-  url.searchParams.set('orderId', orderId);
+  url.searchParams.set('orderId', String(order._id));
   url.searchParams.set('transactionId', transactionId);
+  if (order.orderLookupCode) {
+    url.searchParams.set('lookupCode', order.orderLookupCode);
+  }
   if (actor.guestToken) {
     url.searchParams.set('guestToken', actor.guestToken);
   }
@@ -76,7 +79,7 @@ function createMockRequestResult(
   const transactionId = createMockTransactionId(String(order._id));
   return {
     transactionId,
-    paymentUrl: createMockPaymentUrl(String(order._id), transactionId, actor),
+    paymentUrl: createMockPaymentUrl(order, transactionId, actor),
     rawResponse: {
       provider: 'mock_line_pay',
       fallbackReason: error instanceof Error ? error.message : undefined

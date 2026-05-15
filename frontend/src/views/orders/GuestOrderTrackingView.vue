@@ -67,17 +67,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 
+const route = useRoute();
 const orderStore = useOrderStore();
 const notificationStore = useNotificationStore();
 const socketStore = useSocketStore();
-const lookupCode = ref('');
-const phone = ref('');
-const guestToken = ref('');
+const lookupCode = ref(String(route.query.lookupCode ?? orderStore.guestLookupCode));
+const phone = ref(String(route.query.phone ?? orderStore.guestPhone));
+const guestToken = ref(String(route.query.guestToken ?? orderStore.guestToken));
 const errorMessage = ref('');
 const liveStatus = computed(() => socketStore.latestOrderUpdate?.status);
 
@@ -105,4 +107,10 @@ async function load() {
     errorMessage.value = 'Unable to load guest order.';
   }
 }
+
+onMounted(() => {
+  if (lookupCode.value && (guestToken.value || phone.value)) {
+    void load();
+  }
+});
 </script>

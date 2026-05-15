@@ -12,12 +12,19 @@
       <RouterLink class="font-bold text-slate-800" to="/products">
         Back to products
       </RouterLink>
+      <RouterLink
+        v-if="trackingQuery.lookupCode"
+        class="font-bold text-slate-800"
+        :to="{ path: '/orders/guest', query: trackingQuery }"
+      >
+        Track this order
+      </RouterLink>
     </article>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { RouterLink } from 'vue-router';
 import { useOrderStore } from '../../stores/order.store';
@@ -27,13 +34,29 @@ const route = useRoute();
 const orderStore = useOrderStore();
 const paymentStore = usePaymentStore();
 const message = ref('Confirming payment...');
+const lookupCode = ref('');
+const guestToken = ref('');
+
+const trackingQuery = computed(() => ({
+  lookupCode: lookupCode.value,
+  guestToken: guestToken.value
+}));
 
 onMounted(async () => {
   const orderId = String(route.query.orderId ?? '');
   const transactionId = String(route.query.transactionId ?? '');
-  const guestToken = String(
-    route.query.guestToken ?? orderStore.guestToken ?? ''
+  guestToken.value = String(route.query.guestToken ?? orderStore.guestToken ?? '');
+  lookupCode.value = String(
+    route.query.lookupCode ?? orderStore.guestLookupCode ?? ''
   );
+
+  if (lookupCode.value && guestToken.value) {
+    orderStore.setGuestTrackingSession({
+      lookupCode: lookupCode.value,
+      guestToken: guestToken.value,
+      phone: orderStore.guestPhone || undefined
+    });
+  }
 
   if (!orderId || !transactionId) {
     message.value = 'Missing payment confirmation parameters.';
@@ -44,7 +67,7 @@ onMounted(async () => {
     await paymentStore.confirmLinePay(
       orderId,
       transactionId,
-      guestToken || undefined
+      guestToken.value || undefined
     );
     message.value = 'Payment confirmed.';
   } catch {

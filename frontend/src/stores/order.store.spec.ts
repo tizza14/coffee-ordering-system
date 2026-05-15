@@ -30,6 +30,7 @@ const order = {
 
 describe('orderStore', () => {
   beforeEach(() => {
+    localStorage.clear();
     setActivePinia(createPinia());
     vi.resetAllMocks();
   });
@@ -49,6 +50,7 @@ describe('orderStore', () => {
   it('stores guest token after guest order', async () => {
     mockedOrderApi.createGuestOrder.mockResolvedValue({
       ...order,
+      orderLookupCode: 'ABC123',
       guestToken: 'guest-token'
     });
     const orderStore = useOrderStore();
@@ -59,6 +61,15 @@ describe('orderStore', () => {
     });
 
     expect(orderStore.guestToken).toBe('guest-token');
+    expect(orderStore.guestLookupCode).toBe('ABC123');
+    expect(orderStore.guestPhone).toBe('0912345678');
+    expect(
+      JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}')
+    ).toEqual({
+      lookupCode: 'ABC123',
+      guestToken: 'guest-token',
+      phone: '0912345678'
+    });
   });
 
   it('loads staff orders and updates an order status', async () => {
