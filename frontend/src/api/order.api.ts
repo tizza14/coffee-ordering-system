@@ -94,8 +94,8 @@ export async function getMyOrders() {
   return response.data;
 }
 
-export async function getStaffOrders() {
-  const response = await http.get<OrderListResponse>('/orders');
+export async function getStaffOrders(params?: { paymentStatus?: string; limit?: number }) {
+  const response = await http.get<OrderListResponse>('/orders', { params });
   return response.data;
 }
 

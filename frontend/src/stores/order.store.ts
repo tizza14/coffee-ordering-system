@@ -105,10 +105,24 @@ export const useOrderStore = defineStore('orders', {
     },
     async loadTodaySummary() {
       const summary = await orderApi.getTodayOrderSummary();
-      this.todaySummary = {
-        ...summary,
-        soldItems: summary.soldItems ?? []
-      };
+      let soldItems = summary.soldItems ?? [];
+
+      if (soldItems.length === 0 && summary.itemQuantity > 0) {
+        const allPaid = await orderApi.getStaffOrders({ paymentStatus: 'paid', limit: 200 });
+        const map = new Map<string, { productId: string; name: string; quantity: number; revenue: number }>();
+        for (const order of allPaid.data) {
+          if (order.paymentStatus !== 'paid') continue;
+          for (const item of order.items) {
+            const cur = map.get(item.productId) ?? { productId: item.productId, name: item.name, quantity: 0, revenue: 0 };
+            cur.quantity += item.quantity;
+            cur.revenue += item.price * item.quantity;
+            map.set(item.productId, cur);
+          }
+        }
+        soldItems = [...map.values()].sort((a, b) => b.quantity - a.quantity);
+      }
+
+      this.todaySummary = { ...summary, soldItems };
       return this.todaySummary;
     },
     async updateStaffOrderStatus(

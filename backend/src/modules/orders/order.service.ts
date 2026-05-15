@@ -230,7 +230,7 @@ export async function listStaffOrders(
   const filter: Record<string, unknown> = {};
   if (query.status) {
     filter.status = query.status;
-  } else {
+  } else if (!query.paymentStatus) {
     filter.paymentStatus = 'paid';
     filter.status = 'pending';
   }
