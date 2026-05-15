@@ -26,6 +26,10 @@ async function loginAs(page: Page, email: string) {
 }
 
 test.describe('Route guards: unauthenticated', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockProducts(page);
+  });
+
   test('redirects /staff/orders to /login when not logged in', async ({ page }) => {
     await page.goto('/staff/orders');
     await expect(page).toHaveURL('/login');
@@ -41,14 +45,16 @@ test.describe('Route guards: unauthenticated', () => {
     await expect(page).toHaveURL('/login');
   });
 
-  test('allows /orders/my route to render without route-level auth metadata', async ({ page }) => {
-    await page.route('**/api/orders/my', async (route) => {
-      await route.fulfill({ json: { data: [] } });
-    });
-
+  test('redirects /orders/my to /login when not logged in', async ({ page }) => {
     await page.goto('/orders/my');
-    await expect(page).toHaveURL('/orders/my');
-    await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible();
+    await expect(page).toHaveURL('/login');
+  });
+
+  test('guest navigation does not show staff or admin links', async ({ page }) => {
+    await page.goto('/products');
+
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Staff' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Users' })).toHaveCount(0);
   });
 });
 
@@ -266,6 +272,11 @@ test.describe('Authenticated navigation', () => {
     await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL('/products');
+  });
+
+  test('normal user navigation does not show staff or admin links', async ({ page }) => {
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Staff' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: 'Users' })).toHaveCount(0);
   });
 
   test('direct protected staff URL redirects authenticated user without staff role', async ({ page }) => {

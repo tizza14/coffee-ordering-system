@@ -29,7 +29,8 @@ export const router = createRouter({
     },
     {
       path: '/orders/my',
-      component: MyOrdersView
+      component: MyOrdersView,
+      meta: { roles: ['user', 'staff', 'admin'] }
     },
     {
       path: '/orders/guest',

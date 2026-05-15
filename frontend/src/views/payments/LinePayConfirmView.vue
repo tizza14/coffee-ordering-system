@@ -38,8 +38,7 @@ const lookupCode = ref('');
 const guestToken = ref('');
 
 const trackingQuery = computed(() => ({
-  lookupCode: lookupCode.value,
-  guestToken: guestToken.value
+  lookupCode: lookupCode.value
 }));
 
 onMounted(async () => {

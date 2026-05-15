@@ -20,13 +20,6 @@
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
         />
       </label>
-      <label class="grid gap-1.5 font-semibold">
-        Guest token
-        <input
-          v-model="guestToken"
-          class="min-h-10 rounded-md border border-stone-400 px-2.5"
-        />
-      </label>
       <button
         class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
       >
