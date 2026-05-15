@@ -19,7 +19,7 @@ test.describe('Checkout', () => {
 
   test('guest order lookup page renders', async ({ page }) => {
     await page.goto('/orders/guest');
-    await expect(page.getByRole('heading', { name: 'Guest Order Tracking' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '訪客訂單追蹤' })).toBeVisible();
   });
 
   test('checkout shows cart items and total', async ({ page }) => {
