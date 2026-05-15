@@ -88,13 +88,24 @@
       </section>
     </article>
 
-    <section v-if="notificationStore.items.length > 0" class="grid gap-2">
-      <h2 class="m-0 text-xl font-bold">通知紀錄</h2>
-      <ul class="grid list-none gap-2 p-0">
+    <section v-if="notificationStore.items.length > 0" class="rounded-lg border border-stone-300">
+      <button
+        class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-slate-800"
+        type="button"
+        :aria-expanded="notificationsOpen"
+        @click="notificationsOpen = !notificationsOpen"
+      >
+        <span>通知紀錄</span>
+        <span class="text-sm text-slate-500">
+          {{ notificationsOpen ? '收合' : '展開' }}
+        </span>
+      </button>
+
+      <ul v-if="notificationsOpen" class="grid list-none gap-2 border-t border-stone-200 p-3">
         <li
           v-for="notification in notificationStore.items"
           :key="notification.id"
-          class="grid gap-1 rounded-lg border border-stone-300 bg-white p-3"
+          class="grid gap-1 rounded-lg border border-stone-200 bg-white p-3"
         >
           <strong>{{ notification.message }}</strong>
           <span class="text-sm text-slate-500">
@@ -122,6 +133,7 @@ const phone = ref(String(route.query.phone ?? orderStore.guestPhone));
 const guestToken = ref(String(route.query.guestToken ?? orderStore.guestToken));
 const errorMessage = ref('');
 const itemDetailsOpen = ref(false);
+const notificationsOpen = ref(true);
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
 );

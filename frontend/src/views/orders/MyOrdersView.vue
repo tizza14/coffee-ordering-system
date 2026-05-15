@@ -66,11 +66,19 @@
           </p>
         </div>
 
-        <details class="rounded-lg border border-stone-200 bg-stone-50 p-3">
-          <summary class="cursor-pointer font-bold text-slate-800">
-            查看點餐明細
-          </summary>
-          <ul class="mt-3 grid list-none gap-2 p-0">
+        <div class="rounded-lg border border-stone-200">
+          <button
+            class="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg bg-stone-50 px-3 text-left font-bold text-slate-800"
+            type="button"
+            :aria-expanded="openOrders.has(order.id)"
+            @click="toggleOrder(order.id)"
+          >
+            <span>查看點餐明細</span>
+            <span class="text-sm text-slate-500">
+              {{ openOrders.has(order.id) ? '收合' : '展開' }}
+            </span>
+          </button>
+          <ul v-if="openOrders.has(order.id)" class="grid list-none gap-2 border-t border-stone-200 p-3">
             <li
               v-for="item in order.items"
               :key="item.productId"
@@ -80,7 +88,7 @@
               <strong>NT$ {{ item.price * item.quantity }}</strong>
             </li>
           </ul>
-        </details>
+        </div>
       </li>
     </ul>
   </section>
@@ -95,6 +103,15 @@ import type { Order } from '../../api/order.api';
 const orderStore = useOrderStore();
 const isLoading = ref(false);
 const errorMessage = ref('');
+const openOrders = ref(new Set<string>());
+
+function toggleOrder(id: string) {
+  if (openOrders.value.has(id)) {
+    openOrders.value.delete(id);
+  } else {
+    openOrders.value.add(id);
+  }
+}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('zh-TW', {
