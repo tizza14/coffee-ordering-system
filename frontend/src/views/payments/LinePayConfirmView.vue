@@ -5,20 +5,28 @@
     <article
       class="grid w-full max-w-lg gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
     >
-      <h1 class="m-0 text-2xl font-bold">Line Pay Confirm</h1>
+      <h1 class="m-0 text-2xl font-bold">付款完成</h1>
       <p class="m-0">
         {{ message }}
       </p>
-      <RouterLink class="font-bold text-slate-800" to="/products">
-        Back to products
-      </RouterLink>
-      <RouterLink
-        v-if="trackingQuery.lookupCode"
-        class="font-bold text-slate-800"
-        :to="{ path: '/orders/guest', query: trackingQuery }"
-      >
-        Track this order
-      </RouterLink>
+      <p v-if="lookupCode" class="m-0 text-sm text-slate-600">
+        訂單查詢碼：{{ lookupCode }}
+      </p>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <RouterLink
+          class="rounded-md bg-slate-800 px-4 py-2 font-bold text-white no-underline"
+          to="/products"
+        >
+          回到商品頁
+        </RouterLink>
+        <RouterLink
+          v-if="trackingQuery.lookupCode"
+          class="rounded-md border border-slate-800 px-4 py-2 font-bold text-slate-800 no-underline"
+          :to="{ path: '/orders/guest', query: trackingQuery }"
+        >
+          前往訂單追蹤
+        </RouterLink>
+      </div>
     </article>
   </section>
 </template>
@@ -38,7 +46,9 @@ const lookupCode = ref('');
 const guestToken = ref('');
 
 const trackingQuery = computed(() => ({
-  lookupCode: lookupCode.value
+  lookupCode: lookupCode.value,
+  phone: orderStore.guestPhone || undefined,
+  guestToken: guestToken.value || undefined
 }));
 
 onMounted(async () => {
