@@ -38,7 +38,7 @@
         :exact-active-class="navActiveClass"
         to="/orders/my"
       >
-        My Orders
+        點餐紀錄
       </RouterLink>
       <RouterLink
         v-if="
