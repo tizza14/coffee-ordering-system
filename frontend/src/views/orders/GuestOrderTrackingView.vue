@@ -34,10 +34,7 @@
       v-if="orderStore.currentOrder"
       class="grid gap-4 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
     >
-      <div
-        class="rounded-lg border p-4"
-        :class="statusPanelClass"
-      >
+      <div class="rounded-lg border p-4" :class="statusPanelClass">
         <p class="m-0 text-sm font-extrabold uppercase">
           訂單 {{ orderStore.currentOrder.orderLookupCode }}
         </p>
@@ -57,7 +54,38 @@
         <p class="m-0 text-lg font-bold">{{ latestNotification.message }}</p>
       </div>
 
-      <p class="m-0">總金額：NT$ {{ orderStore.currentOrder.totalAmount }}</p>
+      <section class="rounded-lg border border-stone-300">
+        <button
+          class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-slate-800"
+          type="button"
+          :aria-expanded="itemDetailsOpen"
+          @click="itemDetailsOpen = !itemDetailsOpen"
+        >
+          <span>點餐明細</span>
+          <span class="text-sm text-slate-500">
+            {{ itemDetailsOpen ? '收合' : '展開' }}
+          </span>
+        </button>
+
+        <div
+          v-if="itemDetailsOpen"
+          class="grid gap-3 border-t border-stone-200 p-4"
+        >
+          <ul class="grid list-none gap-2 p-0">
+            <li
+              v-for="item in orderStore.currentOrder.items"
+              :key="item.productId"
+              class="grid grid-cols-[1fr_auto] gap-3 text-slate-800"
+            >
+              <span>{{ item.name }} x {{ item.quantity }}</span>
+              <strong>NT$ {{ item.price * item.quantity }}</strong>
+            </li>
+          </ul>
+          <p class="m-0 border-t border-stone-200 pt-3 text-right font-extrabold">
+            總金額：NT$ {{ orderStore.currentOrder.totalAmount }}
+          </p>
+        </div>
+      </section>
     </article>
 
     <section v-if="notificationStore.items.length > 0" class="grid gap-2">
@@ -93,6 +121,7 @@ const lookupCode = ref(String(route.query.lookupCode ?? orderStore.guestLookupCo
 const phone = ref(String(route.query.phone ?? orderStore.guestPhone));
 const guestToken = ref(String(route.query.guestToken ?? orderStore.guestToken));
 const errorMessage = ref('');
+const itemDetailsOpen = ref(false);
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
 );
