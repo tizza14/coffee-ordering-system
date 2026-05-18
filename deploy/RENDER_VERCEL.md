@@ -48,10 +48,11 @@ DB    MongoDB Atlas  (免費 M0，512 MB)
 | `LINE_PAY_CHANNEL_ID` | *(Line Pay sandbox/正式 ID)* | |
 | `LINE_PAY_CHANNEL_SECRET` | *(Line Pay sandbox/正式 Secret)* | |
 | `CLIENT_ORIGIN` | `https://<your-vercel-domain>.vercel.app` | Vercel 前端 URL |
+| `FRONTEND_URL` | `https://<your-vercel-domain>.vercel.app` | 付款回導與系統產生前端連結的基準 URL |
 | `LINE_PAY_CONFIRM_URL` | `https://<your-vercel-domain>.vercel.app/payments/line-pay/confirm` | |
 | `LINE_PAY_CANCEL_URL` | `https://<your-vercel-domain>.vercel.app/payments/line-pay/cancel` | |
 
-> **注意**：`CLIENT_ORIGIN` 即 CORS 允許來源，必須與前端實際 URL 完全一致（含 https://，不含結尾 /）。
+> **注意**：`CLIENT_ORIGIN` 即 CORS 允許來源，必須與前端實際 URL 完全一致（含 https://，不含結尾 /）。`FRONTEND_URL` 也需使用正式前端網址，不可使用 `localhost`。
 
 ### 2-3 取得後端 URL
 
@@ -102,6 +103,7 @@ repo 中已有 `frontend/vercel.json`，確保 SPA routing 正常：
 前端部署後取得正式 Vercel URL（如 `https://coffee-ordering-xyz.vercel.app`），回到 Render Service → Environment 更新：
 
 - `CLIENT_ORIGIN` → `https://coffee-ordering-xyz.vercel.app`
+- `FRONTEND_URL` → `https://coffee-ordering-xyz.vercel.app`
 - `LINE_PAY_CONFIRM_URL` → `https://coffee-ordering-xyz.vercel.app/payments/line-pay/confirm`
 - `LINE_PAY_CANCEL_URL` → `https://coffee-ordering-xyz.vercel.app/payments/line-pay/cancel`
 
@@ -118,6 +120,8 @@ repo 中已有 `frontend/vercel.json`，確保 SPA routing 正常：
 | CORS 錯誤 | `CLIENT_ORIGIN` 與前端 URL 不符 | 確認 Render 的 `CLIENT_ORIGIN` 與 Vercel 域名完全一致 |
 | 前端 API 打不到後端 | `VITE_API_BASE_URL` 設錯 | Vercel → Environment Variables 更新後 Redeploy |
 | Socket.io 無法連線 | `VITE_SOCKET_URL` 設錯 | 同上 |
+| 訪客結帳後跳到 `localhost:5173` 或拒絕連線 | Render 的 `FRONTEND_URL` / `LINE_PAY_CONFIRM_URL` / `LINE_PAY_CANCEL_URL` 指到本機 | 改成正式 Vercel URL 後重新部署 Render；production 後端也會避免產生 localhost 回導 |
+| 訪客模式沒有點餐紀錄頁 | 權限設計如此，訪客訂單不綁定會員帳號 | 使用「訂單追蹤」查看訪客訂單；登入會員後建立的新訂單才會出現在會員點餐紀錄 |
 | Render free tier 休眠 | 閒置 15 分鐘後服務進入休眠，首次請求需 30-60 秒喚醒 | 升級 Render 方案，或接受延遲 |
 
 ---

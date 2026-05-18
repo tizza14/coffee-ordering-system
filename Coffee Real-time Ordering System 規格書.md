@@ -92,9 +92,10 @@
 
 * User 只能查看與操作自己的訂單。
 * User 只能在訂單狀態為 `pending` 時取消自己的訂單。
-* Guest 是提供給不想加入會員的顧客使用，訂單操作權限與 User 相同。
-* Guest 只能查看與操作自己建立的訂單，可透過 guest token、訂單查詢碼或付款回導資訊識別訂單歸屬。
-* Guest 不累積會員點數；若後續註冊會員並綁定訂單，可作為未來擴充。
+* Guest 是提供給不想加入會員的顧客使用，訂單操作權限限於自己建立的訪客訂單。
+* Guest 只能透過「訂單追蹤」查看與操作自己建立的訂單，可透過 guest token、訂單查詢碼或付款回導資訊識別訂單歸屬；Guest 不提供「點餐紀錄」頁面。
+* Guest 不累積會員點數；若後續註冊會員，可提示加入會員後新訂單可在會員點餐紀錄查看完整歷史並累積點數。
+* User 只能查看自己的會員點餐紀錄。
 * Staff 可查看所有訂單並更新訂單狀態，但不可管理商品與使用者。
 * Admin 可管理所有資源，包含商品、訂單與使用者。
 * 所有需要登入的 API 都必須驗證 JWT。
@@ -635,7 +636,7 @@ POST   /api/orders
 POST   /api/orders/guest
 POST   /api/orders/redeem
 GET    /api/orders/my
-GET    /api/orders                              staff/admin（支援 ?date=YYYY-MM-DD 日期篩選）
+GET    /api/orders                              staff/admin（支援 ?date=YYYY-MM-DD 日期篩選與 ?all=true 完整清單）
 GET    /api/orders/summary/today                staff/admin（支援 ?date=YYYY-MM-DD）
 GET    /api/orders/sales                        staff/admin
 GET    /api/orders/:id
@@ -715,13 +716,14 @@ Response:
 
 ### GET /api/orders
 
-Staff / Admin 查詢所有訂單，可用於訂單管理頁。支援 `date`（台北時間 `YYYY-MM-DD`）篩選當日訂單；若未傳 `date` 且無 `status`/`paymentStatus`，預設回傳 `paymentStatus=paid & status=pending` 的待處理訂單。
+Staff / Admin 查詢訂單，可用於訂單管理頁與完整點餐紀錄。支援 `date`（台北時間 `YYYY-MM-DD`）篩選當日訂單；若未傳 `date`、`status`、`paymentStatus`、`all=true`，預設回傳 `paymentStatus=paid & status=pending` 的待處理訂單。若傳入 `all=true`，則回傳完整訂單清單，供 staff/admin 的點餐紀錄頁使用。
 
 Query:
 
 ```http
 GET /api/orders?status=pending&paymentStatus=paid&page=1&limit=20
 GET /api/orders?date=2026-05-18
+GET /api/orders?all=true
 ```
 
 ### GET /api/orders/summary/today
@@ -775,6 +777,7 @@ Response: 詳見 4.6 Sales Report Module 回應格式。
 ### GET /api/orders/guest/:lookupCode
 
 訪客查詢自己的訂單。實作時建議要求同時提供 `phone` 或 guest token，避免只靠查詢碼被猜中。
+訪客模式不提供「點餐紀錄」頁面；若需完整歷史紀錄，需註冊/登入會員後建立會員訂單。
 
 Query:
 
@@ -2212,6 +2215,8 @@ Line Pay 在本專案中作為主要線上付款方式，需支援：
 | BR-014 | Staff 更新訂單狀態時，系統需寫入 Notification 並 emit 給對應 order room。 |
 | BR-015 | User 累積 3 點可兌換指定商品，每次兌換固定扣除 3 點。 |
 | BR-016 | 兌換訂單不進入 Line Pay 付款流程，且不累積會員點數。 |
+| BR-017 | Staff / Admin 點餐紀錄可查完整訂單；User 點餐紀錄只能查自己的會員訂單。 |
+| BR-018 | Production Line Pay confirm/cancel redirect URL 不可指向 localhost。 |
 | BR-017 | User 點數不足 3 點時不可建立兌換訂單。 |
 
 ---

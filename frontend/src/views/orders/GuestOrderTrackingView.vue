@@ -42,53 +42,6 @@
         </p>
       </form>
 
-      <section class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 class="m-0 text-lg font-bold text-amber-950">訪客點餐紀錄</h2>
-            <p class="m-0 text-sm text-stone-600">
-              訪客紀錄會保存在目前這台裝置，可用查詢碼與手機查看最近一筆訂單。
-            </p>
-          </div>
-          <RouterLink
-            class="rounded-md border border-amber-900 px-3 py-2 text-sm font-bold text-amber-950 no-underline"
-            to="/register"
-          >
-            加入會員
-          </RouterLink>
-        </div>
-
-        <div
-          v-if="hasGuestTrackingRecord"
-          class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-100 bg-amber-50 p-3"
-        >
-          <div>
-            <p class="m-0 font-bold text-amber-950">
-              訂單 {{ orderStore.guestLookupCode }}
-            </p>
-            <p class="m-0 text-sm text-stone-600">
-              手機 {{ orderStore.guestPhone || '未保存' }}
-            </p>
-          </div>
-          <button
-            class="min-h-9 rounded-md bg-amber-900 px-3 text-sm font-bold text-white"
-            type="button"
-            :disabled="isLoading"
-            @click="loadSavedGuestRecord"
-          >
-            查看紀錄
-          </button>
-        </div>
-
-        <p v-else class="m-0 rounded-md border border-dashed border-stone-300 p-3 text-sm text-stone-600">
-          目前沒有保存的訪客點餐紀錄。完成訪客結帳後，這裡會顯示最近一筆查詢資訊。
-        </p>
-
-        <p class="m-0 text-xs text-stone-500">
-          加入會員後，可在點餐紀錄查看完整歷史訂單，並累積與兌換會員點數。
-        </p>
-      </section>
-
       <!-- 通知紀錄 -->
       <section
         v-if="notificationStore.items.length > 0"
@@ -256,7 +209,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
@@ -278,7 +231,6 @@ const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
 );
 const latestNotification = computed(() => notificationStore.items[0]);
-const hasGuestTrackingRecord = computed(() => Boolean(orderStore.guestLookupCode));
 
 const steps = [
   { status: 'pending',   label: '待處理' },
@@ -395,13 +347,6 @@ async function load() {
   } finally {
     isLoading.value = false;
   }
-}
-
-function loadSavedGuestRecord() {
-  lookupCode.value = orderStore.guestLookupCode;
-  phone.value = orderStore.guestPhone;
-  guestToken.value = orderStore.guestToken;
-  void load();
 }
 
 onMounted(() => {

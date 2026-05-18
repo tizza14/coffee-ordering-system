@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-18 +08:00 (rev 5)
+Last updated: 2026-05-18 +08:00 (rev 6)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -725,6 +725,35 @@ Verified: backend 11 suites / 70 tests passed; frontend 9 suites / 21 tests pass
 - **Date dividers**: Replaced flat order list with date-grouped sections. Each section shows a centered divider with label (`今天` / `昨天` / `M/D（週X）`) and a pill showing order count for that day.
 - Grouping uses `Intl.DateTimeFormat` with `Asia/Taipei` timezone so midnight boundaries are correct regardless of client locale.
 - No filter buttons needed — all orders remain visible, grouped by day for easy scanning.
+
+---
+
+## Post-Ship Enhancements (2026-05-18 rev 6)
+
+### Order History Permissions
+
+- `User` 點餐紀錄只載入自己的會員訂單。
+- `Staff` / `Admin` 點餐紀錄透過 `GET /api/orders?all=true` 載入完整訂單記錄。
+- 登入、登出與進入點餐紀錄前會清空前一個帳號殘留的訂單列表，避免 staff/admin 完整清單被一般 user 沿用。
+- `Guest` 不提供「點餐紀錄」頁面；訪客只能透過「訂單追蹤」用查詢碼與手機/token 查詢自己的訂單。
+
+### Guest Tracking
+
+- `GuestOrderTrackingView` 保留查詢表單、訂單狀態、點餐明細與通知紀錄。
+- 已移除訪客模式的「點餐紀錄」區塊，避免讓訪客誤以為可查看完整歷史訂單。
+- README、部署指南與規格書已同步說明：加入會員後建立的新訂單才會出現在會員點餐紀錄，訪客既有訂單仍以訂單追蹤查詢。
+
+### Payment Redirect Hardening
+
+- Production backend now avoids generating Line Pay confirm/cancel redirect URLs pointing to `localhost`.
+- Render deployment docs now require `FRONTEND_URL` in addition to `CLIENT_ORIGIN`, and document the `localhost:5173` refusal troubleshooting path.
+
+Verified:
+
+- `frontend`: `npm.cmd run build`
+- `frontend`: `npm.cmd run e2e -- guest-order-tracking.spec.ts`
+- `backend`: `npm.cmd run build`
+- `backend`: `npm.cmd test -- env.spec.ts payment.spec.ts`
 
 ---
 

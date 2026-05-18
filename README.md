@@ -20,7 +20,7 @@ These are seed-script defaults for the live demo. **Do not reuse these credentia
 | Staff | staff@demo.com | demo1234 |
 | Member | user@demo.com | demo1234 |
 
-Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit.
+Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. Guests use **訂單追蹤** with lookup code and phone/token to check an order. Creating a member account is required for **點餐紀錄**, full historical records, and points.
 
 ## Demo Flow
 
@@ -29,9 +29,11 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 3. Go to Checkout.
 4. For guest checkout, fill name, phone, and optional email. No account is required.
 5. Submit the order and continue through the payment confirmation flow.
-6. Use Staff login to process paid pending orders in order: `pending → accepted → preparing → ready → completed`.
-7. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
-8. Use Admin login to manage products and user roles.
+6. For guest orders, open **訂單追蹤** and enter the lookup code and phone manually.
+7. Use Member login to open **點餐紀錄** for that member's own orders.
+8. Use Staff/Admin login to open **點餐紀錄** for all orders, or **員工訂單** to process paid pending orders in order: `pending → accepted → preparing → ready → completed`.
+9. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
+10. Use Admin login to manage products and user roles.
 
 ## Local Development
 
@@ -89,6 +91,7 @@ MONGODB_URI=mongodb://localhost:27017/coffee_ordering
 JWT_SECRET=change-me
 JWT_EXPIRES_IN=1d
 CLIENT_ORIGIN=http://localhost:5173,https://coffee-ordering-system-delta.vercel.app
+FRONTEND_URL=http://localhost:5173
 LINE_PAY_CHANNEL_ID=your-channel-id
 LINE_PAY_CHANNEL_SECRET=your-channel-secret
 LINE_PAY_API_BASE_URL=https://sandbox-api-pay.line.me
@@ -162,6 +165,8 @@ npm run build
 ## Deployment Notes
 
 - Render backend must allow the Vercel frontend origin through `CLIENT_ORIGIN`.
+- Render backend should set `FRONTEND_URL` to the deployed frontend URL. In production, the backend refuses to generate localhost Line Pay redirect URLs and falls back to the first non-local frontend origin.
 - Render backend `MONGODB_URI` must include the database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
 - Demo payment uses `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
 - Staff order status transitions are strict. The UI only shows valid next actions, and the backend rejects invalid transitions with `INVALID_STATUS_TRANSITION`.
+- Access rules: guests do not have a **點餐紀錄** page and can only track their own order through **訂單追蹤**; members see only their own **點餐紀錄**; staff/admin can see complete order history.
