@@ -2,10 +2,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const defaultClientOrigins = [
-  'http://localhost:5173',
-  'https://coffee-ordering-system-delta.vercel.app'
-];
+const defaultClientOrigins = ['http://localhost:5173'];
 
 const configuredClientOrigins = process.env.CLIENT_ORIGIN
   ? process.env.CLIENT_ORIGIN.split(',')
@@ -22,9 +19,7 @@ const linePayChannelId =
 const linePayChannelSecret =
   process.env.LINE_PAY_CHANNEL_SECRET ?? 'test-channel-secret';
 const defaultFrontendUrl =
-  process.env.NODE_ENV === 'production'
-    ? 'https://coffee-ordering-system-delta.vercel.app'
-    : 'http://localhost:5173';
+  process.env.FRONTEND_URL ?? 'http://localhost:5173';
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
