@@ -55,9 +55,21 @@
     </div>
 
     <!-- 訂單列表 -->
-    <ul v-else class="grid list-none gap-3 p-0">
+    <div v-else class="grid gap-1">
+      <template v-for="group in groupedOrders" :key="group.key">
+        <!-- 日期分隔線 -->
+        <div class="flex items-center gap-3 px-1 py-2">
+          <div class="h-px flex-1 bg-stone-300"></div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-stone-500 whitespace-nowrap">{{ group.label }}</span>
+            <span class="rounded-full bg-stone-200 px-1.5 py-0.5 text-xs text-stone-500">{{ group.orders.length }} 筆</span>
+          </div>
+          <div class="h-px flex-1 bg-stone-300"></div>
+        </div>
+
+        <ul class="grid list-none gap-3 p-0">
       <li
-        v-for="order in orderStore.myOrders"
+        v-for="order in group.orders"
         :key="order.id"
         class="grid gap-0 rounded-lg border border-stone-300 bg-white overflow-hidden"
       >
@@ -182,12 +194,14 @@
           </div>
         </div>
       </li>
-    </ul>
+        </ul>
+      </template>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
@@ -200,6 +214,46 @@ const socketStore = useSocketStore();
 const isLoading = ref(false);
 const errorMessage = ref('');
 const openOrders = ref(new Set<string>());
+
+// ── Date grouping ─────────────────────────────────────────────────────────────
+
+function toTaipeiDateKey(dateStr: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date(dateStr)); // → "YYYY-MM-DD"
+}
+
+function dateGroupLabel(key: string): string {
+  const todayKey = toTaipeiDateKey(new Date().toISOString());
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = toTaipeiDateKey(yesterday.toISOString());
+
+  if (key === todayKey) return '今天';
+  if (key === yesterdayKey) return '昨天';
+
+  const [year, month, day] = key.split('-').map(Number);
+  const dow = ['日', '一', '二', '三', '四', '五', '六'][new Date(year, month - 1, day).getDay()];
+  const currentYear = new Date().getFullYear();
+  return currentYear === year
+    ? `${month}/${day}（週${dow}）`
+    : `${year}/${month}/${day}`;
+}
+
+const groupedOrders = computed(() => {
+  const map = new Map<string, Order[]>();
+  for (const order of orderStore.myOrders) {
+    const key = toTaipeiDateKey(order.createdAt);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(order);
+  }
+  return Array.from(map.entries()).map(([key, orders]) => ({
+    key,
+    label: dateGroupLabel(key),
+    orders
+  }));
+});
 
 const steps = [
   { status: 'pending',   label: '待處理' },
