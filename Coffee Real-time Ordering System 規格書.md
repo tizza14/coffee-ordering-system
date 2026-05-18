@@ -500,6 +500,7 @@ const requiredRedeemPoints = 3
 ```
 POST /api/auth/register
 POST /api/auth/login
+GET  /api/auth/me
 ```
 
 ### POST /api/auth/register
@@ -549,6 +550,22 @@ Response:
     "role": "user"
   },
   "accessToken": "jwt-token"
+}
+```
+
+### GET /api/auth/me
+
+需帶 Bearer token。回傳目前登入使用者的最新資料（從 DB 查詢，包含最新 `points`）。
+
+Response:
+
+```json
+{
+  "id": "userId",
+  "name": "Alice",
+  "email": "alice@example.com",
+  "role": "user",
+  "points": 3
 }
 ```
 
@@ -869,9 +886,11 @@ Response:
 ## 6.4 Notification
 
 ```http
-GET /api/notifications
-GET /api/notifications/guest/:lookupCode
-PATCH /api/notifications/:id/read
+GET    /api/notifications
+GET    /api/notifications/guest/:lookupCode
+PATCH  /api/notifications/:id/read
+POST   /api/notifications/push/subscribe
+DELETE /api/notifications/push/unsubscribe
 ```
 
 ### GET /api/notifications
@@ -934,6 +953,34 @@ Response:
   "isRead": true
 }
 ```
+
+### POST /api/notifications/push/subscribe
+
+需登入（User）。儲存 Web Push 訂閱物件（endpoint + keys）。同一 endpoint 重複訂閱為冪等操作（201）。
+
+Request:
+
+```json
+{
+  "endpoint": "https://...",
+  "keys": {
+    "p256dh": "...",
+    "auth": "..."
+  }
+}
+```
+
+Response: `{ "ok": true }`
+
+### DELETE /api/notifications/push/unsubscribe
+
+需登入（User）。移除指定 endpoint 的訂閱記錄。
+
+Request body: `{ "endpoint": "https://..." }`
+
+Response: `{ "ok": true }`
+
+若 endpoint 不存在，回傳 `404 SUBSCRIPTION_NOT_FOUND`。
 
 ---
 
@@ -1616,9 +1663,14 @@ frontend/
 
 ### Pipeline
 
+兩個平行 job，push 或 PR 到 `main` 時觸發：
+
 ```
-push → lint → test → build
+backend job:  npm ci → lint → Jest test (MongoMemoryServer) → build
+frontend job: npm ci → lint → Vitest unit → Playwright E2E (Chromium) → build
 ```
+
+兩個 job 皆通過才可合併。前端 E2E 使用 `page.route()` mock 攔截，不需執行真實後端。
 
 ### Swagger API 文件
 
@@ -1650,13 +1702,21 @@ LINE_PAY_CHANNEL_SECRET=your-channel-secret
 LINE_PAY_API_BASE_URL=https://sandbox-api-pay.line.me
 LINE_PAY_CONFIRM_URL=http://localhost:5173/payments/line-pay/confirm
 LINE_PAY_CANCEL_URL=http://localhost:5173/payments/line-pay/cancel
+# Web Push（選填，未設定則推播功能靜默略過）
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_EMAIL=admin@example.com
 ```
+
+產生 VAPID 金鑰：`cd backend && npx web-push generate-vapid-keys`
 
 ## 12.2 Frontend `.env`
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
 VITE_SOCKET_URL=http://localhost:3000
+# Web Push（需與 backend VAPID_PUBLIC_KEY 相同）
+VITE_VAPID_PUBLIC_KEY=
 ```
 
 ## 12.3 CORS 與 WebSocket
