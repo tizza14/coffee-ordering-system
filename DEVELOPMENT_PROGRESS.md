@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-18 +08:00 (rev 4)
+Last updated: 2026-05-18 +08:00 (rev 5)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -710,6 +710,21 @@ Ten code-review findings resolved (Critical → Medium → Minor):
 - **Fix 10** (`order.store.ts` `loadTodaySummary`): Removed dead fallback that re-fetched 200 paid orders when `soldItems` was empty; backend always returns `soldItems`.
 
 Verified: backend 11 suites / 70 tests passed; frontend 9 suites / 21 tests passed; both `npm run build` clean.
+
+---
+
+## Post-Ship Enhancements (2026-05-18 rev 5)
+
+### Bug Fixes
+
+- **AUTH_FORBIDDEN on 點餐紀錄 for staff** (`order.routes.ts` line 209): `authorize(['user', 'admin'])` excluded `staff` role. Fixed to `authorize(['user', 'staff', 'admin'])`.
+- **Staff 點餐紀錄 empty after seed** (`seed.ts`): Historical and today's orders were only assigned to `user@demo.com`. Fixed by passing both `memberUser._id` and `staffUser._id` to `buildHistoricalOrders`, and adding `DEMO0005` (today, completed) assigned to `staffUser`.
+
+### UI/UX — MyOrdersView date grouping
+
+- **Date dividers**: Replaced flat order list with date-grouped sections. Each section shows a centered divider with label (`今天` / `昨天` / `M/D（週X）`) and a pill showing order count for that day.
+- Grouping uses `Intl.DateTimeFormat` with `Asia/Taipei` timezone so midnight boundaries are correct regardless of client locale.
+- No filter buttons needed — all orders remain visible, grouped by day for easy scanning.
 
 ---
 
