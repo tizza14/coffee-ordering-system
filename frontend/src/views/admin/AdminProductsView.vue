@@ -79,14 +79,14 @@
 
       <div class="flex flex-wrap gap-2">
         <button
-          class="min-h-10 rounded-md bg-amber-900 px-4 font-bold text-white"
+          class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white"
           type="submit"
         >
           {{ editingId ? '更新' : '新增' }}
         </button>
         <button
           v-if="editingId"
-          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
+          class="min-h-10 cursor-pointer rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
           type="button"
           @click="resetForm"
         >
@@ -101,7 +101,7 @@
       >
         <h2 class="m-0 text-xl font-bold text-amber-950">商品列表</h2>
         <button
-          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
+          class="min-h-10 cursor-pointer rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
           type="button"
           @click="loadProducts"
         >
@@ -159,14 +159,14 @@
           </div>
           <footer class="flex flex-wrap gap-2">
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+              class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="editProduct(product)"
             >
               編輯
             </button>
             <button
-              class="min-h-9 rounded-md border border-red-700 bg-white px-3 font-bold text-red-700"
+              class="min-h-9 cursor-pointer rounded-md border border-red-700 bg-white px-3 font-bold text-red-700"
               type="button"
               @click="productStore.deleteProduct(product.id)"
             >
