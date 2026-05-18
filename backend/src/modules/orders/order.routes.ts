@@ -206,7 +206,7 @@ orderRoutes.get(
 orderRoutes.get(
   '/my',
   authenticate,
-  authorize(['user', 'admin']),
+  authorize(['user', 'staff', 'admin']),
   orderController.listMyOrders
 );
 
