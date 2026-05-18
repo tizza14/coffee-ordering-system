@@ -7,9 +7,12 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
 
     await expect(page.getByRole('heading', { name: '訪客訂單追蹤' })).toBeVisible();
+    await expect(page.getByText('查詢後會顯示')).toBeVisible();
+    await expect(page.getByText('目前訂單狀態與取餐進度')).toBeVisible();
     await expect(page.getByText('訂單查詢碼')).toBeVisible();
     await expect(page.getByText('手機號碼', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: '查詢訂單' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '查詢並顯示訂單狀態' })).toBeVisible();
+    await expect(page.getByText('查詢結果會顯示在這裡')).toBeVisible();
   });
 
   test('查詢碼不存在時顯示錯誤訊息', async ({ page }) => {
@@ -24,7 +27,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
     await page.fill('input:first-of-type', 'BADCODE');
     await page.fill('input[pattern]', '0912345678');
-    await page.getByRole('button', { name: '查詢訂單' }).click();
+    await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
     await expect(page.locator('p.text-red-700')).toBeVisible();
   });
@@ -61,7 +64,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
     await page.fill('input:first-of-type', 'ABC123');
     await page.fill('input[pattern]', '0912345678');
-    await page.getByRole('button', { name: '查詢訂單' }).click();
+    await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
     await expect(page.getByText('ABC123')).toBeVisible();
   });
@@ -98,7 +101,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
     await page.fill('input:first-of-type', 'ABC123');
     await page.fill('input[pattern]', '0912345678');
-    await page.getByRole('button', { name: '查詢訂單' }).click();
+    await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
     await expect(page.getByText('ABC123')).toBeVisible();
     await expect(page.locator('p.text-red-700')).toHaveCount(0);
@@ -136,7 +139,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
     await page.fill('input:first-of-type', ' abc123 ');
     await page.fill('input[pattern]', '0912345678');
-    await page.getByRole('button', { name: '查詢訂單' }).click();
+    await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
     await expect(page.getByText('ABC123')).toBeVisible();
     await expect(page.getByText('您的餐點已完成，請到櫃檯取餐。')).toBeVisible();

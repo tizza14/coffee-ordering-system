@@ -6,18 +6,28 @@
     <div class="grid content-start gap-4">
       <header>
         <h1 class="m-0 text-2xl font-bold text-amber-950">訪客訂單追蹤</h1>
-        <p class="m-0 text-stone-600">輸入查詢碼與手機號碼查詢訂單狀態。</p>
+        <p class="m-0 text-stone-600">輸入查詢碼與手機號碼，立即顯示訂單進度與點餐明細。</p>
       </header>
 
       <form
         class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
         @submit.prevent="load"
       >
+        <div class="rounded-md border border-amber-100 bg-amber-50 p-3">
+          <p class="m-0 text-sm font-bold text-amber-950">查詢後會顯示</p>
+          <ul class="m-0 mt-2 grid list-disc gap-1 pl-5 text-sm text-stone-700">
+            <li>目前訂單狀態與取餐進度</li>
+            <li>點餐明細與總金額</li>
+            <li>店家更新狀態後的通知紀錄</li>
+          </ul>
+        </div>
+
         <label class="grid gap-1.5 font-semibold">
           訂單查詢碼
           <input
             v-model="lookupCode"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
+            placeholder="例如 DEMO0001"
             required
           />
         </label>
@@ -27,15 +37,18 @@
             v-model="phone"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
+            placeholder="例如 0912345678"
           />
         </label>
-        <p class="m-0 text-xs text-stone-500">手機號碼或付款後收到的 Guest Token 擇一輸入即可。</p>
+        <p class="m-0 text-xs text-stone-500">
+          查詢碼在付款完成頁顯示；手機號碼需與下單時填寫的號碼相同。
+        </p>
         <button
-          class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
+          class="min-h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
           type="submit"
           :disabled="isLoading"
         >
-          {{ isLoading ? '查詢中...' : '查詢訂單' }}
+          {{ isLoading ? '查詢中...' : '查詢並顯示訂單狀態' }}
         </button>
         <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
           {{ errorMessage }}
@@ -93,8 +106,8 @@
       >
         <div>
           <p class="m-0 text-2xl">📋</p>
-          <p class="m-0 mt-2 font-semibold">尚未查詢訂單</p>
-          <p class="m-0 text-sm">請在左側輸入查詢碼查詢。</p>
+          <p class="m-0 mt-2 font-semibold">查詢結果會顯示在這裡</p>
+          <p class="m-0 text-sm">送出查詢後，這裡會顯示進度條、餐點明細與通知紀錄。</p>
         </div>
       </div>
 
