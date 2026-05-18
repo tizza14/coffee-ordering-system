@@ -46,5 +46,8 @@ export const env = {
     `${defaultFrontendUrl}/payments/line-pay/confirm`,
   linePayCancelUrl:
     process.env.LINE_PAY_CANCEL_URL ??
-    `${defaultFrontendUrl}/payments/line-pay/cancel`
+    `${defaultFrontendUrl}/payments/line-pay/cancel`,
+  vapidPublicKey:  process.env.VAPID_PUBLIC_KEY  ?? '',
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? '',
+  vapidEmail:      process.env.VAPID_EMAIL        ?? 'admin@example.com'
 };

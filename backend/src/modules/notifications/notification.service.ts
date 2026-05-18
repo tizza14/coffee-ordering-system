@@ -4,6 +4,7 @@ import {
   NotificationModel,
   type NotificationDocument
 } from './notification.model';
+import { PushSubscriptionModel } from './pushSubscription.model';
 
 export async function createNotification(data: {
   userId?: string;
@@ -74,4 +75,28 @@ function toNotificationResponse(notif: NotificationDocument) {
     isRead: notif.isRead,
     createdAt: notif.createdAt
   };
+}
+
+export async function savePushSubscription(
+  userId: string,
+  subscription: { endpoint: string; keys: { auth: string; p256dh: string } }
+) {
+  await PushSubscriptionModel.findOneAndUpdate(
+    { endpoint: subscription.endpoint },
+    { userId: new mongoose.Types.ObjectId(userId), keys: subscription.keys },
+    { upsert: true, new: true }
+  );
+}
+
+export async function removePushSubscription(
+  userId: string,
+  endpoint: string
+) {
+  const result = await PushSubscriptionModel.deleteOne({
+    endpoint,
+    userId: new mongoose.Types.ObjectId(userId)
+  });
+  if (result.deletedCount === 0) {
+    throw new ApiError(404, 'RESOURCE_NOT_FOUND', 'Subscription not found');
+  }
 }

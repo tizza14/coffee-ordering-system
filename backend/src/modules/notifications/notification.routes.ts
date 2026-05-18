@@ -32,6 +32,18 @@ notificationRoutes.get(
   notificationController.listUserNotifications
 );
 
+notificationRoutes.post(
+  '/push/subscribe',
+  authenticate,
+  notificationController.subscribePush
+);
+
+notificationRoutes.delete(
+  '/push/unsubscribe',
+  authenticate,
+  notificationController.unsubscribePush
+);
+
 /**
  * @openapi
  * /notifications/guest/{lookupCode}:

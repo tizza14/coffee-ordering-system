@@ -1,8 +1,11 @@
 <template>
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
-    <header>
-      <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
-      <p class="m-0 text-stone-600">查看你最近的訂單狀態、付款結果與點餐明細。</p>
+    <header class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
+        <p class="m-0 text-stone-600">查看你最近的訂單狀態、付款結果與點餐明細。</p>
+      </div>
+      <PushNotificationToggle />
     </header>
 
     <!-- 骨架屏 -->
@@ -188,6 +191,7 @@ import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
+import PushNotificationToggle from '../../components/PushNotificationToggle.vue';
 import type { Order } from '../../api/order.api';
 
 const orderStore = useOrderStore();

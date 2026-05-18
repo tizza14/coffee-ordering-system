@@ -9,6 +9,7 @@ import { ProductModel } from '../products/product.model';
 import * as pointService from '../points/point.service';
 import * as notificationService from '../notifications/notification.service';
 import * as socketServer from '../../sockets/socket.server';
+import { sendPushToUser } from '../../utils/webPush';
 import { OrderModel, type OrderDocument } from './order.model';
 import type {
   CreateGuestOrderInput,
@@ -583,6 +584,15 @@ async function notifyStatusUpdate(order: OrderDocument) {
     status: order.status,
     message
   });
+
+  // Web Push: notify user when order is ready for pickup
+  if (order.status === 'ready' && order.userId) {
+    void sendPushToUser(String(order.userId), {
+      title: '您的餐點已完成',
+      body: `訂單 ${order.orderLookupCode ?? order._id} 請到櫃檯取餐。`,
+      url: '/orders/my'
+    });
+  }
 }
 
 export async function getSalesReport(

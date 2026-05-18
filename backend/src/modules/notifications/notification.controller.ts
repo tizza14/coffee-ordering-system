@@ -35,6 +35,33 @@ export const listGuestNotifications = asyncHandler(
   }
 );
 
+export const subscribePush = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { endpoint, keys } = req.body as {
+      endpoint: string;
+      keys: { auth: string; p256dh: string };
+    };
+    if (!endpoint || !keys?.auth || !keys?.p256dh) {
+      res.status(400).json({ message: 'Invalid subscription object' });
+      return;
+    }
+    await notificationService.savePushSubscription(req.user!.id, { endpoint, keys });
+    res.status(201).json({ ok: true });
+  }
+);
+
+export const unsubscribePush = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { endpoint } = req.body as { endpoint: string };
+    if (!endpoint) {
+      res.status(400).json({ message: 'endpoint is required' });
+      return;
+    }
+    await notificationService.removePushSubscription(req.user!.id, endpoint);
+    res.json({ ok: true });
+  }
+);
+
 export const markNotificationRead = asyncHandler(
   async (req: Request, res: Response) => {
     const notificationId = getParam(req.params.id);
