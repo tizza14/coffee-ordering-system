@@ -28,7 +28,21 @@
         </div>
       </header>
 
-      <p v-if="isLoading" class="py-4">載入商品中...</p>
+      <ul v-if="isLoading" class="grid list-none gap-3 p-0">
+        <li
+          v-for="i in 4"
+          :key="i"
+          class="flex animate-pulse items-center gap-4 rounded-lg border border-stone-200 bg-white p-4"
+        >
+          <div class="h-24 w-24 shrink-0 rounded-lg bg-stone-200"></div>
+          <div class="flex-1 space-y-2.5">
+            <div class="h-3 w-12 rounded-full bg-stone-200"></div>
+            <div class="h-5 w-36 rounded bg-stone-200"></div>
+            <div class="h-3 w-52 rounded bg-stone-200"></div>
+            <div class="h-4 w-20 rounded bg-stone-200"></div>
+          </div>
+        </li>
+      </ul>
       <p v-else-if="errorMessage" class="py-4 font-bold text-red-700">
         {{ errorMessage }}
       </p>

@@ -109,12 +109,29 @@
         </button>
       </header>
 
-      <p
-        v-if="productStore.isLoading"
-        class="m-0 rounded-lg border border-stone-300 bg-white p-4"
-      >
-        載入商品中...
-      </p>
+      <ul v-if="productStore.isLoading" class="grid list-none gap-3 p-0">
+        <li
+          v-for="i in 4"
+          :key="i"
+          class="animate-pulse grid gap-3 rounded-lg border border-stone-200 bg-white p-4"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 space-y-2">
+              <div class="h-5 w-40 rounded bg-stone-200"></div>
+              <div class="h-3 w-56 rounded bg-stone-200"></div>
+            </div>
+            <div class="h-5 w-16 rounded bg-stone-200"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="h-5 w-12 rounded-full bg-stone-200"></div>
+            <div class="h-5 w-10 rounded-full bg-stone-200"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="h-8 w-14 rounded bg-stone-200"></div>
+            <div class="h-8 w-14 rounded bg-stone-200"></div>
+          </div>
+        </li>
+      </ul>
       <ul v-else class="grid list-none gap-3 p-0">
         <li
           v-for="product in productStore.products"

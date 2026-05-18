@@ -100,12 +100,44 @@
       </ul>
     </section>
 
-    <p
-      v-if="isLoading"
-      class="m-0 rounded-lg border border-stone-300 bg-white p-4"
-    >
-      載入訂單中...
-    </p>
+    <template v-if="isLoading">
+      <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          v-for="i in 4"
+          :key="i"
+          class="animate-pulse rounded-lg border border-stone-200 bg-white p-4"
+        >
+          <div class="mb-2 h-3 w-20 rounded bg-stone-200"></div>
+          <div class="h-7 w-28 rounded bg-stone-200"></div>
+        </div>
+      </section>
+      <ul class="grid list-none gap-3 p-0">
+        <li
+          v-for="i in 3"
+          :key="i"
+          class="animate-pulse grid gap-3 rounded-lg border border-stone-200 bg-white p-4"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-2">
+              <div class="h-5 w-36 rounded bg-stone-200"></div>
+              <div class="h-3 w-24 rounded bg-stone-200"></div>
+            </div>
+            <div class="flex gap-2">
+              <div class="h-6 w-16 rounded-full bg-stone-200"></div>
+              <div class="h-6 w-16 rounded-full bg-stone-200"></div>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <div class="h-3 w-full rounded bg-stone-200"></div>
+            <div class="h-3 w-3/4 rounded bg-stone-200"></div>
+          </div>
+          <div class="flex items-center justify-between border-t border-stone-200 pt-3">
+            <div class="h-4 w-20 rounded bg-stone-200"></div>
+            <div class="h-9 w-16 rounded bg-stone-200"></div>
+          </div>
+        </li>
+      </ul>
+    </template>
     <p
       v-else-if="errorMessage"
       class="m-0 rounded-lg border border-red-200 bg-red-50 p-4 font-bold text-red-700"

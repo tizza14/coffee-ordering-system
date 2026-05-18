@@ -117,12 +117,16 @@
     </section>
 
     <!-- Loading / error -->
-    <p
-      v-if="isLoading"
-      class="m-0 rounded-lg border border-stone-300 bg-white p-4 text-stone-600"
-    >
-      載入中...
-    </p>
+    <section v-if="isLoading" class="grid gap-3 sm:grid-cols-3">
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="animate-pulse rounded-lg border border-stone-200 bg-white p-4"
+      >
+        <div class="mb-3 h-3 w-20 rounded bg-stone-200"></div>
+        <div class="h-7 w-32 rounded bg-stone-200"></div>
+      </div>
+    </section>
     <p
       v-else-if="errorMessage"
       class="m-0 rounded-lg border border-red-200 bg-red-50 p-4 font-bold text-red-700"
