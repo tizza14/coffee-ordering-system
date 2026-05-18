@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
 import type { Order } from '../../api/order.api';
 
@@ -197,6 +197,7 @@ const nextStatusesByStatus = {
   cancelled: []
 } as const satisfies Record<Order['status'], readonly OrderTransitionStatus[]>;
 const orderStore = useOrderStore();
+const soldItems = computed(() => orderStore.todaySummary?.soldItems ?? []);
 const isLoading = ref(false);
 const isUpdating = ref('');
 const errorMessage = ref('');
