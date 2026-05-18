@@ -57,6 +57,9 @@ const orderSchema = new Schema(
 orderSchema.index({ userId: 1, status: 1, paymentStatus: 1, createdAt: -1 });
 orderSchema.index({ orderLookupCode: 1 }, { unique: true, sparse: true });
 orderSchema.index({ linePayOrderId: 1 }, { unique: true, sparse: true });
+// Staff list queries filter by status/paymentStatus without userId
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, status: 1, createdAt: -1 });
 
 export type OrderDocument = InferSchemaType<typeof orderSchema> & {
   _id: mongoose.Types.ObjectId;

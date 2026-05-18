@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: coffee-ordering-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: NODE_ENV
+        value: production
+      # ── Required secrets — set in Render dashboard ──────────────
+      - key: JWT_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: LINE_PAY_CHANNEL_ID
+        sync: false
+      - key: LINE_PAY_CHANNEL_SECRET
+        sync: false
+      # ── Optional (override defaults if needed) ──────────────────
+      - key: JWT_EXPIRES_IN
+        value: "1d"
+      - key: LINE_PAY_API_BASE_URL
+        value: https://sandbox-api-pay.line.me
+      - key: CLIENT_ORIGIN
+        sync: false   # set to your Vercel frontend URL
+      - key: LINE_PAY_CONFIRM_URL
+        sync: false   # set to https://<vercel-domain>/payments/line-pay/confirm
+      - key: LINE_PAY_CANCEL_URL
+        sync: false   # set to https://<vercel-domain>/payments/line-pay/cancel
+      # ── Web Push (optional) ────────────────────────────────────
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_EMAIL
+        value: admin@example.com

@@ -19,6 +19,8 @@ All planned feature specs through `FS-016` are implemented, tested, and deployed
 - Backend: https://coffee-ordering-system-60aw.onrender.com
 - Swagger: https://coffee-ordering-system-60aw.onrender.com/api-docs
 
+→ 部署步驟見 [deploy/RENDER_VERCEL.md](deploy/RENDER_VERCEL.md)
+
 ## Backend Progress
 
 ### Auth / RBAC

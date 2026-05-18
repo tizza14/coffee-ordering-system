@@ -40,7 +40,7 @@ describe('socketStore', () => {
 
   it('connects to socket with auth token', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect();
@@ -55,7 +55,7 @@ describe('socketStore', () => {
 
   it('connects with guest credentials', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect({ orderLookupCode: 'ABC123', guestToken: 'guest-token' });
@@ -74,7 +74,7 @@ describe('socketStore', () => {
   it('does not reconnect if socket is already connected', () => {
     const mockSocket = createMockSocket();
     mockSocket.connected = true;
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect();
@@ -85,7 +85,7 @@ describe('socketStore', () => {
 
   it('updates latestOrderUpdate when order_updated event fires', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect();
@@ -97,7 +97,7 @@ describe('socketStore', () => {
 
   it('pushes notification to notification store when notification event fires', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     const notificationStore = useNotificationStore();
@@ -120,7 +120,7 @@ describe('socketStore', () => {
 
   it('emits join_room when joinOrderRoom is called', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect();
@@ -131,7 +131,7 @@ describe('socketStore', () => {
 
   it('disconnects socket and clears it', () => {
     const mockSocket = createMockSocket();
-    mockedIo.mockReturnValue(mockSocket as ReturnType<typeof io>);
+    mockedIo.mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
 
     const socketStore = useSocketStore();
     socketStore.connect();

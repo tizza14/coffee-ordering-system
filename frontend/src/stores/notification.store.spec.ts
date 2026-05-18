@@ -53,4 +53,53 @@ describe('notificationStore', () => {
 
     expect(notificationStore.items[0].isRead).toBe(true);
   });
+
+  it('loads guest notifications and replaces items list', async () => {
+    const guestNotif = {
+      ...notification,
+      id: 'gn1',
+      audience: 'guest' as const,
+      guestOrderLookupCode: 'GUEST01'
+    };
+    mockedNotificationApi.getGuestNotifications.mockResolvedValue({
+      data: [guestNotif]
+    });
+    const notificationStore = useNotificationStore();
+
+    await notificationStore.loadGuestNotifications('GUEST01', '0912345678');
+
+    expect(mockedNotificationApi.getGuestNotifications).toHaveBeenCalledWith(
+      'GUEST01',
+      '0912345678',
+      undefined
+    );
+    expect(notificationStore.items).toHaveLength(1);
+    expect(notificationStore.items[0].id).toBe('gn1');
+  });
+
+  it('marks guest notification read using lookupCode and phone', async () => {
+    const guestNotif = {
+      ...notification,
+      id: 'gn1',
+      audience: 'guest' as const,
+      guestOrderLookupCode: 'GUEST01',
+      isRead: false
+    };
+    mockedNotificationApi.markNotificationRead.mockResolvedValue({
+      ...guestNotif,
+      isRead: true
+    });
+    const notificationStore = useNotificationStore();
+    notificationStore.items = [guestNotif];
+
+    await notificationStore.markRead('gn1', 'GUEST01', '0912345678');
+
+    expect(mockedNotificationApi.markNotificationRead).toHaveBeenCalledWith(
+      'gn1',
+      'GUEST01',
+      '0912345678',
+      undefined
+    );
+    expect(notificationStore.items[0].isRead).toBe(true);
+  });
 });

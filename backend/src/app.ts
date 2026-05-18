@@ -1,5 +1,7 @@
 import cors from 'cors';
 import express from 'express';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env';
 import { swaggerSpec } from './config/swagger';
@@ -18,12 +20,32 @@ export const corsOptions = {
   credentials: true
 };
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => env.nodeEnv === 'test'
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => env.nodeEnv === 'test'
+});
+
 export function createApp() {
   const app = express();
 
+  app.use(helmet());
   app.use(cors(corsOptions));
   app.options('*', cors(corsOptions));
   app.use(express.json());
+
+  app.use('/api', apiLimiter);
+  app.use('/api/auth', authLimiter);
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });

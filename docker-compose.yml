@@ -25,6 +25,15 @@ services:
       LINE_PAY_API_BASE_URL: ${LINE_PAY_API_BASE_URL:-https://sandbox-api-pay.line.me}
       LINE_PAY_CONFIRM_URL: ${LINE_PAY_CONFIRM_URL:-http://localhost:5173/payments/line-pay/confirm}
       LINE_PAY_CANCEL_URL: ${LINE_PAY_CANCEL_URL:-http://localhost:5173/payments/line-pay/cancel}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_EMAIL: ${VAPID_EMAIL:-admin@example.com}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     depends_on:
       - mongodb
 
@@ -39,7 +48,8 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   mongo_data:
