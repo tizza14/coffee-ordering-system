@@ -184,10 +184,12 @@ import { onMounted, reactive, ref } from 'vue';
 import type { Product } from '../../api/product.api';
 import { useProductAdminStore } from '../../stores/product-admin.store';
 import { useToastStore } from '../../stores/toast.store';
+import { useConfirmStore } from '../../stores/confirm.store';
 import { extractApiError } from '../../api/http';
 
 const productStore = useProductAdminStore();
 const toastStore = useToastStore();
+const confirmStore = useConfirmStore();
 const editingId = ref('');
 const loadError = ref('');
 const form = reactive({
@@ -243,6 +245,13 @@ async function saveProduct() {
 }
 
 async function handleDelete(id: string) {
+  const confirmed = await confirmStore.confirm({
+    title: '刪除商品',
+    message: '確定要刪除此商品嗎？此操作無法還原。',
+    confirmLabel: '刪除',
+    danger: true
+  });
+  if (!confirmed) return;
   try {
     await productStore.deleteProduct(id);
     toastStore.success('商品已刪除');

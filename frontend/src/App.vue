@@ -106,12 +106,14 @@
     <RouterView />
   </main>
   <ToastContainer />
+  <ConfirmDialog />
 </template>
 
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
 import ToastContainer from './components/ToastContainer.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const authStore = useAuthStore();
 const navLinkClass =
