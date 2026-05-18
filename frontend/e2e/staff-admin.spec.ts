@@ -76,6 +76,7 @@ test.describe('員工與管理者流程', () => {
           paidRevenue: 360,
           averagePaidOrderValue: 180,
           itemQuantity: 4,
+          soldItems: [{ productId: 'p1', name: 'Latte', quantity: 4, revenue: 480 }],
           guestOrders: 2,
           memberOrders: 1,
           statusCounts: {
@@ -151,7 +152,7 @@ test.describe('員工與管理者流程', () => {
     });
 
     await loginAs(page, 'staff@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: '員工' }).click();
+    await page.getByRole('navigation').getByRole('link', { name: '員工訂單' }).click();
 
     await expect(page).toHaveURL('/staff/orders');
     await expect(page.getByText('今日營收')).toBeVisible();
@@ -239,6 +240,8 @@ test.describe('員工與管理者流程', () => {
     await expect(page.getByText('NT$ 95')).toBeVisible();
 
     await page.getByRole('button', { name: '刪除' }).first().click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: '刪除' }).click();
     await expect(page.getByRole('heading', { name: 'Espresso' })).toHaveCount(0);
   });
 
@@ -341,5 +344,93 @@ test.describe('已登入導覽', () => {
 
     await expect(page).toHaveURL('/orders/my');
     await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
+  });
+});
+
+test.describe('Toast 通知與確認對話框', () => {
+  const products = [
+    {
+      id: 'p1',
+      name: 'Latte',
+      price: 120,
+      category: 'coffee',
+      description: 'Milk coffee',
+      imageUrl: '',
+      isAvailable: true,
+      isRedeemable: false,
+      redeemPoints: 3
+    }
+  ];
+
+  async function setupAdminProducts(page: Page) {
+    await mockAuth(page, [adminUser]);
+    const list = [...products];
+    await page.route('**/api/products**', async (route) => {
+      const method = route.request().method();
+      if (method === 'GET') {
+        await route.fulfill({ json: { data: list, pagination: { page: 1, limit: 20, total: list.length } } });
+      } else if (method === 'POST') {
+        const body = route.request().postDataJSON();
+        const created = { id: 'p-new', ...body };
+        list.unshift(created);
+        await route.fulfill({ status: 201, json: created });
+      } else if (method === 'DELETE') {
+        list.splice(0, 1);
+        await route.fulfill({ status: 204 });
+      } else {
+        await route.fallback();
+      }
+    });
+    await loginAs(page, 'admin@example.com');
+    await page.locator('a[href="/admin/products"]').click();
+    await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();
+  }
+
+  test('新增商品後顯示成功 Toast', async ({ page }) => {
+    await setupAdminProducts(page);
+    await page.getByLabel('商品名稱').fill('Espresso');
+    await page.getByLabel('價格').fill('90');
+    await page.getByRole('button', { name: '新增' }).click();
+    await expect(page.getByText('商品已新增')).toBeVisible();
+  });
+
+  test('刪除時確認對話框出現，點取消則商品保留', async ({ page }) => {
+    await setupAdminProducts(page);
+    await page.getByRole('button', { name: '刪除' }).first().click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('確定要刪除此商品嗎？')).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: '取消' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByText('Latte')).toBeVisible();
+  });
+
+  test('確認刪除後商品消失並顯示成功 Toast', async ({ page }) => {
+    await setupAdminProducts(page);
+    await page.getByRole('button', { name: '刪除' }).first().click();
+    await page.getByRole('dialog').getByRole('button', { name: '刪除' }).click();
+    await expect(page.getByText('商品已刪除')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Latte', level: 3 })).toHaveCount(0);
+  });
+
+  test('員工接單後顯示成功 Toast', async ({ page }) => {
+    await mockAuth(page, [staffUser]);
+    await mockProducts(page);
+    await page.route('**/api/orders/summary/today', (route) =>
+      route.fulfill({ json: { date: '2026-05-18', timezone: 'Asia/Taipei', totalOrders: 1, paidOrders: 1, paidRevenue: 120, averagePaidOrderValue: 120, itemQuantity: 1, soldItems: [{ productId: 'p1', name: 'Latte', quantity: 1, revenue: 120 }], guestOrders: 1, memberOrders: 0, statusCounts: { pending: 1, accepted: 0, preparing: 0, ready: 0, completed: 0, cancelled: 0 }, paymentStatusCounts: { unpaid: 0, payment_pending: 0, paid: 1, payment_failed: 0, refunded: 0 } } })
+    );
+    let status = 'pending';
+    await page.route('**/api/orders', async (route) => {
+      if (route.request().method() !== 'GET') { await route.fallback(); return; }
+      await route.fulfill({ json: { data: [{ id: 'o1', orderLookupCode: 'XYZ', guestInfo: { name: 'Alice', phone: '0900000000' }, items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }], totalAmount: 120, orderType: 'purchase', paymentStatus: 'paid', status, paidAmount: 120, pointsEarned: 0, pointsRedeemed: 0, createdAt: '2026-05-18T01:00:00.000Z', updatedAt: '2026-05-18T01:00:00.000Z' }] } });
+    });
+    await page.route('**/api/orders/o1/status', async (route) => {
+      const body = route.request().postDataJSON() as { status: string };
+      status = body.status;
+      await route.fulfill({ json: { id: 'o1', orderLookupCode: 'XYZ', guestInfo: { name: 'Alice', phone: '0900000000' }, items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }], totalAmount: 120, orderType: 'purchase', paymentStatus: 'paid', status, paidAmount: 120, pointsEarned: 0, pointsRedeemed: 0, createdAt: '2026-05-18T01:00:00.000Z', updatedAt: '2026-05-18T01:00:00.000Z' } });
+    });
+    await loginAs(page, 'staff@example.com');
+    await page.getByRole('navigation').getByRole('link', { name: '員工訂單' }).click();
+    await page.getByRole('button', { name: '接單' }).click();
+    await expect(page.getByText('訂單狀態已更新')).toBeVisible();
   });
 });

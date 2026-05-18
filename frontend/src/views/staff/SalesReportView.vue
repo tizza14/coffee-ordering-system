@@ -236,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import * as orderApi from '../../api/order.api';
 import type { SalesReport } from '../../api/order.api';
 import { extractApiError } from '../../api/http';
@@ -341,4 +341,6 @@ function switchPeriod(p: Period) {
   if (p !== 'range') loadReport();
   else report.value = null;
 }
+
+onMounted(() => loadReport());
 </script>
