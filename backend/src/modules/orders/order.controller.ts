@@ -82,12 +82,13 @@ export const getSalesReport = asyncHandler(
       | 'week'
       | 'month'
       | 'year'
+      | 'range'
       | undefined;
-    if (!period || !['day', 'week', 'month', 'year'].includes(period)) {
+    if (!period || !['day', 'week', 'month', 'year', 'range'].includes(period)) {
       throw new ApiError(
         400,
         'INVALID_PERIOD',
-        'period must be day, week, month, or year'
+        'period must be day, week, month, year, or range'
       );
     }
     const yearStr = getQueryString(req.query.year);
@@ -95,7 +96,9 @@ export const getSalesReport = asyncHandler(
     const report = await orderService.getSalesReport(period, {
       date: getQueryString(req.query.date),
       year: yearStr ? Number(yearStr) : undefined,
-      month: monthStr ? Number(monthStr) : undefined
+      month: monthStr ? Number(monthStr) : undefined,
+      startDate: getQueryString(req.query.startDate),
+      endDate: getQueryString(req.query.endDate)
     });
     res.json(report);
   }

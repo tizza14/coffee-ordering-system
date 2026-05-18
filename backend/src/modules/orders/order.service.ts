@@ -131,8 +131,27 @@ export interface SalesBucket {
   items: number;
 }
 
+function getCustomRangeBuckets(startDate: string, endDate: string): TimeBucket[] {
+  const [sy, sm, sd] = startDate.split('-').map(Number);
+  const [ey, em, ed] = endDate.split('-').map(Number);
+  const startUTC = taipeiMidnightUTC(sy, sm, sd);
+  const endUTC = taipeiMidnightUTC(ey, em, ed + 1);
+  const daysCount = Math.round((endUTC.getTime() - startUTC.getTime()) / 86400000);
+  return Array.from({ length: daysCount }, (_, i) => {
+    const start = new Date(startUTC.getTime() + i * 86400000);
+    const end = new Date(start.getTime() + 86400000);
+    const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
+    return {
+      start,
+      end,
+      date: t.toISOString().slice(0, 10),
+      label: `${t.getUTCMonth() + 1}/${t.getUTCDate()}`
+    };
+  });
+}
+
 export interface SalesReport {
-  period: 'day' | 'week' | 'month' | 'year';
+  period: 'day' | 'week' | 'month' | 'year' | 'range';
   label: string;
   totalRevenue: number;
   totalOrders: number;
@@ -556,8 +575,8 @@ async function notifyStatusUpdate(order: OrderDocument) {
 }
 
 export async function getSalesReport(
-  period: 'day' | 'week' | 'month' | 'year',
-  query: { date?: string; year?: number; month?: number }
+  period: 'day' | 'week' | 'month' | 'year' | 'range',
+  query: { date?: string; year?: number; month?: number; startDate?: string; endDate?: string }
 ): Promise<SalesReport> {
   const now = new Date();
   const taipeiNow = new Date(now.getTime() + TAIPEI_OFFSET_MS);
@@ -580,6 +599,17 @@ export async function getSalesReport(
     const month = query.month ?? (taipeiNow.getUTCMonth() + 1);
     buckets = getMonthBuckets(year, month);
     reportLabel = `${year}年${month}月`;
+  } else if (period === 'range') {
+    const startDate = query.startDate ?? todayStr;
+    const endDate = query.endDate ?? todayStr;
+    if (startDate > endDate) {
+      throw new ApiError(400, 'INVALID_DATE_RANGE', 'startDate must not be after endDate');
+    }
+    buckets = getCustomRangeBuckets(startDate, endDate);
+    if (buckets.length > 366) {
+      throw new ApiError(400, 'DATE_RANGE_TOO_LARGE', 'Date range cannot exceed 366 days');
+    }
+    reportLabel = `${startDate} ~ ${endDate}`;
   } else {
     const year = query.year ?? taipeiNow.getUTCFullYear();
     buckets = getYearBuckets(year);

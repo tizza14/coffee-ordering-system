@@ -2,7 +2,7 @@
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
     <header>
       <h1 class="m-0 text-2xl font-bold text-amber-950">銷售報表</h1>
-      <p class="m-0 text-stone-600">依日/週/月/年查詢銷售紀錄。</p>
+      <p class="m-0 text-stone-600">依日/週/月/年或自訂區間查詢銷售紀錄。</p>
     </header>
 
     <!-- Period selector + date picker -->
@@ -64,7 +64,7 @@
           </label>
         </template>
 
-        <template v-else>
+        <template v-else-if="selectedPeriod === 'year'">
           <label class="flex flex-col gap-1">
             <span class="text-xs font-bold text-stone-500">選擇年份</span>
             <select
@@ -75,6 +75,43 @@
               <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
             </select>
           </label>
+        </template>
+
+        <template v-else>
+          <!-- Custom range -->
+          <label class="flex flex-col gap-1">
+            <span class="text-xs font-bold text-stone-500">開始日期</span>
+            <input
+              v-model="rangeStart"
+              class="rounded-md border border-stone-400 px-3 py-1.5 text-amber-950"
+              type="date"
+              :max="rangeEnd || maxDate"
+              @change="onRangeChange"
+            />
+          </label>
+          <span class="pb-1.5 font-bold text-stone-400">～</span>
+          <label class="flex flex-col gap-1">
+            <span class="text-xs font-bold text-stone-500">結束日期</span>
+            <input
+              v-model="rangeEnd"
+              class="rounded-md border border-stone-400 px-3 py-1.5 text-amber-950"
+              type="date"
+              :min="rangeStart"
+              :max="maxDate"
+              @change="onRangeChange"
+            />
+          </label>
+          <button
+            class="min-h-9 self-end rounded-md border border-amber-900 bg-amber-900 px-4 font-bold text-white disabled:opacity-50"
+            type="button"
+            :disabled="!rangeStart || !rangeEnd || rangeStart > rangeEnd"
+            @click="loadReport"
+          >
+            查詢
+          </button>
+          <p v-if="rangeValidationMsg" class="m-0 self-end text-xs font-bold text-red-600">
+            {{ rangeValidationMsg }}
+          </p>
         </template>
       </div>
     </section>
@@ -195,71 +232,89 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import * as orderApi from '../../api/order.api';
 import type { SalesReport } from '../../api/order.api';
 
-const periods = [
-  { value: 'day' as const, label: '日' },
-  { value: 'week' as const, label: '週' },
-  { value: 'month' as const, label: '月' },
-  { value: 'year' as const, label: '年' }
+type Period = 'day' | 'week' | 'month' | 'year' | 'range';
+
+const periods: Array<{ value: Period; label: string }> = [
+  { value: 'day',   label: '日' },
+  { value: 'week',  label: '週' },
+  { value: 'month', label: '月' },
+  { value: 'year',  label: '年' },
+  { value: 'range', label: '自訂區間' }
 ];
 
 function taipeiToday(): string {
   return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
+function taipeiThisMonth(): string { return taipeiToday().slice(0, 7); }
+function taipeiThisYear(): number  { return Number(taipeiToday().slice(0, 4)); }
 
-function taipeiThisMonth(): string {
-  return taipeiToday().slice(0, 7);
-}
+const selectedPeriod = ref<Period>('day');
+const selectedDate   = ref(taipeiToday());
+const selectedMonth  = ref(taipeiThisMonth());
+const selectedYear   = ref(taipeiThisYear());
+const rangeStart     = ref('');
+const rangeEnd       = ref('');
 
-function taipeiThisYear(): number {
-  return Number(taipeiToday().slice(0, 4));
-}
-
-const selectedPeriod = ref<'day' | 'week' | 'month' | 'year'>('day');
-const selectedDate = ref(taipeiToday());
-const selectedMonth = ref(taipeiThisMonth());
-const selectedYear = ref(taipeiThisYear());
-
-const maxDate = taipeiToday();
+const maxDate  = taipeiToday();
 const maxMonth = taipeiThisMonth();
+
 const yearOptions = computed(() => {
   const current = taipeiThisYear();
   return Array.from({ length: 5 }, (_, i) => current - i);
 });
 
-const report = ref<SalesReport | null>(null);
-const isLoading = ref(false);
+const rangeValidationMsg = computed(() => {
+  if (!rangeStart.value || !rangeEnd.value) return '';
+  if (rangeStart.value > rangeEnd.value) return '開始日期不能晚於結束日期';
+  const days = Math.round(
+    (new Date(rangeEnd.value).getTime() - new Date(rangeStart.value).getTime()) / 86400000
+  ) + 1;
+  if (days > 366) return '區間最多 366 天';
+  return '';
+});
+
+const report       = ref<SalesReport | null>(null);
+const isLoading    = ref(false);
 const errorMessage = ref('');
 
 const periodBreakdownTitle = computed(() => {
-  const map: Record<string, string> = {
-    week: '每日明細',
-    month: '每日明細',
-    year: '每月明細'
+  const map: Record<Period, string> = {
+    day: '', week: '每日明細', month: '每日明細', year: '每月明細', range: '每日明細'
   };
-  return map[selectedPeriod.value] ?? '';
+  return map[selectedPeriod.value];
 });
 
 const periodColLabel = computed(() => {
-  const map: Record<string, string> = { week: '星期', month: '日期', year: '月份' };
-  return map[selectedPeriod.value] ?? '期間';
+  const map: Record<Period, string> = {
+    day: '日期', week: '星期', month: '日期', year: '月份', range: '日期'
+  };
+  return map[selectedPeriod.value];
 });
 
 function buildParams() {
-  if (selectedPeriod.value === 'day' || selectedPeriod.value === 'week') {
-    return { period: selectedPeriod.value, date: selectedDate.value };
+  switch (selectedPeriod.value) {
+    case 'day':
+    case 'week':
+      return { period: selectedPeriod.value, date: selectedDate.value };
+    case 'month': {
+      const [y, m] = selectedMonth.value.split('-').map(Number);
+      return { period: selectedPeriod.value, year: y, month: m };
+    }
+    case 'year':
+      return { period: selectedPeriod.value, year: selectedYear.value };
+    case 'range':
+      return { period: selectedPeriod.value, startDate: rangeStart.value, endDate: rangeEnd.value };
   }
-  if (selectedPeriod.value === 'month') {
-    const [y, m] = selectedMonth.value.split('-').map(Number);
-    return { period: selectedPeriod.value, year: y, month: m };
-  }
-  return { period: selectedPeriod.value, year: selectedYear.value };
 }
 
 async function loadReport() {
+  if (selectedPeriod.value === 'range' && (!rangeStart.value || !rangeEnd.value || rangeValidationMsg.value)) {
+    return;
+  }
   isLoading.value = true;
   errorMessage.value = '';
   try {
@@ -271,10 +326,14 @@ async function loadReport() {
   }
 }
 
-function switchPeriod(p: 'day' | 'week' | 'month' | 'year') {
-  selectedPeriod.value = p;
-  loadReport();
+function onRangeChange() {
+  // Don't auto-query; user clicks 查詢 button
 }
 
-onMounted(loadReport);
+function switchPeriod(p: Period) {
+  selectedPeriod.value = p;
+  // For range, wait for user to fill dates and press 查詢
+  if (p !== 'range') loadReport();
+  else report.value = null;
+}
 </script>

@@ -119,7 +119,7 @@ export interface SalesBucket {
 }
 
 export interface SalesReport {
-  period: 'day' | 'week' | 'month' | 'year';
+  period: 'day' | 'week' | 'month' | 'year' | 'range';
   label: string;
   totalRevenue: number;
   totalOrders: number;
@@ -134,10 +134,12 @@ export interface SalesReport {
 }
 
 export async function getSalesReport(params: {
-  period: 'day' | 'week' | 'month' | 'year';
+  period: 'day' | 'week' | 'month' | 'year' | 'range';
   date?: string;
   year?: number;
   month?: number;
+  startDate?: string;
+  endDate?: string;
 }) {
   const response = await http.get<SalesReport>('/orders/sales', { params });
   return response.data;
