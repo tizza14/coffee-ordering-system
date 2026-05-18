@@ -55,7 +55,29 @@
     </div>
 
     <!-- 訂單列表 -->
-    <div v-else class="grid gap-1">
+    <div v-else class="grid gap-3">
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3"
+      >
+        <div>
+          <p class="m-0 text-sm font-bold text-amber-950">
+            最近 {{ visibleOrders.length }} 筆
+          </p>
+          <p class="m-0 text-xs text-stone-500">
+            共 {{ orderStore.myOrders.length }} 筆紀錄，先顯示最新訂單，明細可點開查看。
+          </p>
+        </div>
+        <button
+          v-if="hasHiddenOrders"
+          class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950"
+          type="button"
+          @click="showAllOrders"
+        >
+          顯示全部
+        </button>
+      </div>
+
+      <div class="grid gap-1">
       <template v-for="group in groupedOrders" :key="group.key">
         <!-- 日期分隔線 -->
         <div class="flex items-center gap-3 px-1 py-2">
@@ -196,6 +218,29 @@
       </li>
         </ul>
       </template>
+      </div>
+
+      <div
+        v-if="hasHiddenOrders || isShowingAll"
+        class="flex justify-center"
+      >
+        <button
+          v-if="hasHiddenOrders"
+          class="min-h-10 rounded-md bg-amber-900 px-4 text-sm font-bold text-white"
+          type="button"
+          @click="showMoreOrders"
+        >
+          再顯示 {{ nextVisibleCount }} 筆
+        </button>
+        <button
+          v-else
+          class="min-h-10 rounded-md border border-stone-400 bg-white px-4 text-sm font-bold text-amber-950"
+          type="button"
+          @click="collapseOrders"
+        >
+          收合為最近 {{ INITIAL_VISIBLE_COUNT }} 筆
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -214,6 +259,9 @@ const socketStore = useSocketStore();
 const isLoading = ref(false);
 const errorMessage = ref('');
 const openOrders = ref(new Set<string>());
+const INITIAL_VISIBLE_COUNT = 8;
+const LOAD_MORE_COUNT = 8;
+const visibleCount = ref(INITIAL_VISIBLE_COUNT);
 
 // ── Date grouping ─────────────────────────────────────────────────────────────
 
@@ -241,9 +289,27 @@ function dateGroupLabel(key: string): string {
     : `${year}/${month}/${day}`;
 }
 
+const sortedOrders = computed(() =>
+  [...orderStore.myOrders].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+);
+
+const visibleOrders = computed(() => sortedOrders.value.slice(0, visibleCount.value));
+
+const hasHiddenOrders = computed(() => visibleCount.value < sortedOrders.value.length);
+
+const isShowingAll = computed(
+  () => sortedOrders.value.length > INITIAL_VISIBLE_COUNT && !hasHiddenOrders.value
+);
+
+const nextVisibleCount = computed(() =>
+  Math.min(LOAD_MORE_COUNT, sortedOrders.value.length - visibleCount.value)
+);
+
 const groupedOrders = computed(() => {
   const map = new Map<string, Order[]>();
-  for (const order of orderStore.myOrders) {
+  for (const order of visibleOrders.value) {
     const key = toTaipeiDateKey(order.createdAt);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(order);
@@ -385,11 +451,32 @@ function toggleOrder(id: string) {
   }
 }
 
+function showMoreOrders() {
+  visibleCount.value = Math.min(
+    visibleCount.value + LOAD_MORE_COUNT,
+    sortedOrders.value.length
+  );
+}
+
+function showAllOrders() {
+  visibleCount.value = sortedOrders.value.length;
+}
+
+function collapseOrders() {
+  visibleCount.value = INITIAL_VISIBLE_COUNT;
+  openOrders.value = new Set(
+    [...openOrders.value].filter((id) =>
+      visibleOrders.value.some((order) => order.id === id)
+    )
+  );
+}
+
 async function loadOrders() {
   isLoading.value = true;
   errorMessage.value = '';
   try {
     await orderStore.loadMyOrders();
+    visibleCount.value = INITIAL_VISIBLE_COUNT;
   } catch {
     errorMessage.value = '無法載入點餐紀錄。';
   } finally {
