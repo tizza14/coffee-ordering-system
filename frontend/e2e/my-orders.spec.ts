@@ -132,14 +132,14 @@ test.describe('點餐紀錄', () => {
     await loginAs(page, buyerUser.email);
     await page.goto('/orders/my');
 
-    await expect(page.getByText('最近 8 筆')).toBeVisible();
+    await expect(page.getByText('顯示 8 / 10 筆')).toBeVisible();
     await expect(page.getByText('ORD001')).toBeVisible();
     await expect(page.getByText('ORD008')).toBeVisible();
     await expect(page.getByText('ORD009')).not.toBeVisible();
 
     await page.getByRole('button', { name: '再顯示 2 筆' }).click();
 
-    await expect(page.getByText('最近 10 筆')).toBeVisible();
+    await expect(page.getByText('顯示 10 / 10 筆')).toBeVisible();
     await expect(page.getByText('ORD009')).toBeVisible();
     await expect(page.getByText('ORD010')).toBeVisible();
   });

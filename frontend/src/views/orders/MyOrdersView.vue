@@ -57,27 +57,52 @@
     <!-- 訂單列表 -->
     <div v-else class="grid gap-3">
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3"
+        class="grid gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3"
       >
-        <div>
-          <p class="m-0 text-sm font-bold text-amber-950">
-            最近 {{ visibleOrders.length }} 筆
-          </p>
-          <p class="m-0 text-xs text-stone-500">
-            共 {{ orderStore.myOrders.length }} 筆紀錄，先顯示最新訂單，明細可點開查看。
-          </p>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="m-0 text-sm font-bold text-amber-950">
+              顯示 {{ visibleOrders.length }} / {{ filteredOrders.length }} 筆
+            </p>
+            <p class="m-0 text-xs text-stone-500">
+              點選訂單可展開進度與明細。
+            </p>
+          </div>
+          <button
+            v-if="hasHiddenOrders"
+            class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950"
+            type="button"
+            @click="showAllOrders"
+          >
+            顯示全部
+          </button>
         </div>
-        <button
-          v-if="hasHiddenOrders"
-          class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950"
-          type="button"
-          @click="showAllOrders"
-        >
-          顯示全部
-        </button>
+
+        <div class="flex gap-2 overflow-x-auto pb-1">
+          <button
+            v-for="option in filterOptions"
+            :key="option.value"
+            class="min-h-9 shrink-0 rounded-md border px-3 text-sm font-bold transition-colors"
+            :class="activeFilter === option.value ? 'border-amber-900 bg-amber-900 text-white' : 'border-stone-300 bg-white text-amber-950 hover:border-amber-900'"
+            type="button"
+            @click="setFilter(option.value)"
+          >
+            {{ option.label }} {{ filterCounts[option.value] }}
+          </button>
+        </div>
       </div>
 
-      <div class="grid gap-1">
+      <p
+        v-if="filteredOrders.length === 0"
+        class="m-0 rounded-lg border border-stone-300 bg-white p-4 text-stone-600"
+      >
+        目前沒有符合條件的訂單。
+      </p>
+
+      <div
+        v-else
+        class="grid max-h-[68vh] gap-1 overflow-y-auto pr-1"
+      >
       <template v-for="group in groupedOrders" :key="group.key">
         <!-- 日期分隔線 -->
         <div class="flex items-center gap-3 px-1 py-2">
@@ -93,16 +118,16 @@
       <li
         v-for="order in group.orders"
         :key="order.id"
-        class="grid gap-0 rounded-lg border border-stone-300 bg-white overflow-hidden"
+        class="grid gap-0 overflow-hidden rounded-lg border border-stone-300 bg-white"
       >
         <!-- 訂單標頭 -->
         <button
-          class="flex w-full items-start justify-between gap-3 p-4 text-left"
+          class="grid w-full gap-2 p-3 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
           type="button"
           :aria-expanded="openOrders.has(order.id)"
           @click="toggleOrder(order.id)"
         >
-          <div class="grid gap-1 min-w-0">
+          <div class="grid min-w-0 gap-1">
             <div class="flex flex-wrap items-center gap-2">
               <strong class="text-base text-amber-950">
                 訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
@@ -114,10 +139,13 @@
                 點數兌換
               </span>
             </div>
-            <span class="text-xs text-stone-400">{{ formatDate(order.createdAt) }}</span>
+            <span class="truncate text-xs text-stone-500">
+              {{ formatDate(order.createdAt) }} · {{ compactItems(order) }}
+            </span>
           </div>
 
-          <div class="flex shrink-0 flex-wrap items-center gap-2">
+          <div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+            <strong class="text-sm text-amber-950">NT$ {{ order.totalAmount }}</strong>
             <span :class="paymentBadgeClass(order.paymentStatus)">
               {{ paymentLabel(order.paymentStatus) }}
             </span>
@@ -127,17 +155,6 @@
             <span class="text-xs text-stone-400">{{ openOrders.has(order.id) ? '▲' : '▼' }}</span>
           </div>
         </button>
-
-        <!-- 摘要列（收合狀態顯示） -->
-        <div
-          v-if="!openOrders.has(order.id)"
-          class="flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 px-4 py-2 text-sm text-stone-500"
-        >
-          <span>
-            {{ order.items.map(i => `${i.name} x${i.quantity}`).join('、') }}
-          </span>
-          <strong class="text-amber-950">NT$ {{ order.totalAmount }}</strong>
-        </div>
 
         <!-- 展開詳情 -->
         <div v-if="openOrders.has(order.id)" class="border-t border-stone-200">
@@ -262,6 +279,14 @@ const openOrders = ref(new Set<string>());
 const INITIAL_VISIBLE_COUNT = 8;
 const LOAD_MORE_COUNT = 8;
 const visibleCount = ref(INITIAL_VISIBLE_COUNT);
+type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled';
+const activeFilter = ref<OrderFilter>('all');
+const filterOptions: Array<{ value: OrderFilter; label: string }> = [
+  { value: 'all', label: '全部' },
+  { value: 'active', label: '處理中' },
+  { value: 'completed', label: '已完成' },
+  { value: 'cancelled', label: '已取消' }
+];
 
 // ── Date grouping ─────────────────────────────────────────────────────────────
 
@@ -295,16 +320,40 @@ const sortedOrders = computed(() =>
   )
 );
 
-const visibleOrders = computed(() => sortedOrders.value.slice(0, visibleCount.value));
+const filterCounts = computed<Record<OrderFilter, number>>(() => ({
+  all: sortedOrders.value.length,
+  active: sortedOrders.value.filter((order) =>
+    ['pending', 'accepted', 'preparing', 'ready'].includes(liveStatus(order))
+  ).length,
+  completed: sortedOrders.value.filter((order) => liveStatus(order) === 'completed').length,
+  cancelled: sortedOrders.value.filter((order) => liveStatus(order) === 'cancelled').length
+}));
 
-const hasHiddenOrders = computed(() => visibleCount.value < sortedOrders.value.length);
+const filteredOrders = computed(() => {
+  if (activeFilter.value === 'active') {
+    return sortedOrders.value.filter((order) =>
+      ['pending', 'accepted', 'preparing', 'ready'].includes(liveStatus(order))
+    );
+  }
+  if (activeFilter.value === 'completed') {
+    return sortedOrders.value.filter((order) => liveStatus(order) === 'completed');
+  }
+  if (activeFilter.value === 'cancelled') {
+    return sortedOrders.value.filter((order) => liveStatus(order) === 'cancelled');
+  }
+  return sortedOrders.value;
+});
+
+const visibleOrders = computed(() => filteredOrders.value.slice(0, visibleCount.value));
+
+const hasHiddenOrders = computed(() => visibleCount.value < filteredOrders.value.length);
 
 const isShowingAll = computed(
-  () => sortedOrders.value.length > INITIAL_VISIBLE_COUNT && !hasHiddenOrders.value
+  () => filteredOrders.value.length > INITIAL_VISIBLE_COUNT && !hasHiddenOrders.value
 );
 
 const nextVisibleCount = computed(() =>
-  Math.min(LOAD_MORE_COUNT, sortedOrders.value.length - visibleCount.value)
+  Math.min(LOAD_MORE_COUNT, filteredOrders.value.length - visibleCount.value)
 );
 
 const groupedOrders = computed(() => {
@@ -437,6 +486,20 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function compactItems(order: Order) {
+  const [firstItem, ...restItems] = order.items;
+  if (!firstItem) return '無品項';
+  const firstLabel = `${firstItem.name} x${firstItem.quantity}`;
+  if (restItems.length === 0) return firstLabel;
+  return `${firstLabel} 等 ${order.items.length} 項`;
+}
+
+function setFilter(filter: OrderFilter) {
+  activeFilter.value = filter;
+  visibleCount.value = INITIAL_VISIBLE_COUNT;
+  openOrders.value = new Set();
+}
+
 function toggleOrder(id: string) {
   if (openOrders.value.has(id)) {
     openOrders.value.delete(id);
@@ -454,12 +517,12 @@ function toggleOrder(id: string) {
 function showMoreOrders() {
   visibleCount.value = Math.min(
     visibleCount.value + LOAD_MORE_COUNT,
-    sortedOrders.value.length
+    filteredOrders.value.length
   );
 }
 
 function showAllOrders() {
-  visibleCount.value = sortedOrders.value.length;
+  visibleCount.value = filteredOrders.value.length;
 }
 
 function collapseOrders() {
