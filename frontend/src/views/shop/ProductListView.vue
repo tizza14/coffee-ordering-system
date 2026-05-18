@@ -15,7 +15,7 @@
             v-for="option in categoryOptions"
             :key="option.value"
             type="button"
-            class="min-h-9 rounded-md border border-stone-500 px-3 font-bold text-amber-950"
+            class="min-h-9 cursor-pointer rounded-md border border-stone-500 px-3 font-bold text-amber-950"
             :class="
               selectedCategory === option.value
                 ? 'border-amber-900 bg-amber-900 text-white'
@@ -70,7 +70,7 @@
               可兌換 {{ product.redeemPoints }} 點
             </span>
             <button
-              class="min-h-9 rounded-md border border-amber-900 bg-amber-900 px-3 font-bold text-white"
+              class="min-h-9 cursor-pointer rounded-md border border-amber-900 bg-amber-900 px-3 font-bold text-white"
               type="button"
               @click="cartStore.addProduct(product)"
             >
@@ -87,7 +87,7 @@
       <div class="flex items-center justify-between gap-4">
         <h2 class="m-0 text-xl font-bold text-amber-950">購物車</h2>
         <button
-          class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
+          class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
           type="button"
           :disabled="cartStore.items.length === 0"
           @click="cartStore.clearCart()"
@@ -111,7 +111,7 @@
           </div>
           <div class="grid grid-cols-[34px_32px_34px] items-center text-center">
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+              class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="cartStore.decrement(item.productId)"
             >
@@ -119,7 +119,7 @@
             </button>
             <span>{{ item.quantity }}</span>
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+              class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="cartStore.increment(item.productId)"
             >
@@ -128,7 +128,7 @@
           </div>
           <button
             type="button"
-            class="col-span-full min-h-8 w-fit rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+            class="col-span-full min-h-8 w-fit cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
             @click="cartStore.removeProduct(item.productId)"
           >
             移除

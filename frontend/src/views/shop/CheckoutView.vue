@@ -63,7 +63,7 @@
       </p>
 
       <button
-        class="min-h-10 rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
+        class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
         type="submit"
         :disabled="
           cartStore.items.length === 0 ||
