@@ -123,7 +123,8 @@ function buildHistoricalOrders(
 
 function buildTodayOrders(
   products: Array<{ _id: mongoose.Types.ObjectId; name: string; price: number }>,
-  memberId: mongoose.Types.ObjectId
+  memberId: mongoose.Types.ObjectId,
+  staffId: mongoose.Types.ObjectId
 ) {
   const now = new Date();
   const minutesAgo = (m: number) => new Date(now.getTime() - m * 60 * 1000);
@@ -167,7 +168,7 @@ function buildTodayOrders(
       orderType: 'purchase', paymentStatus: 'paid', paidAmount: latte.price + croissant.price * 2,
       pointsEarned: 0, status: 'ready', createdAt: minutesAgo(20), updatedAt: minutesAgo(3)
     },
-    // 4. 已完成今日早些時候
+    // 4. 已完成今日早些時候 — 會員
     {
       userId: memberId,
       orderLookupCode: 'DEMO0004',
@@ -175,6 +176,18 @@ function buildTodayOrders(
       totalAmount: latte.price,
       orderType: 'purchase', paymentStatus: 'paid', paidAmount: latte.price,
       pointsEarned: 0, status: 'completed', createdAt: minutesAgo(90), updatedAt: minutesAgo(75)
+    },
+    // 5. 店員自己下的訂單 — 今日已完成
+    {
+      userId: staffId,
+      orderLookupCode: 'DEMO0005',
+      items: [
+        { productId: ameri._id, name: ameri.name, price: ameri.price, quantity: 1 },
+        { productId: croissant._id, name: croissant.name, price: croissant.price, quantity: 1 }
+      ],
+      totalAmount: ameri.price + croissant.price,
+      orderType: 'purchase', paymentStatus: 'paid', paidAmount: ameri.price + croissant.price,
+      pointsEarned: 0, status: 'completed', createdAt: minutesAgo(130), updatedAt: minutesAgo(115)
     }
   ];
 }
@@ -206,14 +219,22 @@ async function seed() {
 
   // Historical orders (60 days back, skip today)
   const memberUser = createdUsers.find(u => u.role === 'user')!;
-  const memberIds = [memberUser._id as mongoose.Types.ObjectId];
+  const staffUser  = createdUsers.find(u => u.role === 'staff')!;
+  const memberIds = [
+    memberUser._id as mongoose.Types.ObjectId,
+    staffUser._id  as mongoose.Types.ObjectId
+  ];
   const histOrders = buildHistoricalOrders(createdProducts, memberIds, 60);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (OrderModel as any).collection.insertMany(histOrders);
   console.log(`📦 建立 ${histOrders.length} 筆歷史訂單（最近 60 天）`);
 
   // Today's live demo orders
-  const todayOrders = buildTodayOrders(createdProducts, memberUser._id as mongoose.Types.ObjectId);
+  const todayOrders = buildTodayOrders(
+    createdProducts,
+    memberUser._id as mongoose.Types.ObjectId,
+    staffUser._id  as mongoose.Types.ObjectId
+  );
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (OrderModel as any).collection.insertMany(todayOrders);
   console.log(`📋 建立 ${todayOrders.length} 筆今日展示訂單`);
