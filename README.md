@@ -1,5 +1,7 @@
 # Coffee Ordering System
 
+![CI](https://github.com/binghan60/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
+
 Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, and a sales report dashboard for staff and admin.
 
 ## Live Demo
@@ -9,6 +11,8 @@ Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend
 - Swagger: https://coffee-ordering-system-60aw.onrender.com/api-docs
 
 ## Demo Accounts
+
+These are seed-script defaults for the live demo. **Do not reuse these credentials in any production environment.**
 
 | Role | Email | Password |
 | --- | --- | --- |
