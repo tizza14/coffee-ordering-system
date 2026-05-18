@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6"
+    class="grid min-h-[calc(100vh-64px)] place-items-center bg-amber-50 p-4 sm:p-6"
   >
     <form
       class="grid w-full max-w-[420px] gap-4 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">登入</h1>
-        <p class="m-0 text-slate-600">
+        <h1 class="m-0 text-2xl font-bold text-amber-950">登入</h1>
+        <p class="m-0 text-stone-600">
           使用帳號登入後即可點會員訂單並累積點數。
         </p>
       </div>
@@ -41,7 +41,7 @@
       </p>
 
       <button
-        class="min-h-10 rounded-md border-0 bg-slate-800 px-4 font-bold text-white disabled:opacity-65"
+        class="min-h-10 rounded-md border-0 bg-amber-900 px-4 font-bold text-white disabled:opacity-65"
         type="submit"
         :disabled="isSubmitting"
       >

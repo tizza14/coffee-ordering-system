@@ -1,14 +1,14 @@
-<template>
-  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6">
+﻿<template>
+  <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-amber-50 p-4 sm:p-6">
     <header
       class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">員工訂單</h1>
-        <p class="m-0 text-slate-600">查看已付款訂單並進行後續處理。</p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">員工訂單</h1>
+        <p class="m-0 text-stone-600">查看已付款訂單並進行後續處理。</p>
       </div>
       <button
-        class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+        class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
         type="button"
         @click="loadDashboard"
       >
@@ -21,35 +21,35 @@
       class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+        <p class="m-0 text-sm font-bold uppercase text-stone-500">
           今日營收
         </p>
-        <strong class="text-2xl text-slate-800">
+        <strong class="text-2xl text-amber-950">
           NT$ {{ orderStore.todaySummary.paidRevenue }}
         </strong>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+        <p class="m-0 text-sm font-bold uppercase text-stone-500">
           已付款訂單
         </p>
-        <strong class="text-2xl text-slate-800">
+        <strong class="text-2xl text-amber-950">
           {{ orderStore.todaySummary.paidOrders }} /
           {{ orderStore.todaySummary.totalOrders }}
         </strong>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+        <p class="m-0 text-sm font-bold uppercase text-stone-500">
           已售品項
         </p>
-        <strong class="text-2xl text-slate-800">
+        <strong class="text-2xl text-amber-950">
           {{ orderStore.todaySummary.itemQuantity }}
         </strong>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <p class="m-0 text-sm font-bold uppercase text-slate-500">
+        <p class="m-0 text-sm font-bold uppercase text-stone-500">
           平均單筆金額
         </p>
-        <strong class="text-2xl text-slate-800">
+        <strong class="text-2xl text-amber-950">
           NT$ {{ orderStore.todaySummary.averagePaidOrderValue }}
         </strong>
       </article>
@@ -57,15 +57,15 @@
 
     <section v-if="orderStore.todaySummary" class="grid gap-3 lg:grid-cols-2">
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="m-0 text-lg font-bold text-slate-800">客群比例</h2>
-        <p class="m-0 text-slate-700">
+        <h2 class="m-0 text-lg font-bold text-amber-950">客群比例</h2>
+        <p class="m-0 text-amber-900">
           訪客：{{ orderStore.todaySummary.guestOrders }} / 會員：
           {{ orderStore.todaySummary.memberOrders }}
         </p>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
-        <h2 class="m-0 text-lg font-bold text-slate-800">訂單狀態</h2>
-        <p class="m-0 text-slate-700">
+        <h2 class="m-0 text-lg font-bold text-amber-950">訂單狀態</h2>
+        <p class="m-0 text-amber-900">
           待處理：{{ orderStore.todaySummary.statusCounts.pending }} /
           製作中：{{ orderStore.todaySummary.statusCounts.preparing }} /
           可取餐：{{ orderStore.todaySummary.statusCounts.ready }} /
@@ -79,19 +79,19 @@
       class="rounded-lg border border-stone-300 bg-white p-4"
     >
       <div class="flex items-center justify-between gap-3">
-        <h2 class="m-0 text-lg font-bold text-slate-800">今日銷售品項</h2>
-        <span class="text-sm font-bold text-slate-500">
+        <h2 class="m-0 text-lg font-bold text-amber-950">今日銷售品項</h2>
+        <span class="text-sm font-bold text-stone-500">
           已售 {{ orderStore.todaySummary.itemQuantity }} 件
         </span>
       </div>
-      <p v-if="soldItems.length === 0" class="m-0 pt-3 text-slate-600">
+      <p v-if="soldItems.length === 0" class="m-0 pt-3 text-stone-600">
         尚無已付款品項。
       </p>
       <ul v-else class="grid list-none gap-2 p-0">
         <li
           v-for="item in soldItems"
           :key="item.productId"
-          class="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-t border-stone-200 pt-2 text-slate-800"
+          class="grid grid-cols-[1fr_auto_auto] items-center gap-3 border-t border-stone-200 pt-2 text-amber-950"
         >
           <strong>{{ item.name }}</strong>
           <span class="font-bold">x {{ item.quantity }}</span>
@@ -114,7 +114,7 @@
     </p>
     <p
       v-else-if="orderStore.staffOrders.length === 0"
-      class="m-0 rounded-lg border border-stone-300 bg-white p-4 text-slate-600"
+      class="m-0 rounded-lg border border-stone-300 bg-white p-4 text-stone-600"
     >
       目前沒有已付款待處理訂單。
     </p>
@@ -127,28 +127,28 @@
       >
         <div class="flex items-start justify-between gap-4 max-[760px]:flex-col">
           <div>
-            <h2 class="m-0 text-xl font-bold text-slate-800">
+            <h2 class="m-0 text-xl font-bold text-amber-950">
               訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
             </h2>
-            <p class="m-0 text-slate-600">
+            <p class="m-0 text-stone-600">
               {{ order.guestInfo?.name || order.userId || '會員訂單' }}
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
-              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
+              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-amber-900"
             >
               {{ paymentStatusLabel(order.paymentStatus) }}
             </span>
             <span
-              class="rounded-full bg-slate-800 px-2 py-1 text-xs font-extrabold uppercase text-white"
+              class="rounded-full bg-amber-900 px-2 py-1 text-xs font-extrabold uppercase text-white"
             >
               {{ statusLabel(order.status) }}
             </span>
           </div>
         </div>
 
-        <ul class="grid list-none gap-1 p-0 text-slate-700">
+        <ul class="grid list-none gap-1 p-0 text-amber-900">
           <li
             v-for="item in order.items"
             :key="item.productId"
@@ -167,7 +167,7 @@
             <button
               v-for="status in getNextStatuses(order.status)"
               :key="status"
-              class="min-h-9 rounded-md border border-slate-800 bg-slate-800 px-3 font-bold text-white disabled:opacity-60"
+              class="min-h-9 rounded-md border border-amber-900 bg-amber-900 px-3 font-bold text-white disabled:opacity-60"
               type="button"
               :disabled="isUpdating === order.id"
               @click="updateStatus(order.id, status)"

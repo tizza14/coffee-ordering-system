@@ -1,5 +1,5 @@
-<template>
-  <section class="grid gap-4 bg-stone-100 p-4 sm:p-6">
+﻿<template>
+  <section class="grid gap-4 bg-amber-50 p-4 sm:p-6">
     <form
       class="grid max-w-xl gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="load"
@@ -21,7 +21,7 @@
         />
       </label>
       <button
-        class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
+        class="min-h-10 rounded-md bg-amber-900 px-4 font-bold text-white"
       >
         查詢訂單
       </button>
@@ -56,13 +56,13 @@
 
       <section class="rounded-lg border border-stone-300">
         <button
-          class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-slate-800"
+          class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-amber-950"
           type="button"
           :aria-expanded="itemDetailsOpen"
           @click="itemDetailsOpen = !itemDetailsOpen"
         >
           <span>點餐明細</span>
-          <span class="text-sm text-slate-500">
+          <span class="text-sm text-stone-500">
             {{ itemDetailsOpen ? '收合' : '展開' }}
           </span>
         </button>
@@ -75,7 +75,7 @@
             <li
               v-for="item in orderStore.currentOrder.items"
               :key="item.productId"
-              class="grid grid-cols-[1fr_auto] gap-3 text-slate-800"
+              class="grid grid-cols-[1fr_auto] gap-3 text-amber-950"
             >
               <span>{{ item.name }} x {{ item.quantity }}</span>
               <strong>NT$ {{ item.price * item.quantity }}</strong>
@@ -90,13 +90,13 @@
 
     <section v-if="notificationStore.items.length > 0" class="rounded-lg border border-stone-300">
       <button
-        class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-slate-800"
+        class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-bold text-amber-950"
         type="button"
         :aria-expanded="notificationsOpen"
         @click="notificationsOpen = !notificationsOpen"
       >
         <span>通知紀錄</span>
-        <span class="text-sm text-slate-500">
+        <span class="text-sm text-stone-500">
           {{ notificationsOpen ? '收合' : '展開' }}
         </span>
       </button>
@@ -108,7 +108,7 @@
           class="grid gap-1 rounded-lg border border-stone-200 bg-white p-3"
         >
           <strong>{{ notification.message }}</strong>
-          <span class="text-sm text-slate-500">
+          <span class="text-sm text-stone-500">
             {{ formatTime(notification.createdAt) }}
           </span>
         </li>
@@ -161,7 +161,7 @@ const statusPanelClass = computed(() => {
     return 'border-emerald-400 bg-emerald-50 text-emerald-950';
   }
   if (currentStatus.value === 'completed') {
-    return 'border-slate-400 bg-slate-100 text-slate-900';
+    return 'border-stone-400 bg-amber-50 text-amber-950';
   }
   if (currentStatus.value === 'cancelled') {
     return 'border-red-300 bg-red-50 text-red-900';

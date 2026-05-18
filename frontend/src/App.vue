@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <header
     class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-stone-300 bg-white px-4 py-3 sm:flex-nowrap sm:gap-6 sm:px-6"
   >
     <RouterLink
-      class="shrink-0 rounded-md px-2 py-1 font-bold text-slate-800 no-underline transition-colors hover:bg-stone-100"
+      class="shrink-0 rounded-md px-2 py-1 font-bold text-amber-950 no-underline transition-colors hover:bg-amber-50"
       to="/products"
     >
       咖啡點餐系統
@@ -84,7 +84,7 @@
       </RouterLink>
       <button
         v-if="authStore.isAuthenticated"
-        class="min-h-9 shrink-0 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 transition-colors hover:border-slate-800 hover:bg-stone-100"
+        class="min-h-9 shrink-0 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50"
         type="button"
         @click="authStore.logout()"
       >
@@ -103,7 +103,7 @@ import { useAuthStore } from './stores/auth.store';
 
 const authStore = useAuthStore();
 const navLinkClass =
-  'inline-flex min-h-9 shrink-0 items-center rounded-md border border-transparent px-3 font-bold text-slate-800 no-underline transition-colors hover:border-stone-300 hover:bg-stone-100';
+  'inline-flex min-h-9 shrink-0 items-center rounded-md border border-transparent px-3 font-bold text-amber-950 no-underline transition-colors hover:border-stone-300 hover:bg-amber-50';
 const navActiveClass =
-  'border-slate-800 bg-slate-800 text-white hover:border-slate-700 hover:bg-slate-700';
+  'border-amber-900 bg-amber-900 text-white hover:border-amber-800 hover:bg-amber-800';
 </script>

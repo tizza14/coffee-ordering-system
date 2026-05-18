@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]"
+    class="grid min-h-[calc(100vh-64px)] gap-5 bg-amber-50 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]"
   >
     <form
       class="grid gap-4 rounded-lg border border-stone-300 bg-white p-6"
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">結帳</h1>
-        <p class="m-0 text-slate-600">
+        <h1 class="m-0 text-2xl font-bold text-amber-950">結帳</h1>
+        <p class="m-0 text-stone-600">
           建立訂單後將前往 Line Pay 付款。
         </p>
       </div>
@@ -63,7 +63,7 @@
       </p>
 
       <button
-        class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white disabled:opacity-60"
+        class="min-h-10 rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
         type="submit"
         :disabled="
           cartStore.items.length === 0 ||
@@ -79,7 +79,7 @@
       class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6"
     >
       <h2 class="m-0 text-xl font-bold">訂單明細</h2>
-      <p v-if="cartStore.items.length === 0" class="m-0 text-slate-600">
+      <p v-if="cartStore.items.length === 0" class="m-0 text-stone-600">
         購物車沒有商品。
       </p>
       <ul class="grid list-none gap-3 p-0">

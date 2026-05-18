@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] place-items-center bg-stone-100 p-4 sm:p-6"
+    class="grid min-h-[calc(100vh-64px)] place-items-center bg-amber-50 p-4 sm:p-6"
   >
     <article
       class="grid w-full max-w-lg gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
@@ -9,19 +9,19 @@
       <p class="m-0">
         {{ message }}
       </p>
-      <p v-if="lookupCode" class="m-0 text-sm text-slate-600">
+      <p v-if="lookupCode" class="m-0 text-sm text-stone-600">
         訂單查詢碼：{{ lookupCode }}
       </p>
       <div class="flex flex-wrap gap-3 pt-2">
         <RouterLink
-          class="rounded-md bg-slate-800 px-4 py-2 font-bold text-white no-underline"
+          class="rounded-md bg-amber-900 px-4 py-2 font-bold text-white no-underline"
           to="/products"
         >
           回到商品頁
         </RouterLink>
         <RouterLink
           v-if="trackingQuery.lookupCode"
-          class="rounded-md border border-slate-800 px-4 py-2 font-bold text-slate-800 no-underline"
+          class="rounded-md border border-amber-900 px-4 py-2 font-bold text-amber-950 no-underline"
           :to="{ path: '/orders/guest', query: trackingQuery }"
         >
           前往訂單追蹤

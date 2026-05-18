@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] gap-5 bg-stone-100 p-4 sm:p-6 lg:grid-cols-[360px_minmax(0,1fr)]"
+    class="grid min-h-[calc(100vh-64px)] gap-5 bg-amber-50 p-4 sm:p-6 lg:grid-cols-[360px_minmax(0,1fr)]"
   >
     <form
       class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-5"
       @submit.prevent="saveProduct"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">商品管理</h1>
-        <p class="m-0 text-slate-600">
+        <h1 class="m-0 text-2xl font-bold text-amber-950">商品管理</h1>
+        <p class="m-0 text-stone-600">
           管理店內商品與可兌換品項。
         </p>
       </div>
@@ -79,14 +79,14 @@
 
       <div class="flex flex-wrap gap-2">
         <button
-          class="min-h-10 rounded-md bg-slate-800 px-4 font-bold text-white"
+          class="min-h-10 rounded-md bg-amber-900 px-4 font-bold text-white"
           type="submit"
         >
           {{ editingId ? '更新' : '新增' }}
         </button>
         <button
           v-if="editingId"
-          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
           type="button"
           @click="resetForm"
         >
@@ -99,9 +99,9 @@
       <header
         class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
       >
-        <h2 class="m-0 text-xl font-bold text-slate-800">商品列表</h2>
+        <h2 class="m-0 text-xl font-bold text-amber-950">商品列表</h2>
         <button
-          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+          class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
           type="button"
           @click="loadProducts"
         >
@@ -125,10 +125,10 @@
             class="flex items-start justify-between gap-4 max-[760px]:flex-col"
           >
             <div>
-              <h3 class="m-0 text-lg font-bold text-slate-800">
+              <h3 class="m-0 text-lg font-bold text-amber-950">
                 {{ product.name }}
               </h3>
-              <p class="m-0 text-slate-600">
+              <p class="m-0 text-stone-600">
                 {{ product.description || '尚無說明' }}
               </p>
             </div>
@@ -136,7 +136,7 @@
           </div>
           <div class="flex flex-wrap gap-2">
             <span
-              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
+              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-amber-900"
             >
               {{ categoryLabel(product.category) }}
             </span>
@@ -145,7 +145,7 @@
               :class="
                 product.isAvailable
                   ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-stone-200 text-slate-600'
+                  : 'bg-stone-200 text-stone-600'
               "
             >
               {{ product.isAvailable ? '上架' : '下架' }}
@@ -159,7 +159,7 @@
           </div>
           <footer class="flex flex-wrap gap-2">
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
+              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="editProduct(product)"
             >

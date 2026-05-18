@@ -1,8 +1,8 @@
-<template>
-  <section class="grid gap-4 bg-stone-100 p-4 sm:p-6">
+﻿<template>
+  <section class="grid gap-4 bg-amber-50 p-4 sm:p-6">
     <header class="grid gap-2">
-      <h1 class="m-0 text-2xl font-bold text-slate-800">點餐紀錄</h1>
-      <p class="m-0 text-slate-600">
+      <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
+      <p class="m-0 text-stone-600">
         查看你最近的訂單狀態、付款結果與點餐明細。
       </p>
     </header>
@@ -20,10 +20,10 @@
 
     <p
       v-else-if="orderStore.myOrders.length === 0"
-      class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4 text-slate-600"
+      class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4 text-stone-600"
     >
       <span>目前還沒有點餐紀錄。</span>
-      <RouterLink class="font-bold text-slate-800" to="/products">
+      <RouterLink class="font-bold text-amber-950" to="/products">
         前往商品頁開始點餐
       </RouterLink>
     </p>
@@ -36,28 +36,28 @@
       >
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div class="grid gap-1">
-            <strong class="text-lg text-slate-800">
+            <strong class="text-lg text-amber-950">
               訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
             </strong>
-            <span class="text-sm text-slate-500">
+            <span class="text-sm text-stone-500">
               {{ formatDate(order.createdAt) }}
             </span>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
-              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-slate-700"
+              class="rounded-full bg-stone-200 px-2 py-1 text-xs font-extrabold uppercase text-amber-900"
             >
               {{ paymentLabel(order.paymentStatus) }}
             </span>
             <span
-              class="rounded-full bg-slate-800 px-2 py-1 text-xs font-extrabold uppercase text-white"
+              class="rounded-full bg-amber-900 px-2 py-1 text-xs font-extrabold uppercase text-white"
             >
               {{ statusLabel(order.status) }}
             </span>
           </div>
         </div>
 
-        <div class="grid gap-2 text-slate-700">
+        <div class="grid gap-2 text-amber-900">
           <p class="m-0">
             總金額：<strong>NT$ {{ order.totalAmount }}</strong>
           </p>
@@ -68,13 +68,13 @@
 
         <div class="rounded-lg border border-stone-200">
           <button
-            class="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg bg-stone-50 px-3 text-left font-bold text-slate-800"
+            class="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg bg-amber-50 px-3 text-left font-bold text-amber-950"
             type="button"
             :aria-expanded="openOrders.has(order.id)"
             @click="toggleOrder(order.id)"
           >
             <span>查看點餐明細</span>
-            <span class="text-sm text-slate-500">
+            <span class="text-sm text-stone-500">
               {{ openOrders.has(order.id) ? '收合' : '展開' }}
             </span>
           </button>

@@ -1,24 +1,24 @@
-<template>
+﻿<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-stone-100 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1"
+    class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-amber-50 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1"
   >
     <div class="min-w-0">
       <header
         class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch"
       >
         <div>
-          <h1 class="m-0 text-2xl font-bold text-slate-800">商品</h1>
-          <p class="m-0 text-slate-600">可點選咖啡與甜點</p>
+          <h1 class="m-0 text-2xl font-bold text-amber-950">商品</h1>
+          <p class="m-0 text-stone-600">可點選咖啡與甜點</p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="option in categoryOptions"
             :key="option.value"
             type="button"
-            class="min-h-9 rounded-md border border-stone-500 px-3 font-bold text-slate-800"
+            class="min-h-9 rounded-md border border-stone-500 px-3 font-bold text-amber-950"
             :class="
               selectedCategory === option.value
-                ? 'border-slate-800 bg-slate-800 text-white'
+                ? 'border-amber-900 bg-amber-900 text-white'
                 : 'bg-white'
             "
             @click="selectedCategory = option.value"
@@ -47,14 +47,14 @@
             />
             <div class="grid gap-1.5">
               <span
-                class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
+                class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"
               >
                 {{ categoryLabel(product.category) }}
               </span>
-              <h2 class="m-0 text-xl font-bold text-slate-800">
+              <h2 class="m-0 text-xl font-bold text-amber-950">
                 {{ product.name }}
               </h2>
-              <p class="m-0 text-slate-600">
+              <p class="m-0 text-stone-600">
                 {{ product.description || '尚無說明' }}
               </p>
               <strong>NT$ {{ product.price }}</strong>
@@ -65,12 +65,12 @@
           >
             <span
               v-if="product.isRedeemable"
-              class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-slate-600"
+              class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"
             >
               可兌換 {{ product.redeemPoints }} 點
             </span>
             <button
-              class="min-h-9 rounded-md border border-slate-800 bg-slate-800 px-3 font-bold text-white"
+              class="min-h-9 rounded-md border border-amber-900 bg-amber-900 px-3 font-bold text-white"
               type="button"
               @click="cartStore.addProduct(product)"
             >
@@ -85,9 +85,9 @@
       class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-bold text-slate-800">購物車</h2>
+        <h2 class="m-0 text-xl font-bold text-amber-950">購物車</h2>
         <button
-          class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-55"
+          class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
           type="button"
           :disabled="cartStore.items.length === 0"
           @click="cartStore.clearCart()"
@@ -96,7 +96,7 @@
         </button>
       </div>
 
-      <p v-if="cartStore.items.length === 0" class="py-4 text-slate-600">
+      <p v-if="cartStore.items.length === 0" class="py-4 text-stone-600">
         目前尚未選擇商品。
       </p>
       <ul v-else class="grid list-none gap-3 p-0">
@@ -111,7 +111,7 @@
           </div>
           <div class="grid grid-cols-[34px_32px_34px] items-center text-center">
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
+              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="cartStore.decrement(item.productId)"
             >
@@ -119,7 +119,7 @@
             </button>
             <span>{{ item.quantity }}</span>
             <button
-              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
+              class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
               type="button"
               @click="cartStore.increment(item.productId)"
             >
@@ -128,7 +128,7 @@
           </div>
           <button
             type="button"
-            class="col-span-full min-h-8 w-fit rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800"
+            class="col-span-full min-h-8 w-fit rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
             @click="cartStore.removeProduct(item.productId)"
           >
             移除
@@ -143,7 +143,7 @@
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
       <RouterLink
-        class="grid min-h-10 place-items-center rounded-md bg-slate-800 px-4 font-bold text-white no-underline"
+        class="grid min-h-10 place-items-center rounded-md bg-amber-900 px-4 font-bold text-white no-underline"
         to="/checkout"
       >
         前往結帳

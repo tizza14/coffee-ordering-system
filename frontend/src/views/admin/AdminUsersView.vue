@@ -1,14 +1,14 @@
-<template>
-  <section class="min-h-[calc(100vh-64px)] bg-stone-100 p-4 sm:p-6">
+﻿<template>
+  <section class="min-h-[calc(100vh-64px)] bg-amber-50 p-4 sm:p-6">
     <header
       class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-slate-800">使用者管理</h1>
-        <p class="m-0 text-slate-600">檢視並管理使用者角色。</p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">使用者管理</h1>
+        <p class="m-0 text-stone-600">檢視並管理使用者角色。</p>
       </div>
       <button
-        class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-slate-800"
+        class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
         type="button"
         @click="loadUsers()"
       >
@@ -34,13 +34,13 @@
         class="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-stone-300 bg-white p-4"
       >
         <div>
-          <p class="m-0 font-bold text-slate-800">
+          <p class="m-0 font-bold text-amber-950">
             {{ user.name }}
           </p>
-          <p class="m-0 text-sm text-slate-500">
+          <p class="m-0 text-sm text-stone-500">
             {{ user.email }}
           </p>
-          <p class="m-0 text-sm text-slate-500">點數：{{ user.points }}</p>
+          <p class="m-0 text-sm text-stone-500">點數：{{ user.points }}</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -72,7 +72,7 @@
 
       <div
         v-if="!userStore.isLoading && userStore.users.length === 0"
-        class="rounded-lg border border-stone-300 bg-white p-4 text-slate-500"
+        class="rounded-lg border border-stone-300 bg-white p-4 text-stone-500"
       >
         尚未找到使用者。
       </div>
@@ -83,18 +83,18 @@
       class="mt-4 flex flex-wrap items-center gap-3"
     >
       <button
-        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-50"
+        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-50"
         :disabled="userStore.pagination.page <= 1"
         type="button"
         @click="goToPage(userStore.pagination.page - 1)"
       >
         上一頁
       </button>
-      <span class="text-sm text-slate-600">
+      <span class="text-sm text-stone-600">
         第 {{ userStore.pagination.page }} 頁 / 共 {{ totalPages }} 頁
       </span>
       <button
-        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-slate-800 disabled:opacity-50"
+        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-50"
         :disabled="userStore.pagination.page >= totalPages"
         type="button"
         @click="goToPage(userStore.pagination.page + 1)"
@@ -129,7 +129,7 @@ function roleLabel(role: User['role']) {
 function roleBadgeClass(role: User['role']) {
   if (role === 'admin') return 'bg-purple-100 text-purple-800';
   if (role === 'staff') return 'bg-blue-100 text-blue-800';
-  return 'bg-stone-200 text-slate-700';
+  return 'bg-stone-200 text-amber-900';
 }
 
 async function onRoleChange(id: string, role: User['role']) {
