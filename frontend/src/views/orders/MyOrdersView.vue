@@ -3,7 +3,7 @@
     <header class="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
-        <p class="m-0 text-stone-600">查看你最近的訂單狀態、付款結果與點餐明細。</p>
+        <p class="m-0 text-stone-600">{{ pageDescription }}</p>
       </div>
       <PushNotificationToggle />
     </header>
@@ -265,11 +265,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useAuthStore } from '../../stores/auth.store';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 import PushNotificationToggle from '../../components/PushNotificationToggle.vue';
 import type { Order } from '../../api/order.api';
 
+const authStore = useAuthStore();
 const orderStore = useOrderStore();
 const socketStore = useSocketStore();
 
@@ -287,6 +289,14 @@ const filterOptions: Array<{ value: OrderFilter; label: string }> = [
   { value: 'completed', label: '已完成' },
   { value: 'cancelled', label: '已取消' }
 ];
+const canViewAllOrders = computed(() =>
+  authStore.user?.role === 'staff' || authStore.user?.role === 'admin'
+);
+const pageDescription = computed(() =>
+  canViewAllOrders.value
+    ? '查看所有顧客的訂單狀態、付款結果與點餐明細。'
+    : '查看你最近的訂單狀態、付款結果與點餐明細。'
+);
 
 // ── Date grouping ─────────────────────────────────────────────────────────────
 
@@ -538,7 +548,11 @@ async function loadOrders() {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    await orderStore.loadMyOrders();
+    if (canViewAllOrders.value) {
+      await orderStore.loadAllOrdersForStaff();
+    } else {
+      await orderStore.loadMyOrders();
+    }
     visibleCount.value = INITIAL_VISIBLE_COUNT;
   } catch {
     errorMessage.value = '無法載入點餐紀錄。';

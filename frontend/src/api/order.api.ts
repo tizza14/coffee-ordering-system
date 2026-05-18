@@ -105,6 +105,7 @@ export async function getMyOrders() {
 export async function getStaffOrders(params?: {
   paymentStatus?: string;
   date?: string;
+  all?: boolean;
   limit?: number;
 }) {
   const response = await http.get<OrderListResponse>('/orders', { params });

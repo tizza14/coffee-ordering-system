@@ -356,6 +356,7 @@ export interface StaffOrdersQuery {
   status?: string;
   paymentStatus?: string;
   date?: string;
+  all?: boolean;
   page: number;
   limit: number;
 }
@@ -370,18 +371,20 @@ export async function listStaffOrders(
   }
   if (query.status) {
     filter.status = query.status;
-  } else if (!query.paymentStatus && !query.date) {
+  } else if (!query.all && !query.paymentStatus && !query.date) {
     filter.paymentStatus = 'paid';
     filter.status = 'pending';
   }
   if (query.paymentStatus) filter.paymentStatus = query.paymentStatus;
 
   const skip = (query.page - 1) * query.limit;
+  const orderQuery = OrderModel.find(filter).sort({ createdAt: -1 });
+  if (!query.all) {
+    orderQuery.skip(skip).limit(query.limit);
+  }
+
   const [orders, total] = await Promise.all([
-    OrderModel.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(query.limit),
+    orderQuery,
     OrderModel.countDocuments(filter)
   ]);
 

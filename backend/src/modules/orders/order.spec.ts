@@ -431,6 +431,26 @@ describe('Order API', () => {
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].paymentStatus).toBe('unpaid');
   });
+
+  it('allows staff to list all orders when all=true', async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+    const item = { productId: product._id, name: product.name, price: product.price, quantity: 1 };
+
+    await OrderModel.create([
+      { items: [item], totalAmount: 120, paymentStatus: 'paid', status: 'pending' },
+      { items: [item], totalAmount: 120, paymentStatus: 'unpaid', status: 'pending' },
+      { items: [item], totalAmount: 120, paymentStatus: 'paid', status: 'completed' }
+    ]);
+
+    const response = await request(app)
+      .get('/api/orders?all=true')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(3);
+    expect(response.body.pagination.total).toBe(3);
+  });
 });
 
 describe('Sales report API', () => {

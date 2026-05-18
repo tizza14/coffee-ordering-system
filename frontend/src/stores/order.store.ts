@@ -103,6 +103,10 @@ export const useOrderStore = defineStore('orders', {
       const result = await orderApi.getStaffOrders(date ? { date } : undefined);
       this.staffOrders = result.data;
     },
+    async loadAllOrdersForStaff() {
+      const result = await orderApi.getStaffOrders({ all: true });
+      this.myOrders = result.data;
+    },
     async loadTodaySummary(date?: string) {
       const summary = await orderApi.getTodayOrderSummary(date);
       this.todaySummary = { ...summary, soldItems: summary.soldItems ?? [] };

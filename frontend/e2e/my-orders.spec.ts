@@ -11,6 +11,14 @@ const buyerUser = {
   role: 'user' as const
 };
 
+const staffUser = {
+  id: 'staff-1',
+  name: 'Staff',
+  email: 'staff@example.com',
+  password: 'password123',
+  role: 'staff' as const
+};
+
 async function loginAs(page: Page, email: string) {
   await page.goto('/login');
   await page.fill('input[type="email"]', email);
@@ -166,5 +174,70 @@ test.describe('點餐紀錄', () => {
     await page.goto('/orders/my');
 
     await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
+  });
+
+  test('員工進入點餐紀錄時可查看完整訂單', async ({ page }) => {
+    await mockAuth(page, [staffUser]);
+    await mockProducts(page);
+    let requestedAllOrders = false;
+    await page.route(`${API}/orders**`, async (route) => {
+      requestedAllOrders = new URL(route.request().url()).searchParams.get('all') === 'true';
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            {
+              id: 'guest-order',
+              guestInfo: { name: 'Guest', phone: '0912345678' },
+              orderLookupCode: 'GUEST01',
+              status: 'completed',
+              paymentStatus: 'paid',
+              orderType: 'purchase',
+              items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+              totalAmount: 120,
+              paidAmount: 120,
+              pointsEarned: 0,
+              pointsRedeemed: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            },
+            {
+              id: 'unpaid-order',
+              orderLookupCode: 'UNPAID1',
+              status: 'pending',
+              paymentStatus: 'unpaid',
+              orderType: 'purchase',
+              items: [{ productId: 'p2', name: 'Brownie', price: 80, quantity: 1 }],
+              totalAmount: 80,
+              paidAmount: 0,
+              pointsEarned: 0,
+              pointsRedeemed: 0,
+              createdAt: new Date(Date.now() - 60_000).toISOString(),
+              updatedAt: new Date(Date.now() - 60_000).toISOString()
+            }
+          ],
+          pagination: { page: 1, limit: 20, total: 2 }
+        })
+      });
+    });
+    await page.route(`${API}/orders/my**`, async (route) => {
+      throw new Error(`staff should not call ${route.request().url()}`);
+    });
+    await page.route(`${API}/auth/me`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: staffUser })
+      });
+    });
+
+    await loginAs(page, staffUser.email);
+    await page.goto('/orders/my');
+
+    expect(requestedAllOrders).toBe(true);
+    await expect(page.getByText('查看所有顧客的訂單狀態、付款結果與點餐明細。')).toBeVisible();
+    await expect(page.getByText('GUEST01')).toBeVisible();
+    await expect(page.getByText('UNPAID1')).toBeVisible();
   });
 });

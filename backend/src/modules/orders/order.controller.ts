@@ -59,6 +59,7 @@ export const listStaffOrders = asyncHandler(
       status: getQueryString(req.query.status),
       paymentStatus: getQueryString(req.query.paymentStatus),
       date: getQueryString(req.query.date),
+      all: getQueryString(req.query.all) === 'true',
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 20
     });
