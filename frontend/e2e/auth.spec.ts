@@ -34,4 +34,19 @@ test.describe('Authentication', () => {
     await expect(page).toHaveURL('/products');
     await expect(page.getByText('Latte')).toBeVisible();
   });
+
+  test('logout navigates to login page', async ({ page }) => {
+    await mockAuth(page);
+    await mockProducts(page);
+    await page.goto('/login');
+    await page.fill('input[type="email"]', 'buyer@example.com');
+    await page.fill('input[type="password"]', 'password123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('/products');
+
+    await page.getByRole('button', { name: '登出' }).click();
+
+    await expect(page).toHaveURL('/login');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+  });
 });

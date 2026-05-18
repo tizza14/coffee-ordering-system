@@ -108,7 +108,7 @@
         v-if="authStore.isAuthenticated"
         class="min-h-9 shrink-0 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50"
         type="button"
-        @click="authStore.logout()"
+        @click="handleLogout"
       >
         登出
       </button>
@@ -122,14 +122,20 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterLink, RouterView, useRouter } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
 import ToastContainer from './components/ToastContainer.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const authStore = useAuthStore();
+const router = useRouter();
 const navLinkClass =
   'inline-flex min-h-9 shrink-0 items-center rounded-md border border-transparent px-3 font-bold text-amber-950 no-underline transition-colors hover:border-stone-300 hover:bg-amber-50';
 const navActiveClass =
   'border-amber-900 bg-amber-900 text-white hover:border-amber-800 hover:bg-amber-800';
+
+function handleLogout() {
+  authStore.logout();
+  void router.push('/login');
+}
 </script>
