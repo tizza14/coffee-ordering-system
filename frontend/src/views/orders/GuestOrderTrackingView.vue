@@ -312,19 +312,34 @@ function formatTime(value: string) {
 async function load() {
   errorMessage.value = '';
   isLoading.value = true;
+  const trackingLookupCode = lookupCode.value.trim().toUpperCase();
+  const trackingPhone = phone.value.trim();
+  const trackingGuestToken = guestToken.value.trim();
+  lookupCode.value = trackingLookupCode;
+  phone.value = trackingPhone;
+  guestToken.value = trackingGuestToken;
   try {
     const order = await orderStore.loadGuestOrder(
-      lookupCode.value,
-      phone.value || undefined,
-      guestToken.value || undefined
+      trackingLookupCode,
+      trackingPhone || undefined,
+      trackingGuestToken || undefined
     );
-    await notificationStore.loadGuestNotifications(
-      lookupCode.value,
-      phone.value || undefined,
-      guestToken.value || undefined
-    );
-    if (guestToken.value) {
-      socketStore.connect({ orderLookupCode: lookupCode.value, guestToken: guestToken.value });
+
+    try {
+      await notificationStore.loadGuestNotifications(
+        trackingLookupCode,
+        trackingPhone || undefined,
+        trackingGuestToken || undefined
+      );
+    } catch {
+      notificationStore.items = [];
+    }
+
+    if (trackingGuestToken) {
+      socketStore.connect({
+        orderLookupCode: trackingLookupCode,
+        guestToken: trackingGuestToken
+      });
       socketStore.joinOrderRoom(order.id);
     }
   } catch {

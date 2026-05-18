@@ -314,17 +314,30 @@ export async function getGuestOrder(
   phone?: string,
   guestToken?: string
 ) {
-  const order = await OrderModel.findOne({ orderLookupCode: lookupCode });
+  const normalizedLookupCode = lookupCode.trim().toUpperCase();
+  const normalizedPhone = phone?.trim();
+  const normalizedGuestToken = guestToken?.trim();
+  const orderLookupQuery = mongoose.isValidObjectId(normalizedLookupCode)
+    ? {
+        $or: [
+          { orderLookupCode: normalizedLookupCode },
+          { _id: new mongoose.Types.ObjectId(normalizedLookupCode) }
+        ]
+      }
+    : { orderLookupCode: normalizedLookupCode };
+  const order = await OrderModel.findOne(orderLookupQuery);
   if (!order) {
     throw new ApiError(404, 'ORDER_NOT_FOUND', 'Order not found');
   }
 
-  const phoneMatches = Boolean(phone && order.guestInfo?.phone === phone);
+  const phoneMatches = Boolean(
+    normalizedPhone && order.guestInfo?.phone === normalizedPhone
+  );
   const tokenNotExpired =
     !order.guestTokenExpiresAt || order.guestTokenExpiresAt > new Date();
   const tokenMatches = Boolean(
-    guestToken &&
-      order.guestTokenHash === hashGuestToken(guestToken) &&
+    normalizedGuestToken &&
+      order.guestTokenHash === hashGuestToken(normalizedGuestToken) &&
       tokenNotExpired
   );
 

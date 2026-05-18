@@ -135,6 +135,29 @@ describe('Order API', () => {
     expect(lookupResponse.body.id).toBe(createResponse.body.id);
   });
 
+  it('allows guest lookup by order id when phone matches', async () => {
+    const product = await createProduct();
+
+    const createResponse = await request(app)
+      .post('/api/orders/guest')
+      .send({
+        guestInfo: {
+          name: 'Guest Alice',
+          phone: '0912345678'
+        },
+        items: [{ productId: String(product._id), quantity: 1 }]
+      });
+
+    const lookupResponse = await request(app).get(
+      `/api/orders/guest/${createResponse.body.id}?phone=0912345678`
+    );
+
+    expect(lookupResponse.status).toBe(200);
+    expect(lookupResponse.body.orderLookupCode).toBe(
+      createResponse.body.orderLookupCode
+    );
+  });
+
   it('rejects guest lookup with wrong phone', async () => {
     const product = await createProduct();
     const createResponse = await request(app)

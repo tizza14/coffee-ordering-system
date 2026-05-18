@@ -26,11 +26,16 @@ export async function getGuestNotifications(
   phone?: string,
   guestToken?: string
 ) {
+  const normalizedLookupCode = lookupCode.trim().toUpperCase();
+  const normalizedPhone = phone?.trim();
+  const normalizedGuestToken = guestToken?.trim();
   const response = await http.get<NotificationListResponse>(
-    `/notifications/guest/${lookupCode}`,
+    `/notifications/guest/${encodeURIComponent(normalizedLookupCode)}`,
     {
-      params: phone ? { phone } : undefined,
-      headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined
+      params: normalizedPhone ? { phone: normalizedPhone } : undefined,
+      headers: normalizedGuestToken
+        ? { 'X-Guest-Token': normalizedGuestToken }
+        : undefined
     }
   );
   return response.data;
@@ -42,12 +47,19 @@ export async function markNotificationRead(
   phone?: string,
   guestToken?: string
 ) {
+  const normalizedLookupCode = lookupCode?.trim().toUpperCase();
+  const normalizedPhone = phone?.trim();
+  const normalizedGuestToken = guestToken?.trim();
   const response = await http.patch<Notification>(
     `/notifications/${id}/read`,
     undefined,
     {
-      params: lookupCode ? { lookupCode, phone } : undefined,
-      headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined
+      params: normalizedLookupCode
+        ? { lookupCode: normalizedLookupCode, phone: normalizedPhone }
+        : undefined,
+      headers: normalizedGuestToken
+        ? { 'X-Guest-Token': normalizedGuestToken }
+        : undefined
     }
   );
   return response.data;

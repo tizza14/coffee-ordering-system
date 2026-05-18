@@ -168,9 +168,17 @@ export async function getGuestOrder(
   phone?: string,
   guestToken?: string
 ) {
-  const response = await http.get<Order>(`/orders/guest/${lookupCode}`, {
-    params: phone ? { phone } : undefined,
-    headers: guestToken ? { 'X-Guest-Token': guestToken } : undefined
-  });
+  const normalizedLookupCode = lookupCode.trim().toUpperCase();
+  const normalizedPhone = phone?.trim();
+  const normalizedGuestToken = guestToken?.trim();
+  const response = await http.get<Order>(
+    `/orders/guest/${encodeURIComponent(normalizedLookupCode)}`,
+    {
+      params: normalizedPhone ? { phone: normalizedPhone } : undefined,
+      headers: normalizedGuestToken
+        ? { 'X-Guest-Token': normalizedGuestToken }
+        : undefined
+    }
+  );
   return response.data;
 }
