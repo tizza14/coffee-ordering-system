@@ -57,4 +57,51 @@ describe('Auth API', () => {
     expect(response.status).toBe(401);
     expect(response.body.code).toBe('AUTH_INVALID_CREDENTIALS');
   });
+
+  it('rejects duplicate email registration', async () => {
+    await request(app).post('/api/auth/register').send({
+      name: 'Alice',
+      email: 'alice@example.com',
+      password: 'password123'
+    });
+
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Bob',
+      email: 'alice@example.com',
+      password: 'password456'
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body.code).toBe('EMAIL_ALREADY_EXISTS');
+  });
+
+  it('rejects invalid email format', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Alice',
+      email: 'not-an-email',
+      password: 'password123'
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('rejects password shorter than 8 characters', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Alice',
+      email: 'alice@example.com',
+      password: '123'
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('rejects login with unknown email', async () => {
+    const response = await request(app).post('/api/auth/login').send({
+      email: 'nobody@example.com',
+      password: 'password123'
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.body.code).toBe('AUTH_INVALID_CREDENTIALS');
+  });
 });

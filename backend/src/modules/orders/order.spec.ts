@@ -333,6 +333,81 @@ describe('Order API', () => {
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('INVALID_STATUS_TRANSITION');
   });
+
+  it('walks an order through the full state transition pending→accepted→preparing→ready→completed', async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+    const order = await OrderModel.create({
+      items: [{ productId: product._id, name: product.name, price: product.price, quantity: 1 }],
+      totalAmount: 120,
+      paymentStatus: 'paid',
+      status: 'pending'
+    });
+    const orderId = String(order._id);
+
+    const transitions: Array<[string, string]> = [
+      ['pending', 'accepted'],
+      ['accepted', 'preparing'],
+      ['preparing', 'ready'],
+      ['ready', 'completed']
+    ];
+
+    for (const [, toStatus] of transitions) {
+      const response = await request(app)
+        .patch(`/api/orders/${orderId}/status`)
+        .set('Authorization', `Bearer ${staffToken}`)
+        .send({ status: toStatus });
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe(toStatus);
+    }
+
+    const terminalResponse = await request(app)
+      .patch(`/api/orders/${orderId}/status`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ status: 'cancelled' });
+
+    expect(terminalResponse.status).toBe(400);
+    expect(terminalResponse.body.code).toBe('INVALID_STATUS_TRANSITION');
+  });
+
+  it('filters staff orders by status', async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+    const item = { productId: product._id, name: product.name, price: product.price, quantity: 1 };
+
+    await OrderModel.create([
+      { items: [item], totalAmount: 120, paymentStatus: 'paid', status: 'pending' },
+      { items: [item], totalAmount: 120, paymentStatus: 'paid', status: 'accepted' }
+    ]);
+
+    const response = await request(app)
+      .get('/api/orders?status=accepted')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].status).toBe('accepted');
+  });
+
+  it('filters staff orders by paymentStatus', async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+    const item = { productId: product._id, name: product.name, price: product.price, quantity: 1 };
+
+    await OrderModel.create([
+      { items: [item], totalAmount: 120, paymentStatus: 'paid', status: 'pending' },
+      { items: [item], totalAmount: 120, paymentStatus: 'unpaid', status: 'pending' }
+    ]);
+
+    const response = await request(app)
+      .get('/api/orders?paymentStatus=unpaid')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toHaveLength(1);
+    expect(response.body.data[0].paymentStatus).toBe('unpaid');
+  });
 });
 
 describe('Sales report API', () => {

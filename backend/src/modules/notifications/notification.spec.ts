@@ -144,4 +144,80 @@ describe('Notification API', () => {
     expect(response.status).toBe(200);
     expect(response.body.isRead).toBe(true);
   });
+
+  it('saves push subscription for authenticated user', async () => {
+    const token = await loginAs('user');
+
+    const response = await request(app)
+      .post('/api/notifications/push/subscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        endpoint: 'https://push.example/sub/1',
+        keys: { auth: 'auth-key', p256dh: 'p256dh-key' }
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.ok).toBe(true);
+  });
+
+  it('is idempotent when subscribing twice with same endpoint', async () => {
+    const token = await loginAs('user');
+    const sub = {
+      endpoint: 'https://push.example/sub/1',
+      keys: { auth: 'auth-key', p256dh: 'p256dh-key' }
+    };
+
+    await request(app)
+      .post('/api/notifications/push/subscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send(sub);
+
+    const response = await request(app)
+      .post('/api/notifications/push/subscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send(sub);
+
+    expect(response.status).toBe(201);
+    expect(response.body.ok).toBe(true);
+  });
+
+  it('removes push subscription for authenticated user', async () => {
+    const token = await loginAs('user');
+    const endpoint = 'https://push.example/sub/2';
+
+    await request(app)
+      .post('/api/notifications/push/subscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ endpoint, keys: { auth: 'auth-key', p256dh: 'p256dh-key' } });
+
+    const response = await request(app)
+      .delete('/api/notifications/push/unsubscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ endpoint });
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+  });
+
+  it('returns 404 when unsubscribing non-existent endpoint', async () => {
+    const token = await loginAs('user');
+
+    const response = await request(app)
+      .delete('/api/notifications/push/unsubscribe')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ endpoint: 'https://push.example/nonexistent' });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects push subscribe without authentication', async () => {
+    const response = await request(app)
+      .post('/api/notifications/push/subscribe')
+      .send({
+        endpoint: 'https://push.example/sub/1',
+        keys: { auth: 'auth-key', p256dh: 'p256dh-key' }
+      });
+
+    expect(response.status).toBe(401);
+  });
 });

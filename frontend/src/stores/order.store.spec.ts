@@ -92,6 +92,49 @@ describe('orderStore', () => {
     expect(orderStore.staffOrders[0].status).toBe('accepted');
   });
 
+  it('loads my orders list', async () => {
+    mockedOrderApi.getMyOrders.mockResolvedValue({ data: [order] });
+    const orderStore = useOrderStore();
+
+    await orderStore.loadMyOrders();
+
+    expect(mockedOrderApi.getMyOrders).toHaveBeenCalled();
+    expect(orderStore.myOrders).toHaveLength(1);
+    expect(orderStore.myOrders[0].id).toBe('o1');
+  });
+
+  it('loads guest order and saves tracking session when guestToken provided', async () => {
+    mockedOrderApi.getGuestOrder.mockResolvedValue({
+      ...order,
+      orderLookupCode: 'GUEST01'
+    });
+    const orderStore = useOrderStore();
+
+    await orderStore.loadGuestOrder('GUEST01', undefined, 'my-guest-token');
+
+    expect(mockedOrderApi.getGuestOrder).toHaveBeenCalledWith('GUEST01', undefined, 'my-guest-token');
+    expect(orderStore.currentOrder?.orderLookupCode).toBe('GUEST01');
+    expect(orderStore.guestToken).toBe('my-guest-token');
+    expect(orderStore.guestLookupCode).toBe('GUEST01');
+  });
+
+  it('setGuestTrackingSession updates state and persists to localStorage', () => {
+    const orderStore = useOrderStore();
+
+    orderStore.setGuestTrackingSession({
+      lookupCode: 'TRK999',
+      guestToken: 'tok-abc',
+      phone: '0911222333'
+    });
+
+    expect(orderStore.guestLookupCode).toBe('TRK999');
+    expect(orderStore.guestToken).toBe('tok-abc');
+    expect(orderStore.guestPhone).toBe('0911222333');
+
+    const stored = JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}');
+    expect(stored).toEqual({ lookupCode: 'TRK999', guestToken: 'tok-abc', phone: '0911222333' });
+  });
+
   it('loads today staff summary', async () => {
     mockedOrderApi.getTodayOrderSummary.mockResolvedValue({
       date: '2026-05-15',

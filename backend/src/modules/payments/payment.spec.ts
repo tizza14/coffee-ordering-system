@@ -191,6 +191,47 @@ describe('Line Pay API', () => {
     });
   });
 
+  it('cancels a payment_pending order and marks it payment_failed', async () => {
+    const { token, orderId } = await createMemberOrder();
+
+    await request(app)
+      .post('/api/payments/line-pay/request')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ orderId });
+
+    const response = await request(app)
+      .get(`/api/payments/line-pay/cancel?orderId=${orderId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.paymentStatus).toBe('payment_failed');
+
+    await expect(OrderModel.findById(orderId)).resolves.toMatchObject({
+      paymentStatus: 'payment_failed'
+    });
+  });
+
+  it('rejects cancelling an already paid order', async () => {
+    const { token, orderId } = await createMemberOrder();
+
+    await request(app)
+      .post('/api/payments/line-pay/request')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ orderId });
+
+    await request(app)
+      .post('/api/payments/line-pay/confirm')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ orderId, transactionId: 'txn-123' });
+
+    const response = await request(app)
+      .get(`/api/payments/line-pay/cancel?orderId=${orderId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('PAYMENT_REQUEST_NOT_ALLOWED');
+  });
+
   it('allows guest payment request with the guest token', async () => {
     const product = await createProduct();
     const orderResponse = await request(app)
