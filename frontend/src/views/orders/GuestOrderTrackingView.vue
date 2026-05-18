@@ -53,7 +53,12 @@
           :aria-expanded="notificationsOpen"
           @click="notificationsOpen = !notificationsOpen"
         >
-          <span>通知紀錄</span>
+          <span>
+            通知紀錄
+            <span class="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+              {{ notificationStore.items.length }}
+            </span>
+          </span>
           <span class="text-sm text-stone-500">{{ notificationsOpen ? '收合' : '展開' }}</span>
         </button>
         <ul
@@ -63,20 +68,23 @@
           <li
             v-for="notification in notificationStore.items"
             :key="notification.id"
-            class="grid gap-1 rounded-lg border border-stone-200 bg-white p-3"
+            class="flex items-start gap-3 rounded-lg border border-stone-200 bg-white p-3"
           >
-            <strong class="text-amber-950">{{ notification.message }}</strong>
-            <span class="text-sm text-stone-500">{{ formatTime(notification.createdAt) }}</span>
+            <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
+            <div class="grid gap-0.5">
+              <strong class="text-sm text-amber-950">{{ notification.message }}</strong>
+              <span class="text-xs text-stone-400">{{ formatTime(notification.createdAt) }}</span>
+            </div>
           </li>
         </ul>
       </section>
     </div>
 
-    <!-- 右欄：訂單已完成 -->
+    <!-- 右欄：訂單狀態 -->
     <div class="grid content-start gap-4">
       <header>
-        <h2 class="m-0 text-2xl font-bold text-amber-950">訂單已完成</h2>
-        <p class="m-0 text-stone-600">查詢後即時顯示訂單狀態與明細。</p>
+        <h2 class="m-0 text-2xl font-bold text-amber-950">訂單狀態</h2>
+        <p class="m-0 text-stone-600">查詢後即時顯示訂單進度與明細。</p>
       </header>
 
       <div
@@ -91,22 +99,80 @@
       </div>
 
       <template v-else>
-        <!-- 狀態卡 -->
-        <div class="rounded-lg border p-5" :class="statusPanelClass">
-          <p class="m-0 text-sm font-extrabold uppercase tracking-wide opacity-70">
+        <!-- 狀態步驟條 -->
+        <div
+          class="rounded-lg border p-5 transition-colors"
+          :class="stepperContainerClass"
+        >
+          <p class="m-0 mb-4 text-xs font-bold uppercase tracking-widest opacity-60">
             訂單 {{ orderStore.currentOrder.orderLookupCode }}
           </p>
-          <h3 class="m-0 mt-1 text-3xl font-extrabold">{{ statusLabel }}</h3>
-          <p class="m-0 mt-1 font-semibold">{{ statusMessage }}</p>
+
+          <!-- 已取消特殊狀態 -->
+          <div
+            v-if="currentStatus === 'cancelled'"
+            class="rounded-md border border-red-200 bg-red-50 p-4 text-center"
+          >
+            <p class="m-0 text-lg font-extrabold text-red-700">訂單已取消</p>
+            <p class="m-0 mt-1 text-sm text-red-500">這筆訂單已取消。</p>
+          </div>
+
+          <!-- 正常步驟條 -->
+          <template v-else>
+            <ol class="flex w-full items-start">
+              <li
+                v-for="(step, i) in steps"
+                :key="step.status"
+                class="relative flex flex-1 flex-col items-center"
+              >
+                <!-- 連接線（除第一步外） -->
+                <div
+                  v-if="i > 0"
+                  class="absolute top-4 h-0.5 transition-colors"
+                  style="left: calc(-50% + 16px); right: calc(50% + 16px)"
+                  :class="stepIndex(step.status) <= currentStepIndex ? activeLineClass : 'bg-stone-200'"
+                ></div>
+
+                <!-- 圓圈 -->
+                <div
+                  class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-extrabold transition-colors"
+                  :class="circleClass(step.status)"
+                >
+                  <span v-if="stepIndex(step.status) < currentStepIndex">✓</span>
+                  <span
+                    v-else-if="step.status === currentStatus"
+                    class="h-2.5 w-2.5 rounded-full bg-current"
+                    :class="currentStatus === 'ready' ? 'animate-ping' : ''"
+                  ></span>
+                </div>
+
+                <!-- 標籤 -->
+                <span
+                  class="mt-2 text-center text-xs font-bold leading-tight"
+                  :class="stepLabelClass(step.status)"
+                >
+                  {{ step.label }}
+                </span>
+              </li>
+            </ol>
+
+            <!-- 狀態說明文字 -->
+            <p class="m-0 mt-5 text-center text-sm font-semibold" :class="statusMessageClass">
+              {{ statusMessage }}
+            </p>
+          </template>
         </div>
 
         <!-- 最新通知 -->
         <div
           v-if="latestNotification"
-          class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-950"
+          class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
         >
-          <p class="m-0 text-xs font-extrabold uppercase tracking-wide">最新通知</p>
-          <p class="m-0 mt-1 font-bold">{{ latestNotification.message }}</p>
+          <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-500"></span>
+          <div>
+            <p class="m-0 text-xs font-extrabold uppercase tracking-wide text-amber-700">最新通知</p>
+            <p class="m-0 mt-0.5 text-sm font-bold text-amber-950">{{ latestNotification.message }}</p>
+          </div>
         </div>
 
         <!-- 點餐明細 -->
@@ -166,29 +232,74 @@ const currentStatus = computed(
 );
 const latestNotification = computed(() => notificationStore.items[0]);
 
-const statusLabel = computed(() => {
-  if (currentStatus.value === 'ready') return '餐點已完成，請取餐';
-  if (currentStatus.value === 'completed') return '訂單已完成';
-  if (currentStatus.value === 'preparing') return '餐點製作中';
-  if (currentStatus.value === 'accepted') return '店家已接單';
-  if (currentStatus.value === 'cancelled') return '訂單已取消';
-  return '訂單已送出';
+const steps = [
+  { status: 'pending',   label: '待處理' },
+  { status: 'accepted',  label: '已接單' },
+  { status: 'preparing', label: '製作中' },
+  { status: 'ready',     label: '可取餐' },
+  { status: 'completed', label: '已完成' },
+] as const;
+
+const statusOrderMap: Record<string, number> = {
+  pending: 0, accepted: 1, preparing: 2, ready: 3, completed: 4
+};
+
+function stepIndex(status: string) {
+  return statusOrderMap[status] ?? 0;
+}
+
+const currentStepIndex = computed(() => stepIndex(currentStatus.value ?? 'pending'));
+
+const isReady = computed(() => currentStatus.value === 'ready');
+
+const stepperContainerClass = computed(() => {
+  if (isReady.value) return 'border-emerald-400 bg-emerald-50';
+  if (currentStatus.value === 'completed') return 'border-amber-300 bg-amber-50';
+  return 'border-stone-300 bg-white';
 });
+
+const activeLineClass = computed(() =>
+  isReady.value || currentStatus.value === 'completed' ? 'bg-emerald-500' : 'bg-amber-900'
+);
+
+function circleClass(status: string) {
+  const idx = stepIndex(status);
+  const cur = currentStepIndex.value;
+  if (isReady.value || currentStatus.value === 'completed') {
+    if (idx < cur) return 'bg-emerald-600 text-white';
+    if (status === currentStatus.value)
+      return isReady.value
+        ? 'bg-emerald-600 text-white ring-4 ring-emerald-200'
+        : 'bg-emerald-600 text-white';
+  } else {
+    if (idx < cur) return 'bg-amber-900 text-white';
+    if (status === currentStatus.value) return 'bg-amber-900 text-white ring-4 ring-amber-200';
+  }
+  return 'bg-stone-100 text-stone-300 ring-1 ring-stone-200';
+}
+
+function stepLabelClass(status: string) {
+  const idx = stepIndex(status);
+  const cur = currentStepIndex.value;
+  if (idx <= cur) {
+    if (isReady.value || currentStatus.value === 'completed') return 'text-emerald-700';
+    return 'text-amber-950';
+  }
+  return 'text-stone-400';
+}
 
 const statusMessage = computed(() => {
-  if (currentStatus.value === 'ready') return '您的餐點已經做好，請到櫃檯取餐。';
+  if (currentStatus.value === 'ready')     return '您的餐點已完成，請到櫃檯取餐。';
   if (currentStatus.value === 'completed') return '謝謝您，這筆訂單已完成。';
-  if (currentStatus.value === 'preparing') return '店員正在準備您的餐點。';
-  if (currentStatus.value === 'accepted') return '店家已收到訂單，會開始安排製作。';
-  if (currentStatus.value === 'cancelled') return '這筆訂單已取消。';
-  return '訂單狀態更新時，這裡會同步顯示。';
+  if (currentStatus.value === 'preparing') return '店員正在準備您的餐點，請稍候。';
+  if (currentStatus.value === 'accepted')  return '店家已收到訂單，即將開始製作。';
+  return '訂單已送出，等待店家確認中。';
 });
 
-const statusPanelClass = computed(() => {
-  if (currentStatus.value === 'ready') return 'border-emerald-400 bg-emerald-50 text-emerald-950';
-  if (currentStatus.value === 'completed') return 'border-amber-400 bg-amber-50 text-amber-950';
-  if (currentStatus.value === 'cancelled') return 'border-red-300 bg-red-50 text-red-900';
-  return 'border-sky-300 bg-sky-50 text-sky-950';
+const statusMessageClass = computed(() => {
+  if (isReady.value) return 'text-emerald-800';
+  if (currentStatus.value === 'completed') return 'text-emerald-700';
+  return 'text-stone-600';
 });
 
 function formatTime(value: string) {
