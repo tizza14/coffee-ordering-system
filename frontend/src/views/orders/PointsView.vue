@@ -179,8 +179,6 @@ onMounted(async () => {
     isLoadingProducts.value = false;
   }
 
-  if (orderStore.myOrders.length === 0) {
-    await orderStore.loadMyOrders();
-  }
+  await orderStore.loadMyOrders();
 });
 </script>

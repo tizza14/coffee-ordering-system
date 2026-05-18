@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-18 +08:00 (rev 2)
+Last updated: 2026-05-18 +08:00 (rev 3)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -682,3 +682,28 @@ Generate keys: `cd backend && npx web-push generate-vapid-keys`
 - `deploy/SETUP.md`: Step-by-step AWS resource setup guide (EC2 t2.micro + S3 + CloudFront + ECR + Atlas M0).
 - `backend/src/config/env.ts`: Removed hardcoded Vercel URL; use `FRONTEND_URL` env var.
 - `ci.yml`: Added `workflow_call` trigger so deploy.yml can reuse CI jobs.
+
+### Security & Code Quality Fixes (2026-05-18 rev 3)
+
+Ten code-review findings resolved (Critical → Medium → Minor):
+
+**Critical**
+
+- **Fix 1** (`order.service.ts` `getGuestOrder`): Added `tokenNotExpired` check — guest token validated against `guestTokenExpiresAt`; expired tokens are now rejected.
+- **Fix 2** (`payment.service.ts` `createMockPaymentUrl`): Removed raw `guestToken` from mock redirect URL query params; frontend reads it from `orderStore.guestToken`.
+- **Fix 3** (`env.ts`): Added production guard — server throws at startup if `JWT_SECRET` is still `change-me` when `NODE_ENV === 'production'`.
+- **Fix 4** (`payment.service.ts`): Removed duplicate `hashGuestToken` local function; now imported from `utils/crypto` (single canonical implementation).
+
+**Medium**
+
+- **Fix 5** (`order.service.ts` `createRedeemOrder`): Added try/catch around `OrderModel.create`; on failure, atomically refunds the deducted points via `pointService.returnPoints` before re-throwing.
+- **Fix 6** (`order.service.ts` `returnRedeemedPointsIfCancelled`): Removed in-memory `order.pointsRedeemed = 0` mutation; DB is the single source of truth via `OrderModel.updateOne`.
+- **Fix 7** (`LinePayConfirmView.vue`): Error handling replaced with structured code lookup (`PAYMENT_AMOUNT_MISMATCH`, `ORDER_ACCESS_DENIED`, etc.), localized messages, and a "查看我的訂單" fallback link.
+- **Fix 8** (`http.ts`): Added Axios response interceptor — auto-calls `authStore.logout()` on any 401 response so stale/expired tokens clear automatically.
+
+**Minor**
+
+- **Fix 9** (`PointsView.vue` `onMounted`): Always calls `orderStore.loadMyOrders()` on mount regardless of cached data.
+- **Fix 10** (`order.store.ts` `loadTodaySummary`): Removed dead fallback that re-fetched 200 paid orders when `soldItems` was empty; backend always returns `soldItems`.
+
+Verified: backend 11 suites / 70 tests passed; frontend 9 suites / 21 tests passed; both `npm run build` clean.

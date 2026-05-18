@@ -2684,3 +2684,32 @@ Status 只能依序前進，不可跳過階段。
 * 雲端部署與工程化能力
 
 ---
+
+# 附錄 A. 安全修復記錄（2026-05-18）
+
+## A.1 Critical 修復
+
+| 項目 | 模組 | 說明 |
+|------|------|------|
+| Fix-1 | `order.service.ts` `getGuestOrder` | 增加 `guestTokenExpiresAt` 到期驗證；過期 token 視為無效 |
+| Fix-2 | `payment.service.ts` `createMockPaymentUrl` | 移除 redirect URL 中的明文 guestToken 參數；前端改從 store 讀取 |
+| Fix-3 | `env.ts` | 正式環境啟動時若 `JWT_SECRET` 仍為預設值則拋出錯誤，強制替換密鑰 |
+| Fix-4 | `payment.service.ts` | 移除重複的 `hashGuestToken` 函式；統一從 `utils/crypto` 匯入 |
+
+## A.2 Medium 修復
+
+| 項目 | 模組 | 說明 |
+|------|------|------|
+| Fix-5 | `order.service.ts` `createRedeemOrder` | 若 `OrderModel.create` 失敗，自動回滾已扣除的點數（`pointService.returnPoints`） |
+| Fix-6 | `order.service.ts` `returnRedeemedPointsIfCancelled` | 移除 in-memory `order.pointsRedeemed = 0` 直接變動；DB 為唯一真實來源 |
+| Fix-7 | `LinePayConfirmView.vue` | 結構化錯誤碼顯示（`PAYMENT_AMOUNT_MISMATCH`、`ORDER_ACCESS_DENIED` 等），附本地化說明與查看訂單連結 |
+| Fix-8 | `api/http.ts` | 新增 Axios response interceptor，收到 401 時自動呼叫 `authStore.logout()`，清除過期 token |
+
+## A.3 Minor 修復
+
+| 項目 | 模組 | 說明 |
+|------|------|------|
+| Fix-9 | `PointsView.vue` `onMounted` | 每次進入頁面都重新載入 `orderStore.loadMyOrders()`，移除「只有空時才載入」的條件 |
+| Fix-10 | `order.store.ts` `loadTodaySummary` | 移除 fallback 重新抓取 200 筆訂單的死碼；後端 `soldItems` 永遠回傳 |
+
+---

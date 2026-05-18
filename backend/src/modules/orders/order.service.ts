@@ -279,21 +279,27 @@ export async function createRedeemOrder(
   }
 
   const remainingPoints = await pointService.deductPointsForRedemption(userId);
-  const order = await OrderModel.create({
-    userId: new mongoose.Types.ObjectId(userId),
-    items: [
-      {
-        productId: product._id,
-        name: product.name,
-        price: 0,
-        quantity: 1
-      }
-    ],
-    totalAmount: 0,
-    orderType: 'redeem',
-    paymentStatus: 'paid',
-    pointsRedeemed: pointService.REDEEM_POINTS_COST
-  });
+  let order: OrderDocument;
+  try {
+    order = await OrderModel.create({
+      userId: new mongoose.Types.ObjectId(userId),
+      items: [
+        {
+          productId: product._id,
+          name: product.name,
+          price: 0,
+          quantity: 1
+        }
+      ],
+      totalAmount: 0,
+      orderType: 'redeem',
+      paymentStatus: 'paid',
+      pointsRedeemed: pointService.REDEEM_POINTS_COST
+    });
+  } catch (err) {
+    await pointService.returnPoints(userId, pointService.REDEEM_POINTS_COST);
+    throw err;
+  }
 
   await notifyStatusUpdate(order);
 
@@ -314,8 +320,12 @@ export async function getGuestOrder(
   }
 
   const phoneMatches = Boolean(phone && order.guestInfo?.phone === phone);
+  const tokenNotExpired =
+    !order.guestTokenExpiresAt || order.guestTokenExpiresAt > new Date();
   const tokenMatches = Boolean(
-    guestToken && order.guestTokenHash === hashGuestToken(guestToken)
+    guestToken &&
+      order.guestTokenHash === hashGuestToken(guestToken) &&
+      tokenNotExpired
   );
 
   if (!phoneMatches && !tokenMatches) {
@@ -541,9 +551,8 @@ async function returnRedeemedPointsIfCancelled(order: OrderDocument) {
     order.userId &&
     order.pointsRedeemed > 0
   ) {
-    await pointService.returnPoints(String(order.userId), order.pointsRedeemed);
     const originalPointsRedeemed = order.pointsRedeemed;
-    order.pointsRedeemed = 0;
+    await pointService.returnPoints(String(order.userId), originalPointsRedeemed);
     await OrderModel.updateOne(
       { _id: order._id, pointsRedeemed: originalPointsRedeemed },
       { $set: { pointsRedeemed: 0 } }

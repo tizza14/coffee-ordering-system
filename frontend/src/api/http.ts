@@ -32,3 +32,16 @@ http.interceptors.request.use((config) => {
   }
   return config;
 });
+
+http.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore();
+      if (authStore.accessToken) {
+        authStore.logout();
+      }
+    }
+    return Promise.reject(error);
+  }
+);

@@ -1,7 +1,7 @@
-import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { env } from '../../config/env';
 import { ApiError } from '../../utils/ApiError';
+import { hashGuestToken } from '../../utils/crypto';
 import { OrderModel, type OrderDocument } from '../orders/order.model';
 import * as notificationService from '../notifications/notification.service';
 import * as pointService from '../points/point.service';
@@ -12,10 +12,6 @@ import { PaymentModel, type PaymentDocument } from './payment.model';
 interface PaymentActor {
   user?: { id: string; role: string };
   guestToken?: string;
-}
-
-function hashGuestToken(token: string) {
-  return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 function toPaymentResponse(payment: PaymentDocument) {
@@ -57,7 +53,7 @@ function createMockTransactionId(orderId: string) {
 function createMockPaymentUrl(
   order: OrderDocument,
   transactionId: string,
-  actor: PaymentActor
+  _actor: PaymentActor
 ) {
   const url = new URL(env.linePayConfirmUrl);
   url.searchParams.set('orderId', String(order._id));
@@ -65,9 +61,7 @@ function createMockPaymentUrl(
   if (order.orderLookupCode) {
     url.searchParams.set('lookupCode', order.orderLookupCode);
   }
-  if (actor.guestToken) {
-    url.searchParams.set('guestToken', actor.guestToken);
-  }
+  // Do NOT pass raw guestToken in URL — frontend reads it from orderStore.guestToken
   return url.toString();
 }
 
