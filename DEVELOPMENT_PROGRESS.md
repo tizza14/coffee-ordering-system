@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-18 +08:00 (rev 3)
+Last updated: 2026-05-18 +08:00 (rev 4)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -462,14 +462,13 @@ Backend commands run from `backend`:
 ```powershell
 npm.cmd run lint
 npm.cmd test
-npm.cmd run e2e
 npm.cmd run build
 ```
 
 Latest result:
 
 - lint passed
-- test passed: 11 suites, 58 tests
+- test passed: 11 suites, 84 tests
 - build passed
 
 Frontend commands run from `frontend`:
@@ -477,20 +476,21 @@ Frontend commands run from `frontend`:
 ```powershell
 npm.cmd run lint
 npm.cmd test
+npm.cmd run e2e
 npm.cmd run build
 ```
 
 Latest result:
 
 - lint passed
-- test passed: 9 suites, 19 tests
-- e2e passed: 42 tests
+- unit tests passed: 10 suites, 33 tests
+- e2e passed: 94 tests (desktop Chromium + Pixel 5 mobile)
 - build passed
 
 RWD verification:
 
-- Playwright now runs both `chromium` desktop and `mobile-chrome` Pixel 5 projects.
-- Latest frontend E2E result: 42 tests passed.
+- Playwright runs both `chromium` desktop and `mobile-chrome` Pixel 5 projects.
+- Latest frontend E2E result: 94 tests passed.
 - Global navigation, shop, checkout, auth, order tracking, staff, and admin views have responsive layout baselines.
 
 ## Environment Notes
@@ -519,10 +519,11 @@ Status: Accepted
 
 Implemented:
 
-- `.github/workflows/ci.yml`: triggers on push/PR to `main`.
-- Two parallel jobs: `backend` and `frontend`.
-- Each job runs: `npm ci` → lint → test → build.
-- Backend test env injects `JWT_SECRET` and dummy Line Pay keys; no real DB needed (uses `mongodb-memory-server`).
+- `.github/workflows/ci.yml`: triggers on push/PR to `main`; also exposes `workflow_call` for reuse from CD jobs.
+- Two parallel jobs:
+  - **backend**: `npm ci` → lint → Jest test (MongoMemoryServer, no real DB) → TypeScript build. Injects `JWT_SECRET` and dummy Line Pay keys via `env:`.
+  - **frontend**: `npm ci` → lint → Vitest unit tests → install Playwright Chromium → E2E tests → Vite build. E2E uses `page.route()` mock interceptors — no real backend required in CI.
+- Both jobs must pass before a PR can be merged.
 
 ## E2E Tests (Playwright)
 
@@ -709,3 +710,13 @@ Ten code-review findings resolved (Critical → Medium → Minor):
 - **Fix 10** (`order.store.ts` `loadTodaySummary`): Removed dead fallback that re-fetched 200 paid orders when `soldItems` was empty; backend always returns `soldItems`.
 
 Verified: backend 11 suites / 70 tests passed; frontend 9 suites / 21 tests passed; both `npm run build` clean.
+
+---
+
+## Post-Ship Enhancements (2026-05-18 rev 4)
+
+### CI/CD Gate + README Security Hardening
+
+- **CI E2E gate**: Updated `.github/workflows/ci.yml` frontend job to include Playwright E2E step (`npx playwright install --with-deps chromium` → `npm run e2e`). All PRs now must pass lint + unit + E2E + build before merge.
+- **README demo credential warning**: Added "Do not reuse these credentials in any production environment." note above the demo accounts table so public repo visitors understand they are seed-script defaults.
+- **README CI badge**: Added `![CI](…/ci.yml/badge.svg)` to the README header for immediate build status visibility.
