@@ -185,6 +185,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
 import type { Order } from '../../api/order.api';
+import { extractApiError } from '../../api/http';
 
 type OrderTransitionStatus = Exclude<Order['status'], 'pending'>;
 
@@ -248,8 +249,8 @@ async function loadDashboard() {
       orderStore.loadTodaySummary(),
       orderStore.loadStaffOrders()
     ]);
-  } catch {
-    errorMessage.value = '無法載入員工訂單。';
+  } catch (err) {
+    errorMessage.value = extractApiError(err) || '無法載入員工訂單。';
   } finally {
     isLoading.value = false;
   }
@@ -261,8 +262,8 @@ async function updateStatus(orderId: string, status: OrderTransitionStatus) {
   try {
     await orderStore.updateStaffOrderStatus(orderId, status);
     await orderStore.loadTodaySummary();
-  } catch {
-    errorMessage.value = '無法更新訂單狀態。';
+  } catch (err) {
+    errorMessage.value = extractApiError(err) || '無法更新訂單狀態。';
   } finally {
     isUpdating.value = '';
   }

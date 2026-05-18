@@ -235,6 +235,7 @@
 import { computed, ref } from 'vue';
 import * as orderApi from '../../api/order.api';
 import type { SalesReport } from '../../api/order.api';
+import { extractApiError } from '../../api/http';
 
 type Period = 'day' | 'week' | 'month' | 'year' | 'range';
 
@@ -319,8 +320,8 @@ async function loadReport() {
   errorMessage.value = '';
   try {
     report.value = await orderApi.getSalesReport(buildParams());
-  } catch {
-    errorMessage.value = '無法載入銷售報表。';
+  } catch (err) {
+    errorMessage.value = extractApiError(err) || '無法載入銷售報表。';
   } finally {
     isLoading.value = false;
   }

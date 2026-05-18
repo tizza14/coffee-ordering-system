@@ -54,6 +54,17 @@ function taipeiMidnightUTC(year: number, month: number, day: number): Date {
   return new Date(Date.UTC(year, month - 1, day) - TAIPEI_OFFSET_MS);
 }
 
+function parseDateStr(s: string): [number, number, number] {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    throw new ApiError(400, 'INVALID_DATE', `Invalid date format: ${s}`);
+  }
+  const [y, m, d] = s.split('-').map(Number);
+  if (m < 1 || m > 12 || d < 1 || d > 31) {
+    throw new ApiError(400, 'INVALID_DATE', `Invalid date value: ${s}`);
+  }
+  return [y, m, d];
+}
+
 function getTaipeiDayRange(dateStrOrNow?: string | Date, _now = new Date()) {
   if (dateStrOrNow instanceof Date || dateStrOrNow === undefined) {
     const now = dateStrOrNow ?? _now;
@@ -65,7 +76,7 @@ function getTaipeiDayRange(dateStrOrNow?: string | Date, _now = new Date()) {
     );
     return { start, end: new Date(start.getTime() + 86400000) };
   }
-  const [y, m, d] = dateStrOrNow.split('-').map(Number);
+  const [y, m, d] = parseDateStr(dateStrOrNow);
   const start = taipeiMidnightUTC(y, m, d);
   return { start, end: new Date(start.getTime() + 86400000) };
 }
@@ -78,7 +89,7 @@ interface TimeBucket {
 }
 
 function getWeekBuckets(dateStr: string): TimeBucket[] {
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const [y, m, d] = parseDateStr(dateStr);
   const dayStart = taipeiMidnightUTC(y, m, d);
   const dow = new Date(dayStart.getTime() + TAIPEI_OFFSET_MS).getUTCDay();
   const daysFromMon = dow === 0 ? 6 : dow - 1;
@@ -132,8 +143,8 @@ export interface SalesBucket {
 }
 
 function getCustomRangeBuckets(startDate: string, endDate: string): TimeBucket[] {
-  const [sy, sm, sd] = startDate.split('-').map(Number);
-  const [ey, em, ed] = endDate.split('-').map(Number);
+  const [sy, sm, sd] = parseDateStr(startDate);
+  const [ey, em, ed] = parseDateStr(endDate);
   const startUTC = taipeiMidnightUTC(sy, sm, sd);
   const endUTC = taipeiMidnightUTC(ey, em, ed + 1);
   const daysCount = Math.round((endUTC.getTime() - startUTC.getTime()) / 86400000);

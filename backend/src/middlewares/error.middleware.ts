@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler } from 'express';
+import { ZodError } from 'zod';
 import { ApiError } from '../utils/ApiError';
 
 export const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
@@ -7,10 +8,15 @@ export const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  if (err?.name === 'ZodError') {
-    res
-      .status(400)
-      .json({ message: 'Validation error', code: 'VALIDATION_ERROR' });
+  if (err instanceof ZodError) {
+    res.status(400).json({
+      message: 'Validation error',
+      code: 'VALIDATION_ERROR',
+      errors: err.issues.map((issue) => ({
+        field: issue.path.join('.'),
+        message: issue.message
+      }))
+    });
     return;
   }
 

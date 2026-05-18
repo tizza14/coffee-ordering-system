@@ -297,6 +297,17 @@ describe('Order API', () => {
     expect(response.body.code).toBe('PAYMENT_NOT_PAID');
   });
 
+  it('rejects invalid date format for summary/today', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/summary/today?date=not-a-date')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_DATE');
+  });
+
   it('rejects invalid order status transitions', async () => {
     const product = await createProduct();
     const staffToken = await loginAs('staff');
@@ -321,5 +332,139 @@ describe('Order API', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('INVALID_STATUS_TRANSITION');
+  });
+});
+
+describe('Sales report API', () => {
+  function taipeiToday() {
+    return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  }
+
+  it('returns day report with correct totals', async () => {
+    const product = await createProduct();
+    const staffToken = await loginAs('staff');
+
+    await OrderModel.create({
+      items: [{ productId: product._id, name: product.name, price: product.price, quantity: 2 }],
+      totalAmount: 240,
+      paidAmount: 240,
+      paymentStatus: 'paid',
+      status: 'completed'
+    });
+
+    const response = await request(app)
+      .get(`/api/orders/sales?period=day&date=${taipeiToday()}`)
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe('day');
+    expect(response.body.totalRevenue).toBe(240);
+    expect(response.body.totalOrders).toBe(1);
+    expect(response.body.totalItems).toBe(2);
+    expect(response.body.breakdown).toHaveLength(1);
+    expect(response.body.soldItems).toEqual([
+      { productId: String(product._id), name: 'Latte', quantity: 2, revenue: 240 }
+    ]);
+  });
+
+  it('returns week report with 7 buckets', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get(`/api/orders/sales?period=week&date=${taipeiToday()}`)
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe('week');
+    expect(response.body.breakdown).toHaveLength(7);
+    expect(response.body.totalRevenue).toBe(0);
+  });
+
+  it('returns month report with correct bucket count for May', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=month&year=2026&month=5')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe('month');
+    expect(response.body.breakdown).toHaveLength(31);
+  });
+
+  it('returns year report with 12 monthly buckets', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=year&year=2026')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe('year');
+    expect(response.body.breakdown).toHaveLength(12);
+  });
+
+  it('returns range report with one bucket per day', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=range&startDate=2026-05-01&endDate=2026-05-07')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.period).toBe('range');
+    expect(response.body.breakdown).toHaveLength(7);
+    expect(response.body.label).toBe('2026-05-01 ~ 2026-05-07');
+  });
+
+  it('rejects missing or invalid period', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=invalid')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_PERIOD');
+  });
+
+  it('rejects range where startDate is after endDate', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=range&startDate=2026-05-10&endDate=2026-05-01')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_DATE_RANGE');
+  });
+
+  it('rejects range exceeding 366 days', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=range&startDate=2024-01-01&endDate=2025-05-01')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('DATE_RANGE_TOO_LARGE');
+  });
+
+  it('rejects invalid date string format', async () => {
+    const staffToken = await loginAs('staff');
+
+    const response = await request(app)
+      .get('/api/orders/sales?period=day&date=2026/05/18')
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('INVALID_DATE');
+  });
+
+  it('requires staff or admin role', async () => {
+    const response = await request(app)
+      .get('/api/orders/sales?period=day');
+
+    expect(response.status).toBe(401);
   });
 });
