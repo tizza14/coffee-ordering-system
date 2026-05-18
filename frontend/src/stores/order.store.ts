@@ -56,6 +56,12 @@ export const useOrderStore = defineStore('orders', {
     };
   },
   actions: {
+    clearOrderLists() {
+      this.myOrders = [];
+      this.staffOrders = [];
+      this.todaySummary = null;
+      this.currentOrder = null;
+    },
     setGuestTrackingSession(session: GuestTrackingSession) {
       this.guestLookupCode = session.lookupCode;
       this.guestToken = session.guestToken;

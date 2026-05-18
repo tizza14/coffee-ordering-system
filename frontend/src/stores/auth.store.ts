@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import * as authApi from '../api/auth.api';
+import { useOrderStore } from './order.store';
 
 const AUTH_STORAGE_KEY = 'coffee-ordering-auth';
 
@@ -69,6 +70,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async login(payload: authApi.LoginPayload) {
       const result = await authApi.login(payload);
+      useOrderStore().clearOrderLists();
       this.setSession(result.user, result.accessToken);
     },
     async refreshUser() {
@@ -80,6 +82,7 @@ export const useAuthStore = defineStore('auth', {
       } catch { /* ignore */ }
     },
     logout() {
+      useOrderStore().clearOrderLists();
       this.user = null;
       this.accessToken = '';
       clearStoredSession();

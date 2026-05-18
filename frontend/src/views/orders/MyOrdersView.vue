@@ -547,6 +547,8 @@ function collapseOrders() {
 async function loadOrders() {
   isLoading.value = true;
   errorMessage.value = '';
+  orderStore.clearOrderLists();
+  openOrders.value = new Set();
   try {
     if (canViewAllOrders.value) {
       await orderStore.loadAllOrdersForStaff();

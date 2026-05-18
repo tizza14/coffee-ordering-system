@@ -240,4 +240,87 @@ test.describe('點餐紀錄', () => {
     await expect(page.getByText('GUEST01')).toBeVisible();
     await expect(page.getByText('UNPAID1')).toBeVisible();
   });
+
+  test('員工切換成一般使用者後不沿用完整訂單清單', async ({ page }) => {
+    await mockAuth(page, [staffUser, buyerUser]);
+    await mockProducts(page);
+    await page.route(`${API}/orders**`, async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname === '/api/orders' && url.searchParams.get('all') === 'true') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: [
+              {
+                id: 'staff-visible-order',
+                orderLookupCode: 'ALL001',
+                status: 'completed',
+                paymentStatus: 'paid',
+                orderType: 'purchase',
+                items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+                totalAmount: 120,
+                paidAmount: 120,
+                pointsEarned: 0,
+                pointsRedeemed: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            ],
+            pagination: { page: 1, limit: 20, total: 1 }
+          })
+        });
+        return;
+      }
+
+      if (url.pathname === '/api/orders/my') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            data: [
+              {
+                id: 'buyer-own-order',
+                orderLookupCode: 'MINE01',
+                status: 'pending',
+                paymentStatus: 'paid',
+                orderType: 'purchase',
+                items: [{ productId: 'p2', name: 'Brownie', price: 80, quantity: 1 }],
+                totalAmount: 80,
+                paidAmount: 80,
+                pointsEarned: 0,
+                pointsRedeemed: 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            ],
+            pagination: { page: 1, limit: 20, total: 1 }
+          })
+        });
+        return;
+      }
+
+      await route.fallback();
+    });
+    await page.route(`${API}/auth/me`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: buyerUser })
+      });
+    });
+
+    await loginAs(page, staffUser.email);
+    await page.goto('/orders/my');
+    await expect(page.getByText('ALL001')).toBeVisible();
+
+    await page.getByRole('button', { name: '登出' }).click();
+    await expect(page).toHaveURL('/login');
+    await loginAs(page, buyerUser.email);
+    await page.goto('/orders/my');
+
+    await expect(page.getByText('MINE01')).toBeVisible();
+    await expect(page.getByText('ALL001')).toHaveCount(0);
+    await expect(page.getByText('查看你最近的訂單狀態、付款結果與點餐明細。')).toBeVisible();
+  });
 });

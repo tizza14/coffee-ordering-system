@@ -7,9 +7,11 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
 
     await expect(page.getByRole('heading', { name: '訪客訂單追蹤' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '訪客點餐紀錄' })).toBeVisible();
     await expect(page.getByText('訂單查詢碼')).toBeVisible();
     await expect(page.getByText('手機號碼', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: '查詢訂單' })).toBeVisible();
+    await expect(page.getByText('加入會員後，可在點餐紀錄查看完整歷史訂單')).toBeVisible();
   });
 
   test('查詢碼不存在時顯示錯誤訊息', async ({ page }) => {
@@ -140,5 +142,53 @@ test.describe('訪客訂單追蹤', () => {
 
     await expect(page.getByText('ABC123')).toBeVisible();
     await expect(page.getByText('您的餐點已完成，請到櫃檯取餐。')).toBeVisible();
+  });
+
+  test('顯示已保存的訪客點餐紀錄並可直接查詢', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'coffee-ordering-guest-tracking',
+        JSON.stringify({
+          lookupCode: 'ABC123',
+          guestToken: 'guest-token',
+          phone: '0912345678'
+        })
+      );
+    });
+    await page.route(`${API}/orders/guest/ABC123**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'order-1',
+          orderLookupCode: 'ABC123',
+          status: 'completed',
+          paymentStatus: 'paid',
+          orderType: 'purchase',
+          items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+          totalAmount: 120,
+          paidAmount: 120,
+          pointsEarned: 0,
+          pointsRedeemed: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      });
+    });
+    await page.route(`${API}/notifications/guest/ABC123**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] })
+      });
+    });
+
+    await page.goto('/orders/guest');
+
+    await expect(page.getByText('訂單 ABC123').first()).toBeVisible();
+    await expect(page.getByText('手機 0912345678')).toBeVisible();
+    await page.getByRole('button', { name: '查看紀錄' }).click();
+
+    await expect(page.getByText('謝謝您，這筆訂單已完成。')).toBeVisible();
   });
 });

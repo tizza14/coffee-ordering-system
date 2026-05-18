@@ -21,6 +21,43 @@ const linePayChannelSecret =
 const defaultFrontendUrl =
   process.env.FRONTEND_URL ?? 'http://localhost:5173';
 
+function isLocalFrontendUrl(value: string) {
+  try {
+    const { hostname } = new URL(value);
+    return ['localhost', '127.0.0.1', '::1'].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function getProductionFrontendUrl() {
+  const configuredFrontendUrl = process.env.FRONTEND_URL;
+  if (configuredFrontendUrl && !isLocalFrontendUrl(configuredFrontendUrl)) {
+    return configuredFrontendUrl;
+  }
+
+  return (
+    clientOrigins.find((origin) => !isLocalFrontendUrl(origin)) ??
+    defaultFrontendUrl
+  );
+}
+
+function getLinePayRedirectUrl(envKey: 'LINE_PAY_CONFIRM_URL' | 'LINE_PAY_CANCEL_URL', path: string) {
+  const configuredUrl = process.env[envKey];
+  if (
+    configuredUrl &&
+    (process.env.NODE_ENV !== 'production' || !isLocalFrontendUrl(configuredUrl))
+  ) {
+    return configuredUrl;
+  }
+
+  const frontendUrl =
+    process.env.NODE_ENV === 'production'
+      ? getProductionFrontendUrl()
+      : defaultFrontendUrl;
+  return `${frontendUrl.replace(/\/$/, '')}${path}`;
+}
+
 const jwtSecret = process.env.JWT_SECRET ?? 'change-me';
 if (process.env.NODE_ENV === 'production' && jwtSecret === 'change-me') {
   throw new Error('JWT_SECRET must be set in production');
@@ -46,12 +83,14 @@ export const env = {
         ))),
   linePayApiBaseUrl:
     process.env.LINE_PAY_API_BASE_URL ?? 'https://sandbox-api-pay.line.me',
-  linePayConfirmUrl:
-    process.env.LINE_PAY_CONFIRM_URL ??
-    `${defaultFrontendUrl}/payments/line-pay/confirm`,
-  linePayCancelUrl:
-    process.env.LINE_PAY_CANCEL_URL ??
-    `${defaultFrontendUrl}/payments/line-pay/cancel`,
+  linePayConfirmUrl: getLinePayRedirectUrl(
+    'LINE_PAY_CONFIRM_URL',
+    '/payments/line-pay/confirm'
+  ),
+  linePayCancelUrl: getLinePayRedirectUrl(
+    'LINE_PAY_CANCEL_URL',
+    '/payments/line-pay/cancel'
+  ),
   vapidPublicKey:  process.env.VAPID_PUBLIC_KEY  ?? '',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? '',
   vapidEmail:      process.env.VAPID_EMAIL        ?? 'admin@example.com'
