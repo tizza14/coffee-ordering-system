@@ -1,6 +1,6 @@
 # Coffee Ordering System
 
-Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, and Line Pay-compatible payment flow.
+Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, and a sales report dashboard for staff and admin.
 
 ## Live Demo
 
@@ -25,12 +25,22 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 3. Go to Checkout.
 4. For guest checkout, fill name, phone, and optional email. No account is required.
 5. Submit the order and continue through the payment confirmation flow.
-6. Use Staff login to process paid pending orders in order: `pending -> accepted -> preparing -> ready -> completed`.
-7. Use Admin login to manage products and user roles.
+6. Use Staff login to process paid pending orders in order: `pending → accepted → preparing → ready → completed`.
+7. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
+8. Use Admin login to manage products and user roles.
 
 ## Local Development
 
-Backend:
+### Prerequisites
+
+Both services need a `.env` file. Copy the examples first:
+
+```powershell
+copy backend\.env.example backend\.env
+copy frontend\.env.example frontend\.env
+```
+
+### Start Backend (terminal 1)
 
 ```powershell
 cd backend
@@ -38,7 +48,9 @@ npm install
 npm run dev
 ```
 
-Frontend:
+Starts on http://localhost:3000. Look for `Backend listening on 3000`.
+
+### Start Frontend (terminal 2)
 
 ```powershell
 cd frontend
@@ -46,20 +58,30 @@ npm install
 npm run dev
 ```
 
-Default local URLs:
+Starts on http://localhost:5173.
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
-- Swagger: http://localhost:3000/api-docs
+### Default local URLs
+
+| Service  | URL                          |
+|----------|------------------------------|
+| Frontend | http://localhost:5173        |
+| Backend  | http://localhost:3000        |
+| Swagger  | http://localhost:3000/api-docs |
 
 ## Environment Variables
 
-Backend:
+### Backend (`backend/.env`)
 
 ```text
 NODE_ENV=development
 PORT=3000
+
+# Local MongoDB
 MONGODB_URI=mongodb://localhost:27017/coffee_ordering
+
+# Cloud MongoDB Atlas (uncomment and fill in to use Atlas)
+# MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/coffee_ordering?retryWrites=true&w=majority
+
 JWT_SECRET=change-me
 JWT_EXPIRES_IN=1d
 CLIENT_ORIGIN=http://localhost:5173,https://coffee-ordering-system-delta.vercel.app
@@ -71,24 +93,46 @@ LINE_PAY_CONFIRM_URL=http://localhost:5173/payments/line-pay/confirm
 LINE_PAY_CANCEL_URL=http://localhost:5173/payments/line-pay/cancel
 ```
 
-Frontend:
+### Frontend (`frontend/.env`)
 
 ```text
 VITE_API_BASE_URL=http://localhost:3000/api
 VITE_SOCKET_URL=http://localhost:3000
 ```
 
-Production frontend falls back to the Render backend URL if Vite environment variables are missing.
-
 ## Seed Demo Data
 
-Seed creates 3 demo accounts and 10 products. It clears existing users and products first.
+The seed script creates 3 demo accounts, 10 products, and **60 days of historical orders** (varying daily volume by day of week, mixed member/guest, paid/completed/cancelled statuses). This gives the sales report meaningful data to display immediately after seeding.
+
+Seed clears all existing users, products, and orders before inserting.
+
+### Seed against local MongoDB
+
+Make sure local MongoDB is running, then:
 
 ```powershell
 cd backend
-$env:MONGODB_URI="mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority"
 npm run seed
 ```
+
+### Seed against MongoDB Atlas
+
+Edit `backend/.env` to set `MONGODB_URI` to your Atlas connection string, then:
+
+```powershell
+cd backend
+npm run seed
+```
+
+Or pass the URI inline without editing the file:
+
+```powershell
+cd backend
+$env:MONGODB_URI="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/coffee_ordering?retryWrites=true&w=majority"
+npm run seed
+```
+
+**Switching between local and Atlas only requires changing `MONGODB_URI`.** Seed both environments independently to have test data in each.
 
 ## Verification
 
@@ -114,6 +158,6 @@ npm run build
 ## Deployment Notes
 
 - Render backend must allow the Vercel frontend origin through `CLIENT_ORIGIN`.
-- Render backend `MONGODB_URI` must include the database name, for example `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
-- Demo payment can use `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
+- Render backend `MONGODB_URI` must include the database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
+- Demo payment uses `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
 - Staff order status transitions are strict. The UI only shows valid next actions, and the backend rejects invalid transitions with `INVALID_STATUS_TRANSITION`.

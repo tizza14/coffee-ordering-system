@@ -83,6 +83,7 @@
 | 查看自己的訂單                 | ✅     | ✅    | ❌     | ✅     |
 | 查看所有訂單                  | ❌     | ❌    | ✅     | ✅     |
 | 更新訂單狀態                  | ❌     | ❌    | ✅     | ✅     |
+| 查看銷售報表                  | ❌     | ❌    | ✅     | ✅     |
 | 累積會員點數                  | ❌     | ✅    | ❌     | ✅     |
 | 兌換會員點數                  | ❌     | ✅    | ❌     | ✅     |
 | 管理使用者                   | ❌     | ❌    | ❌     | ✅     |
@@ -259,6 +260,54 @@ const requiredRedeemPoints = 3
 * 會員送出兌換訂單時，後端需檢查點數是否足夠。
 * 兌換訂單建立成功後立即扣除 3 點。
 * 若兌換訂單被取消，需退回已扣除點數。
+
+---
+
+## 4.6 Sales Report Module（銷售報表）
+
+### 功能
+
+* Staff / Admin 可依日、週、月、年或自訂日期區間查詢銷售數據。
+* 查詢結果包含總營收、已付款訂單數、已售品項數、各時間桶的明細，以及品項銷售排行。
+
+### 查詢區間類型
+
+| 區間類型 | 說明 | 前端控件 |
+| ------- | ---- | ------- |
+| `day`   | 指定單日 | `<input type="date">` |
+| `week`  | 包含指定日期的整週（週一～週日）| `<input type="date">` |
+| `month` | 指定年月的整個月 | `<input type="month">` |
+| `year`  | 指定整年 | `<select>` 年份 |
+| `range` | 自訂開始日期 ～ 結束日期（最多 366 天）| 兩個 `<input type="date">` + 查詢按鈕 |
+
+### 時區
+
+所有日期邊界以台北時間（UTC+8）計算。後端統一處理時區轉換，前端只傳 `YYYY-MM-DD` 格式字串。
+
+### 回應格式
+
+```json
+{
+  "period": "week",
+  "label": "2026-05-11 ~ 2026-05-17",
+  "totalRevenue": 12500,
+  "totalOrders": 45,
+  "totalItems": 87,
+  "soldItems": [
+    { "productId": "...", "name": "拿鐵咖啡", "quantity": 20, "revenue": 1700 }
+  ],
+  "breakdown": [
+    { "label": "5/11 (一)", "date": "2026-05-11", "revenue": 1800, "orders": 6, "items": 12 }
+  ]
+}
+```
+
+### 驗證規則
+
+* `range` 區間：`startDate` 不可晚於 `endDate`。
+* `range` 區間：最多 366 天，超過回傳 `400 DATE_RANGE_TOO_LARGE`。
+* `period` 必須為 `day | week | month | year | range`，否則回傳 `400 INVALID_PERIOD`。
+* 只統計 `paymentStatus = paid` 的訂單。
 
 ---
 
@@ -565,14 +614,16 @@ Request:
 ## 6.3 Order
 
 ```
-POST /api/orders
-POST /api/orders/guest
-POST /api/orders/redeem
-GET /api/orders/my
-GET /api/orders
-GET /api/orders/:id
-GET /api/orders/guest/:lookupCode
-PATCH /api/orders/:id/status
+POST   /api/orders
+POST   /api/orders/guest
+POST   /api/orders/redeem
+GET    /api/orders/my
+GET    /api/orders                              staff/admin（支援 ?date=YYYY-MM-DD 日期篩選）
+GET    /api/orders/summary/today                staff/admin（支援 ?date=YYYY-MM-DD）
+GET    /api/orders/sales                        staff/admin
+GET    /api/orders/:id
+GET    /api/orders/guest/:lookupCode
+PATCH  /api/orders/:id/status
 ```
 
 ### POST /api/orders
@@ -647,13 +698,62 @@ Response:
 
 ### GET /api/orders
 
-Staff / Admin 查詢所有訂單，可用於訂單管理頁。
+Staff / Admin 查詢所有訂單，可用於訂單管理頁。支援 `date`（台北時間 `YYYY-MM-DD`）篩選當日訂單；若未傳 `date` 且無 `status`/`paymentStatus`，預設回傳 `paymentStatus=paid & status=pending` 的待處理訂單。
 
 Query:
 
 ```http
 GET /api/orders?status=pending&paymentStatus=paid&page=1&limit=20
+GET /api/orders?date=2026-05-18
 ```
+
+### GET /api/orders/summary/today
+
+Staff / Admin 查詢今日（或指定日期）訂單彙總統計，包含營收、訂單數、品項數及各狀態計數。
+
+Query:
+
+```http
+GET /api/orders/summary/today
+GET /api/orders/summary/today?date=2026-05-10
+```
+
+Response:
+
+```json
+{
+  "date": "2026-05-18",
+  "timezone": "Asia/Taipei",
+  "totalOrders": 12,
+  "paidOrders": 10,
+  "paidRevenue": 8500,
+  "averagePaidOrderValue": 850,
+  "itemQuantity": 22,
+  "soldItems": [
+    { "productId": "...", "name": "拿鐵咖啡", "quantity": 8, "revenue": 680 }
+  ],
+  "guestOrders": 4,
+  "memberOrders": 8,
+  "statusCounts": { "pending": 2, "accepted": 1, "preparing": 1, "ready": 0, "completed": 8, "cancelled": 0 },
+  "paymentStatusCounts": { "unpaid": 1, "payment_pending": 1, "paid": 10, "payment_failed": 0, "refunded": 0 }
+}
+```
+
+### GET /api/orders/sales
+
+Staff / Admin 查詢銷售報表，依區間類型回傳各時間桶的明細與品項排行。詳見 4.6 Sales Report Module。
+
+Query:
+
+```http
+GET /api/orders/sales?period=day&date=2026-05-18
+GET /api/orders/sales?period=week&date=2026-05-18
+GET /api/orders/sales?period=month&year=2026&month=5
+GET /api/orders/sales?period=year&year=2026
+GET /api/orders/sales?period=range&startDate=2026-05-01&endDate=2026-05-18
+```
+
+Response: 詳見 4.6 Sales Report Module 回應格式。
 
 ### GET /api/orders/guest/:lookupCode
 
@@ -1179,15 +1279,16 @@ type PaymentStatus =
 
 ## Staff
 
-* 訂單管理頁
-* 訂單狀態更新 UI
+* 員工訂單頁（`/staff/orders`）— 顯示待處理已付款訂單，支援接單/製作/完成狀態轉換
+* 銷售報表頁（`/staff/sales`）— 依日/週/月/年/自訂區間查詢銷售數據，含品項銷售排行
 
 ---
 
 ## Admin
 
-* 商品管理頁
-* 使用者管理頁
+* 商品管理頁（`/admin/products`）— 商品 CRUD，支援圖片預覽與可兌換設定
+* 使用者管理頁（`/admin/users`）— 查看所有使用者並變更角色
+* Admin 同時擁有 Staff 頁面的完整存取權
 
 ---
 
@@ -1248,6 +1349,7 @@ type PaymentStatus =
 | `/payments/line-pay/confirm` | Guest / User | Line Pay redirect 頁，負責呼叫 backend confirm API |
 | `/payments/line-pay/cancel` | Guest / User | Line Pay cancel 頁，顯示重新付款或取消訂單 |
 | `/staff/orders` | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
+| `/staff/sales`  | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
 | `/admin/products` | Admin | 需登入且 role 為 `admin` |
 | `/admin/users` | Admin | 需登入且 role 為 `admin` |
 
@@ -1372,7 +1474,8 @@ frontend/
 │  │  │  ├─ OrderTrackingView.vue
 │  │  │  └─ GuestOrderTrackingView.vue
 │  │  ├─ staff/
-│  │  │  └─ StaffOrdersView.vue
+│  │  │  ├─ StaffOrdersView.vue
+│  │  │  └─ SalesReportView.vue
 │  │  └─ admin/
 │  │     ├─ AdminProductsView.vue
 │  │     └─ AdminUsersView.vue

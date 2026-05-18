@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-15 09:19 +08:00
+Last updated: 2026-05-18 +08:00
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -410,6 +410,49 @@ Verified:
 - Playwright admin product workflow: admin creates, edits, and deletes a product.
 - Playwright admin user workflow: admin views users and changes a user role.
 
+### Sales Report
+
+Status: Accepted
+
+Implemented:
+
+- Backend service additions in `order.service.ts`:
+  - Taipei timezone helpers: `TAIPEI_OFFSET_MS`, `taipeiMidnightUTC(year, month, day)`
+  - `getTaipeiDayRange` accepts optional `dateStr` parameter for historical date queries
+  - `getWeekBuckets`, `getMonthBuckets`, `getYearBuckets`, `getCustomRangeBuckets` for time bucketing
+  - `getSalesReport(period, query)` aggregates revenue/orders/items per bucket; supports `day`, `week`, `month`, `year`, `range` periods
+  - `getTodayStaffSummary` accepts optional `date` parameter
+  - `listStaffOrders` filters by date when `query.date` is provided
+- New backend API:
+  - `GET /api/orders/sales?period=day|week|month|year|range&date=&year=&month=&startDate=&endDate=` (staff/admin)
+  - `GET /api/orders/summary/today?date=` updated to accept optional date
+- Frontend `order.api.ts`:
+  - `getSalesReport(params)` API client
+  - `SalesBucket` and `SalesReport` TypeScript interfaces
+- Frontend `order.store.ts`:
+  - `loadStaffOrders(date?)` passes date filter
+  - `loadTodaySummary(date?)` passes date filter
+- New view `frontend/src/views/staff/SalesReportView.vue`:
+  - Period selector: 日報、週報、月報、年報、自訂區間
+  - Date pickers adapt to selected period (date / week-anchor / year-month / year / range)
+  - Custom range validates start ≤ end and max 366 days before querying
+  - Summary cards: total revenue, orders, and items
+  - Breakdown table shown when period produces multiple buckets
+  - Sold items table always shown
+- Route `/staff/sales` added with `roles: ['staff', 'admin']` guard
+- Navigation: renamed "員工" to "員工訂單"; added "銷售報表" link for staff/admin
+
+### UI Cursor Improvements
+
+Status: Accepted
+
+Implemented:
+
+- Added `cursor-pointer` Tailwind class to all interactive buttons in:
+  - `ProductListView.vue`: category filter buttons, 加入, 清空, +/-, 移除
+  - `CheckoutView.vue`: 前往付款
+  - `AdminProductsView.vue`: 新增/更新, 取消, 重新整理, 編輯, 刪除
+
 ## Verification Summary
 
 Backend commands run from `backend`:
@@ -551,9 +594,15 @@ Status: Accepted
 
 Implemented:
 
-- `backend/src/scripts/seed.ts`: clears all users and products, then creates 3 demo accounts and 10 products with Unsplash image URLs.
-- `npm run seed` script added to `backend/package.json`.
-- Run against Atlas: `MONGODB_URI=<atlas-uri> npm run seed`
+- `backend/src/scripts/seed.ts`: clears all users, products, and orders, then creates 3 demo accounts, 10 products with Unsplash image URLs, and **60 days of historical orders** with realistic daily volume variation.
+  - Day-of-week multipliers: higher volume on weekends, lower mid-week.
+  - 35% guest orders, 65% member orders.
+  - 1–3 items per order, 1–2 qty each.
+  - Today's orders include pending/preparing/completed statuses; historical orders are mostly completed.
+  - Uses `OrderModel.collection.insertMany()` with custom `createdAt` timestamps to populate historical data.
+- `npm run seed` script in `backend/package.json`.
+- Supports both local MongoDB and Atlas: set `MONGODB_URI` in `backend/.env` or pass inline.
+- `backend/.env.example` documents both local and Atlas URI options.
 
 Demo accounts (after seed):
 
