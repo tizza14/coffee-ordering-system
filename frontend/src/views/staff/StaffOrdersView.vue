@@ -186,6 +186,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useOrderStore } from '../../stores/order.store';
 import type { Order } from '../../api/order.api';
 import { extractApiError } from '../../api/http';
+import { useToastStore } from '../../stores/toast.store';
 
 type OrderTransitionStatus = Exclude<Order['status'], 'pending'>;
 
@@ -198,6 +199,7 @@ const nextStatusesByStatus = {
   cancelled: []
 } as const satisfies Record<Order['status'], readonly OrderTransitionStatus[]>;
 const orderStore = useOrderStore();
+const toastStore = useToastStore();
 const soldItems = computed(() => orderStore.todaySummary?.soldItems ?? []);
 const isLoading = ref(false);
 const isUpdating = ref('');
@@ -258,12 +260,12 @@ async function loadDashboard() {
 
 async function updateStatus(orderId: string, status: OrderTransitionStatus) {
   isUpdating.value = orderId;
-  errorMessage.value = '';
   try {
     await orderStore.updateStaffOrderStatus(orderId, status);
     await orderStore.loadTodaySummary();
+    toastStore.success('訂單狀態已更新');
   } catch (err) {
-    errorMessage.value = extractApiError(err) || '無法更新訂單狀態。';
+    toastStore.error(extractApiError(err) || '無法更新訂單狀態。');
   } finally {
     isUpdating.value = '';
   }

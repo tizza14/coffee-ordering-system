@@ -105,11 +105,13 @@
   <main class="min-h-screen">
     <RouterView />
   </main>
+  <ToastContainer />
 </template>
 
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
+import ToastContainer from './components/ToastContainer.vue';
 
 const authStore = useAuthStore();
 const navLinkClass =

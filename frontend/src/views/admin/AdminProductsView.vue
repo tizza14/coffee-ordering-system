@@ -73,8 +73,8 @@
         可用 3 點兌換
       </label>
 
-      <p v-if="errorMessage" class="m-0 font-bold text-red-700">
-        {{ errorMessage }}
+      <p v-if="loadError" class="m-0 font-bold text-red-700">
+        {{ loadError }}
       </p>
 
       <div class="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@
             <button
               class="min-h-9 cursor-pointer rounded-md border border-red-700 bg-white px-3 font-bold text-red-700"
               type="button"
-              @click="productStore.deleteProduct(product.id)"
+              @click="handleDelete(product.id)"
             >
               刪除
             </button>
@@ -183,10 +183,13 @@
 import { onMounted, reactive, ref } from 'vue';
 import type { Product } from '../../api/product.api';
 import { useProductAdminStore } from '../../stores/product-admin.store';
+import { useToastStore } from '../../stores/toast.store';
+import { extractApiError } from '../../api/http';
 
 const productStore = useProductAdminStore();
+const toastStore = useToastStore();
 const editingId = ref('');
-const errorMessage = ref('');
+const loadError = ref('');
 const form = reactive({
   name: '',
   price: 0,
@@ -224,30 +227,36 @@ function editProduct(product: Product) {
 }
 
 async function saveProduct() {
-  errorMessage.value = '';
-  const payload = {
-    ...form,
-    redeemPoints: 3 as const
-  };
-
+  const payload = { ...form, redeemPoints: 3 as const };
   try {
     if (editingId.value) {
       await productStore.updateProduct(editingId.value, payload);
+      toastStore.success('商品已更新');
     } else {
       await productStore.createProduct(payload);
+      toastStore.success('商品已新增');
     }
     resetForm();
-  } catch {
-    errorMessage.value = '無法儲存商品。';
+  } catch (err) {
+    toastStore.error(extractApiError(err) || '無法儲存商品。');
+  }
+}
+
+async function handleDelete(id: string) {
+  try {
+    await productStore.deleteProduct(id);
+    toastStore.success('商品已刪除');
+  } catch (err) {
+    toastStore.error(extractApiError(err) || '無法刪除商品。');
   }
 }
 
 async function loadProducts() {
-  errorMessage.value = '';
+  loadError.value = '';
   try {
     await productStore.loadProducts();
   } catch {
-    errorMessage.value = '無法載入商品。';
+    loadError.value = '無法載入商品。';
   }
 }
 
