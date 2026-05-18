@@ -41,6 +41,18 @@
         點餐紀錄
       </RouterLink>
       <RouterLink
+        v-if="authStore.user?.role === 'user'"
+        :class="navLinkClass"
+        :exact-active-class="navActiveClass"
+        to="/points"
+      >
+        我的點數
+        <span
+          v-if="(authStore.user?.points ?? 0) > 0"
+          class="ml-1 rounded-full bg-amber-900 px-1.5 py-0.5 text-xs font-bold text-white"
+        >{{ authStore.user?.points }}</span>
+      </RouterLink>
+      <RouterLink
         v-if="
           authStore.user?.role === 'staff' || authStore.user?.role === 'admin'
         "

@@ -1270,10 +1270,11 @@ type PaymentStatus =
 
 ## User
 
-* 商品列表頁
-* 購物車頁
-* 訂單列表頁
-* 訂單追蹤頁（即時更新）
+* 商品列表頁（`/products`）— 骨架屏載入、分類篩選
+* 購物車頁 / 結帳頁（`/checkout`）— 訪客/會員結帳
+* 點餐紀錄頁（`/orders/my`）— 可收合訂單卡、狀態步驟條、即時更新、推播通知開關
+* 訂單追蹤頁（`/orders/guest`）— 訪客輸入查詢碼、左右雙欄、狀態步驟條
+* 我的點數頁（`/points`）— 點數餘額、進度條、可兌換商品列表、點數紀錄歷史
 
 ---
 
@@ -1296,9 +1297,9 @@ type PaymentStatus =
 
 ### authStore
 
-* 保存登入使用者資料
+* 保存登入使用者資料（含 `points` 點數餘額）
 * 保存 access token
-* login / logout
+* login / logout / `refreshUser()`（呼叫 `/api/auth/me` 更新最新點數）
 * 驗證目前角色權限
 
 ### cartStore
@@ -1328,6 +1329,24 @@ type PaymentStatus =
 * 管理 join room
 * 統一監聽 `order_updated` 與 `notification`
 
+### toastStore
+
+* `success(msg)` / `error(msg)` / `info(msg)` 顯示浮動 Toast
+* 自動 3.5 秒後消失
+* `ToastContainer` 全域掛載於 `App.vue`
+
+### confirmStore
+
+* Promise-based `confirm(opts): Promise<boolean>`
+* `ConfirmDialog` 全域掛載於 `App.vue`，支援 ESC 關閉與 danger 模式
+
+### Web Push
+
+* `usePushNotification` composable 封裝 Service Worker 訂閱邏輯
+* `/sw.js` 處理 `push` 與 `notificationclick` 事件
+* VAPID 金鑰需設定 `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`（未設定則靜默略過）
+* 訂單狀態變為 `ready` 時後端自動推播給訂單會員
+
 ### Token 儲存策略
 
 * MVP 可使用 localStorage 儲存 access token。
@@ -1343,9 +1362,9 @@ type PaymentStatus =
 | `/checkout` | Guest / User | Guest 可直接結帳，User 使用會員資料 |
 | `/login` | Guest | 已登入者導向 `/products` |
 | `/register` | Guest | 已登入者導向 `/products` |
-| `/orders` | User | 需登入，僅顯示自己的訂單 |
-| `/orders/:id` | User | 需登入，且訂單需屬於目前 User |
-| `/guest/orders/:lookupCode` | Guest | 需搭配 phone 或 guest token 驗證 |
+| `/orders/my` | User / Staff / Admin | 需登入，僅顯示自己的訂單 |
+| `/points` | User | 需登入且 role 為 `user`，顯示點數餘額與兌換頁 |
+| `/orders/guest` | Guest / User | 需搭配 phone 或 guest token 驗證 |
 | `/payments/line-pay/confirm` | Guest / User | Line Pay redirect 頁，負責呼叫 backend confirm API |
 | `/payments/line-pay/cancel` | Guest / User | Line Pay cancel 頁，顯示重新付款或取消訂單 |
 | `/staff/orders` | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
@@ -1471,7 +1490,7 @@ frontend/
 │  │  │  └─ CheckoutView.vue
 │  │  ├─ orders/
 │  │  │  ├─ MyOrdersView.vue
-│  │  │  ├─ OrderTrackingView.vue
+│  │  │  ├─ PointsView.vue
 │  │  │  └─ GuestOrderTrackingView.vue
 │  │  ├─ staff/
 │  │  │  ├─ StaffOrdersView.vue

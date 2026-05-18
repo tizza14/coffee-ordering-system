@@ -6,6 +6,7 @@ import AdminUsersView from '../views/admin/AdminUsersView.vue';
 import RegisterView from '../views/auth/RegisterView.vue';
 import GuestOrderTrackingView from '../views/orders/GuestOrderTrackingView.vue';
 import MyOrdersView from '../views/orders/MyOrdersView.vue';
+import PointsView from '../views/orders/PointsView.vue';
 import LinePayConfirmView from '../views/payments/LinePayConfirmView.vue';
 import StaffOrdersView from '../views/staff/StaffOrdersView.vue';
 import SalesReportView from '../views/staff/SalesReportView.vue';
@@ -32,6 +33,11 @@ export const router = createRouter({
       path: '/orders/my',
       component: MyOrdersView,
       meta: { roles: ['user', 'staff', 'admin'] }
+    },
+    {
+      path: '/points',
+      component: PointsView,
+      meta: { roles: ['user'] }
     },
     {
       path: '/orders/guest',

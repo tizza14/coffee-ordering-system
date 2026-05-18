@@ -8,6 +8,7 @@ export interface AuthUser {
   name: string;
   email?: string;
   role: 'user' | 'staff' | 'admin';
+  points?: number;
 }
 
 interface StoredAuthSession {
@@ -69,6 +70,14 @@ export const useAuthStore = defineStore('auth', {
     async login(payload: authApi.LoginPayload) {
       const result = await authApi.login(payload);
       this.setSession(result.user, result.accessToken);
+    },
+    async refreshUser() {
+      if (!this.accessToken) return;
+      try {
+        const result = await authApi.getMe();
+        this.user = result.user;
+        writeStoredSession(result.user, this.accessToken);
+      } catch { /* ignore */ }
     },
     logout() {
       this.user = null;

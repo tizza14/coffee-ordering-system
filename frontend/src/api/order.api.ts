@@ -89,6 +89,14 @@ export async function createGuestOrder(payload: CreateGuestOrderPayload) {
   return response.data;
 }
 
+export async function createRedeemOrder(productId: string) {
+  const response = await http.post<Order & { remainingPoints: number }>(
+    '/orders/redeem',
+    { productId }
+  );
+  return response.data;
+}
+
 export async function getMyOrders() {
   const response = await http.get<OrderListResponse>('/orders/my');
   return response.data;

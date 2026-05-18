@@ -36,10 +36,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
 import { useOrderStore } from '../../stores/order.store';
 import { usePaymentStore } from '../../stores/payment.store';
+import { useAuthStore } from '../../stores/auth.store';
 
 const route = useRoute();
 const orderStore = useOrderStore();
 const paymentStore = usePaymentStore();
+const authStore = useAuthStore();
 const message = ref('正在確認付款...');
 const lookupCode = ref('');
 const guestToken = ref('');
@@ -78,6 +80,7 @@ onMounted(async () => {
       guestToken.value || undefined
     );
     message.value = '付款已完成。';
+    void authStore.refreshUser();
   } catch {
     message.value = '無法確認付款。';
   }

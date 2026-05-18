@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 2026-05-18 +08:00
+Last updated: 2026-05-18 +08:00 (rev 2)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -635,3 +635,50 @@ Services:
 - Frontend: http://localhost:5173 (Nginx serving Vite build)
 - Backend: http://localhost:3000
 - MongoDB: localhost:27017
+
+---
+
+## Post-Ship Enhancements (2026-05-18 rev 2)
+
+### UI/UX Improvements
+
+- **Skeleton loading**: ProductListView, StaffOrdersView, AdminProductsView, SalesReportView now show animated skeleton cards during load.
+- **Toast notifications**: `useToastStore` + `ToastContainer` component for success/error feedback on all mutating actions.
+- **Confirm dialog**: Promise-based `useConfirmStore` + `ConfirmDialog` component; wired to AdminProductsView delete action.
+- **Status stepper**: GuestOrderTrackingView and MyOrdersView now show a 5-step progress stepper (待處理→已接單→製作中→可取餐→已完成) with emerald highlight and pulse animation on `ready` state.
+- **GuestOrderTrackingView redesign**: Two-column layout (lg:grid-cols-2) — query form left, order status right. Notification history shows count badge.
+- **MyOrdersView redesign**: Collapsible order cards with summary row when collapsed, stepper + item detail when expanded. Socket.io joinOrderRoom on expand. Points earned badge and order type label.
+
+### Web Push Notifications
+
+- VAPID-based Web Push integrated (backend: `web-push` library; frontend: Service Worker at `/sw.js`).
+- `PushSubscriptionModel` stores per-user subscriptions; auto-cleans expired endpoints (410/404).
+- Push triggered when order status transitions to `ready` via `notifyStatusUpdate`.
+- `PushNotificationToggle` component in MyOrdersView header; requests permission and subscribes/unsubscribes.
+- Gracefully no-ops if `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` not set.
+
+New env vars (backend): `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_EMAIL`  
+New env vars (frontend): `VITE_VAPID_PUBLIC_KEY`
+
+Generate keys: `cd backend && npx web-push generate-vapid-keys`
+
+### Points System UI (`/points`)
+
+- `GET /api/auth/me` now queries DB and returns live `points` field (was returning JWT payload only).
+- `authStore.refreshUser()` action refreshes user.points from `/me`; called after payment confirm and after redeem.
+- `PointsView` at `/points` (role: user only):
+  - Balance card with progress bar toward next redeem threshold.
+  - Redeemable product list loaded from `/api/products?available=true` filtered by `isRedeemable`.
+  - Confirm-dialog-gated redeem flow; calls `POST /api/orders/redeem`, then `refreshUser()` + `loadMyOrders()`.
+  - Points history derived from `myOrders` (earned/redeemed).
+- Nav link "我的點數" with live badge showing current points (visible to `role: user` only).
+- `createRedeemOrder(productId)` added to `order.api.ts`.
+- `LinePayConfirmView` calls `authStore.refreshUser()` after successful payment.
+
+### AWS Deployment Infrastructure
+
+- `deploy/ec2-userdata.sh`: EC2 bootstrap script (Docker install + ECR pull + container run).
+- `.github/workflows/deploy.yml`: CD pipeline — CI check → ECR image push → EC2 SSH deploy → S3 sync → CloudFront invalidation.
+- `deploy/SETUP.md`: Step-by-step AWS resource setup guide (EC2 t2.micro + S3 + CloudFront + ECR + Atlas M0).
+- `backend/src/config/env.ts`: Removed hardcoded Vercel URL; use `FRONTEND_URL` env var.
+- `ci.yml`: Added `workflow_call` trigger so deploy.yml can reuse CI jobs.
