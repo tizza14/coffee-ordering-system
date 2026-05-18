@@ -99,16 +99,16 @@ export const useOrderStore = defineStore('orders', {
       const result = await orderApi.getMyOrders();
       this.myOrders = result.data;
     },
-    async loadStaffOrders() {
-      const result = await orderApi.getStaffOrders();
+    async loadStaffOrders(date?: string) {
+      const result = await orderApi.getStaffOrders(date ? { date } : undefined);
       this.staffOrders = result.data;
     },
-    async loadTodaySummary() {
-      const summary = await orderApi.getTodayOrderSummary();
+    async loadTodaySummary(date?: string) {
+      const summary = await orderApi.getTodayOrderSummary(date);
       let soldItems = summary.soldItems ?? [];
 
       if (soldItems.length === 0 && summary.itemQuantity > 0) {
-        const allPaid = await orderApi.getStaffOrders({ paymentStatus: 'paid', limit: 200 });
+        const allPaid = await orderApi.getStaffOrders({ paymentStatus: 'paid', date, limit: 200 });
         const map = new Map<string, { productId: string; name: string; quantity: number; revenue: number }>();
         for (const order of allPaid.data) {
           if (order.paymentStatus !== 'paid') continue;

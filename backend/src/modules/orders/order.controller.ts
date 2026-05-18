@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { ApiError } from '../../utils/ApiError';
 import * as orderService from './order.service';
 
 function getParam(value: string | string[]) {
@@ -53,16 +54,50 @@ export const getOrderById = asyncHandler(
 );
 
 export const listStaffOrders = asyncHandler(
-  async (_req: Request, res: Response) => {
-    const orders = await orderService.listStaffOrders();
+  async (req: Request, res: Response) => {
+    const orders = await orderService.listStaffOrders({
+      status: getQueryString(req.query.status),
+      paymentStatus: getQueryString(req.query.paymentStatus),
+      date: getQueryString(req.query.date),
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 20
+    });
     res.json(orders);
   }
 );
 
 export const getTodayStaffSummary = asyncHandler(
-  async (_req: Request, res: Response) => {
-    const summary = await orderService.getTodayStaffSummary();
+  async (req: Request, res: Response) => {
+    const summary = await orderService.getTodayStaffSummary(
+      getQueryString(req.query.date)
+    );
     res.json(summary);
+  }
+);
+
+export const getSalesReport = asyncHandler(
+  async (req: Request, res: Response) => {
+    const period = getQueryString(req.query.period) as
+      | 'day'
+      | 'week'
+      | 'month'
+      | 'year'
+      | undefined;
+    if (!period || !['day', 'week', 'month', 'year'].includes(period)) {
+      throw new ApiError(
+        400,
+        'INVALID_PERIOD',
+        'period must be day, week, month, or year'
+      );
+    }
+    const yearStr = getQueryString(req.query.year);
+    const monthStr = getQueryString(req.query.month);
+    const report = await orderService.getSalesReport(period, {
+      date: getQueryString(req.query.date),
+      year: yearStr ? Number(yearStr) : undefined,
+      month: monthStr ? Number(monthStr) : undefined
+    });
+    res.json(report);
   }
 );
 

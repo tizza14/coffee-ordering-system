@@ -171,6 +171,13 @@ orderRoutes.get(
   orderController.getTodayStaffSummary
 );
 
+orderRoutes.get(
+  '/sales',
+  authenticate,
+  authorize(['staff', 'admin']),
+  orderController.getSalesReport
+);
+
 /**
  * @openapi
  * /orders/my:

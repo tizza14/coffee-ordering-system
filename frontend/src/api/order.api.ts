@@ -94,13 +94,52 @@ export async function getMyOrders() {
   return response.data;
 }
 
-export async function getStaffOrders(params?: { paymentStatus?: string; limit?: number }) {
+export async function getStaffOrders(params?: {
+  paymentStatus?: string;
+  date?: string;
+  limit?: number;
+}) {
   const response = await http.get<OrderListResponse>('/orders', { params });
   return response.data;
 }
 
-export async function getTodayOrderSummary() {
-  const response = await http.get<TodayOrderSummary>('/orders/summary/today');
+export async function getTodayOrderSummary(date?: string) {
+  const response = await http.get<TodayOrderSummary>('/orders/summary/today', {
+    params: date ? { date } : undefined
+  });
+  return response.data;
+}
+
+export interface SalesBucket {
+  label: string;
+  date: string;
+  revenue: number;
+  orders: number;
+  items: number;
+}
+
+export interface SalesReport {
+  period: 'day' | 'week' | 'month' | 'year';
+  label: string;
+  totalRevenue: number;
+  totalOrders: number;
+  totalItems: number;
+  soldItems: Array<{
+    productId: string;
+    name: string;
+    quantity: number;
+    revenue: number;
+  }>;
+  breakdown: SalesBucket[];
+}
+
+export async function getSalesReport(params: {
+  period: 'day' | 'week' | 'month' | 'year';
+  date?: string;
+  year?: number;
+  month?: number;
+}) {
+  const response = await http.get<SalesReport>('/orders/sales', { params });
   return response.data;
 }
 

@@ -47,17 +47,98 @@ interface SoldItemSummary {
   revenue: number;
 }
 
-function getTaipeiDayRange(now = new Date()) {
-  const taipeiOffsetMs = 8 * 60 * 60 * 1000;
-  const taipeiNow = new Date(now.getTime() + taipeiOffsetMs);
-  const startTaipei = Date.UTC(
-    taipeiNow.getUTCFullYear(),
-    taipeiNow.getUTCMonth(),
-    taipeiNow.getUTCDate()
-  );
-  const start = new Date(startTaipei - taipeiOffsetMs);
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-  return { start, end };
+const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function taipeiMidnightUTC(year: number, month: number, day: number): Date {
+  // month is 1-indexed; Date.UTC uses 0-indexed but handles overflow correctly
+  return new Date(Date.UTC(year, month - 1, day) - TAIPEI_OFFSET_MS);
+}
+
+function getTaipeiDayRange(dateStrOrNow?: string | Date, _now = new Date()) {
+  if (dateStrOrNow instanceof Date || dateStrOrNow === undefined) {
+    const now = dateStrOrNow ?? _now;
+    const taipeiNow = new Date(now.getTime() + TAIPEI_OFFSET_MS);
+    const start = taipeiMidnightUTC(
+      taipeiNow.getUTCFullYear(),
+      taipeiNow.getUTCMonth() + 1,
+      taipeiNow.getUTCDate()
+    );
+    return { start, end: new Date(start.getTime() + 86400000) };
+  }
+  const [y, m, d] = dateStrOrNow.split('-').map(Number);
+  const start = taipeiMidnightUTC(y, m, d);
+  return { start, end: new Date(start.getTime() + 86400000) };
+}
+
+interface TimeBucket {
+  start: Date;
+  end: Date;
+  date: string;
+  label: string;
+}
+
+function getWeekBuckets(dateStr: string): TimeBucket[] {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dayStart = taipeiMidnightUTC(y, m, d);
+  const dow = new Date(dayStart.getTime() + TAIPEI_OFFSET_MS).getUTCDay();
+  const daysFromMon = dow === 0 ? 6 : dow - 1;
+  const mondayUTC = new Date(dayStart.getTime() - daysFromMon * 86400000);
+  const dayLabels = ['(一)', '(二)', '(三)', '(四)', '(五)', '(六)', '(日)'];
+  return Array.from({ length: 7 }, (_, i) => {
+    const start = new Date(mondayUTC.getTime() + i * 86400000);
+    const end = new Date(start.getTime() + 86400000);
+    const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
+    const date = t.toISOString().slice(0, 10);
+    return { start, end, date, label: `${t.getUTCMonth() + 1}/${t.getUTCDate()} ${dayLabels[i]}` };
+  });
+}
+
+function getMonthBuckets(year: number, month: number): TimeBucket[] {
+  const firstDay = taipeiMidnightUTC(year, month, 1);
+  const nextMonthFirst = taipeiMidnightUTC(year, month + 1, 1);
+  const daysInMonth = Math.round((nextMonthFirst.getTime() - firstDay.getTime()) / 86400000);
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const start = new Date(firstDay.getTime() + i * 86400000);
+    const end = new Date(start.getTime() + 86400000);
+    const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
+    return {
+      start,
+      end,
+      date: t.toISOString().slice(0, 10),
+      label: `${t.getUTCDate()}日`
+    };
+  });
+}
+
+function getYearBuckets(year: number): TimeBucket[] {
+  return Array.from({ length: 12 }, (_, i) => {
+    const start = taipeiMidnightUTC(year, i + 1, 1);
+    const end = taipeiMidnightUTC(year, i + 2, 1);
+    return {
+      start,
+      end,
+      date: `${year}-${String(i + 1).padStart(2, '0')}`,
+      label: `${i + 1}月`
+    };
+  });
+}
+
+export interface SalesBucket {
+  label: string;
+  date: string;
+  revenue: number;
+  orders: number;
+  items: number;
+}
+
+export interface SalesReport {
+  period: 'day' | 'week' | 'month' | 'year';
+  label: string;
+  totalRevenue: number;
+  totalOrders: number;
+  totalItems: number;
+  soldItems: Array<{ productId: string; name: string; quantity: number; revenue: number }>;
+  breakdown: SalesBucket[];
 }
 
 function toOrderResponse(order: OrderDocument) {
@@ -220,6 +301,7 @@ export async function getGuestOrder(
 export interface StaffOrdersQuery {
   status?: string;
   paymentStatus?: string;
+  date?: string;
   page: number;
   limit: number;
 }
@@ -228,9 +310,13 @@ export async function listStaffOrders(
   query: StaffOrdersQuery = { page: 1, limit: 20 }
 ) {
   const filter: Record<string, unknown> = {};
+  if (query.date) {
+    const { start, end } = getTaipeiDayRange(query.date);
+    filter.createdAt = { $gte: start, $lt: end };
+  }
   if (query.status) {
     filter.status = query.status;
-  } else if (!query.paymentStatus) {
+  } else if (!query.paymentStatus && !query.date) {
     filter.paymentStatus = 'paid';
     filter.status = 'pending';
   }
@@ -251,8 +337,9 @@ export async function listStaffOrders(
   };
 }
 
-export async function getTodayStaffSummary(now = new Date()) {
-  const { start, end } = getTaipeiDayRange(now);
+export async function getTodayStaffSummary(date?: string, now = new Date()) {
+  const { start, end } = date ? getTaipeiDayRange(date) : getTaipeiDayRange(now);
+  const taipeiDate = date ?? new Date(now.getTime() + TAIPEI_OFFSET_MS).toISOString().slice(0, 10);
   const orders = await OrderModel.find({
     createdAt: { $gte: start, $lt: end }
   });
@@ -311,7 +398,7 @@ export async function getTodayStaffSummary(now = new Date()) {
   }
 
   return {
-    date: start.toISOString().slice(0, 10),
+    date: taipeiDate,
     timezone: 'Asia/Taipei',
     totalOrders: orders.length,
     paidOrders,
@@ -466,4 +553,84 @@ async function notifyStatusUpdate(order: OrderDocument) {
     status: order.status,
     message
   });
+}
+
+export async function getSalesReport(
+  period: 'day' | 'week' | 'month' | 'year',
+  query: { date?: string; year?: number; month?: number }
+): Promise<SalesReport> {
+  const now = new Date();
+  const taipeiNow = new Date(now.getTime() + TAIPEI_OFFSET_MS);
+  const todayStr = taipeiNow.toISOString().slice(0, 10);
+
+  let buckets: TimeBucket[];
+  let reportLabel: string;
+
+  if (period === 'day') {
+    const date = query.date ?? todayStr;
+    const { start, end } = getTaipeiDayRange(date);
+    buckets = [{ start, end, date, label: date }];
+    reportLabel = date;
+  } else if (period === 'week') {
+    const date = query.date ?? todayStr;
+    buckets = getWeekBuckets(date);
+    reportLabel = `${buckets[0].date} ~ ${buckets[6].date}`;
+  } else if (period === 'month') {
+    const year = query.year ?? taipeiNow.getUTCFullYear();
+    const month = query.month ?? (taipeiNow.getUTCMonth() + 1);
+    buckets = getMonthBuckets(year, month);
+    reportLabel = `${year}年${month}月`;
+  } else {
+    const year = query.year ?? taipeiNow.getUTCFullYear();
+    buckets = getYearBuckets(year);
+    reportLabel = `${year}年`;
+  }
+
+  const rangeStart = buckets[0].start;
+  const rangeEnd = buckets[buckets.length - 1].end;
+
+  const orders = await OrderModel.find({
+    paymentStatus: 'paid',
+    createdAt: { $gte: rangeStart, $lt: rangeEnd }
+  });
+
+  const breakdown: SalesBucket[] = buckets.map((bucket) => {
+    const bucketOrders = orders.filter(
+      (o) => o.createdAt >= bucket.start && o.createdAt < bucket.end
+    );
+    const revenue = bucketOrders.reduce(
+      (sum, o) => sum + (o.paidAmount || o.totalAmount),
+      0
+    );
+    const items = bucketOrders.reduce(
+      (sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0),
+      0
+    );
+    return { label: bucket.label, date: bucket.date, revenue, orders: bucketOrders.length, items };
+  });
+
+  const soldItemMap = new Map<string, SoldItemSummary>();
+  for (const order of orders) {
+    for (const item of order.items) {
+      const productId = String(item.productId);
+      const cur = soldItemMap.get(productId) ?? { productId, name: item.name, quantity: 0, revenue: 0 };
+      cur.quantity += item.quantity;
+      cur.revenue += item.price * item.quantity;
+      soldItemMap.set(productId, cur);
+    }
+  }
+
+  const totalRevenue = breakdown.reduce((sum, b) => sum + b.revenue, 0);
+  const totalOrders = breakdown.reduce((sum, b) => sum + b.orders, 0);
+  const totalItems = breakdown.reduce((sum, b) => sum + b.items, 0);
+
+  return {
+    period,
+    label: reportLabel,
+    totalRevenue,
+    totalOrders,
+    totalItems,
+    soldItems: Array.from(soldItemMap.values()).sort((a, b) => b.quantity - a.quantity),
+    breakdown
+  };
 }

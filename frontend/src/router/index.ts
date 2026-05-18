@@ -8,6 +8,7 @@ import GuestOrderTrackingView from '../views/orders/GuestOrderTrackingView.vue';
 import MyOrdersView from '../views/orders/MyOrdersView.vue';
 import LinePayConfirmView from '../views/payments/LinePayConfirmView.vue';
 import StaffOrdersView from '../views/staff/StaffOrdersView.vue';
+import SalesReportView from '../views/staff/SalesReportView.vue';
 import CheckoutView from '../views/shop/CheckoutView.vue';
 import ProductListView from '../views/shop/ProductListView.vue';
 import { canAccessRoute, getCurrentRouteRole, type RouteRole } from './guards';
@@ -39,6 +40,11 @@ export const router = createRouter({
     {
       path: '/staff/orders',
       component: StaffOrdersView,
+      meta: { roles: ['staff', 'admin'] }
+    },
+    {
+      path: '/staff/sales',
+      component: SalesReportView,
       meta: { roles: ['staff', 'admin'] }
     },
     {

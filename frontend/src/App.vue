@@ -48,7 +48,17 @@
         :exact-active-class="navActiveClass"
         to="/staff/orders"
       >
-        員工
+        員工訂單
+      </RouterLink>
+      <RouterLink
+        v-if="
+          authStore.user?.role === 'staff' || authStore.user?.role === 'admin'
+        "
+        :class="navLinkClass"
+        :exact-active-class="navActiveClass"
+        to="/staff/sales"
+      >
+        銷售報表
       </RouterLink>
       <RouterLink
         v-if="authStore.user?.role === 'admin'"
