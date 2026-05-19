@@ -8,6 +8,7 @@ interface MockUser {
   email: string;
   password: string;
   role: 'user' | 'staff' | 'admin';
+  points?: number;
 }
 
 const defaultUsers: MockUser[] = [
@@ -70,7 +71,8 @@ export async function mockAuth(page: Page, users: MockUser[] = defaultUsers) {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role
+            role: user.role,
+            points: user.points ?? 0
           },
           accessToken: 'mock-token'
         })

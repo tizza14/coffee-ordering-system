@@ -23,6 +23,41 @@
       </div>
     </article>
 
+    <section
+      v-if="lastRedeemOrder"
+      class="grid gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
+    >
+      <div>
+        <p class="m-0 text-sm font-extrabold text-emerald-700">兌換成功</p>
+        <h2 class="m-0 mt-1 text-xl font-bold text-amber-950">
+          已建立兌換訂單 {{ lastRedeemOrder.orderLookupCode || lastRedeemOrder.id.slice(-6) }}
+        </h2>
+      </div>
+      <div class="grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
+        <p class="m-0 rounded-md bg-white p-3">
+          <span class="block text-xs font-bold text-stone-500">點數去向</span>
+          <strong class="text-red-600">已扣 {{ lastRedeemOrder.pointsRedeemed }} 點</strong>
+        </p>
+        <p class="m-0 rounded-md bg-white p-3">
+          <span class="block text-xs font-bold text-stone-500">剩餘點數</span>
+          <strong class="text-amber-950">{{ points }} 點</strong>
+        </p>
+        <p class="m-0 rounded-md bg-white p-3">
+          <span class="block text-xs font-bold text-stone-500">後續流程</span>
+          <strong class="text-amber-950">等待店員接單製作</strong>
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <RouterLink
+          class="inline-flex min-h-10 items-center rounded-md bg-amber-900 px-4 text-sm font-bold text-white no-underline"
+          to="/orders/my"
+        >
+          查看兌換訂單狀態
+        </RouterLink>
+        <span class="text-sm text-stone-600">兌換品項會出現在點餐紀錄，可追蹤待處理、製作中與可取餐狀態。</span>
+      </div>
+    </section>
+
     <!-- 兌換商品 -->
     <section>
       <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">可兌換商品</h2>
@@ -65,6 +100,12 @@
               {{ isRedeeming === product.id ? '兌換中...' : '立即兌換' }}
             </button>
           </div>
+          <p
+            v-if="points < REDEEM_COST"
+            class="m-0 text-xs font-semibold text-stone-500"
+          >
+            還差 {{ REDEEM_COST - points }} 點可兌換。
+          </p>
         </li>
       </ul>
     </section>
@@ -96,6 +137,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOrderStore } from '../../stores/order.store';
 import { useToastStore } from '../../stores/toast.store';
@@ -115,6 +157,7 @@ const points = computed(() => authStore.user?.points ?? 0);
 const isLoadingProducts = ref(false);
 const redeemableProducts = ref<productApi.Product[]>([]);
 const isRedeeming = ref('');
+const lastRedeemOrder = ref<orderApi.Order | null>(null);
 
 interface PointRecord {
   id: string;
@@ -157,7 +200,8 @@ async function redeem(productId: string, productName: string) {
 
   isRedeeming.value = productId;
   try {
-    await orderApi.createRedeemOrder(productId);
+    const redeemOrder = await orderApi.createRedeemOrder(productId);
+    lastRedeemOrder.value = redeemOrder;
     await authStore.refreshUser();
     await orderStore.loadMyOrders();
     toastStore.success(`兌換成功！剩餘 ${authStore.user?.points ?? 0} 點`);

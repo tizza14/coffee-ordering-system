@@ -248,6 +248,12 @@
                 >
                   點數兌換
                 </span>
+                <span
+                  v-if="order.pointsRedeemed > 0"
+                  class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700"
+                >
+                  消耗 {{ order.pointsRedeemed }} 點
+                </span>
               </div>
               <strong class="text-amber-950">NT$ {{ order.totalAmount }}</strong>
             </div>
