@@ -5,27 +5,24 @@
         <p class="m-0 text-sm font-extrabold uppercase text-amber-700">Order Tracking</p>
         <h1 class="m-0 text-2xl font-bold text-amber-950 sm:text-3xl">訂單追蹤</h1>
         <p class="m-0 max-w-3xl text-stone-600">
-          訪客可用查詢碼與手機查詢；會員登入後可直接查看自己的近期訂單，並快速帶入查詢。
+          訪客可用查詢碼與手機查詢；會員登入後可在同一區塊直接查看自己的近期訂單。
         </p>
       </header>
 
       <div class="grid gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <div class="grid content-start gap-4">
-          <form
-            class="grid gap-4 rounded-lg border border-stone-300 bg-white p-5"
-            @submit.prevent="load"
-          >
+          <section class="grid gap-5 rounded-lg border border-stone-300 bg-white p-5">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <h2 class="m-0 text-lg font-bold text-amber-950">快速查詢</h2>
-                <p class="m-0 text-sm text-stone-600">輸入查詢碼與手機號碼，核對後顯示訂單狀態。</p>
+                <h2 class="m-0 text-lg font-bold text-amber-950">查詢訂單</h2>
+                <p class="m-0 text-sm text-stone-600">手動查詢，或從會員近期訂單直接查看狀態。</p>
               </div>
               <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
                 訪客 / 會員
               </span>
             </div>
 
-            <div class="grid gap-3">
+            <form class="grid gap-3" @submit.prevent="load">
               <label class="grid gap-1.5 font-semibold">
                 訂單查詢碼
                 <input
@@ -45,80 +42,79 @@
                   :required="!normalizedGuestToken"
                 />
               </label>
-            </div>
+              <div class="rounded-md border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
+                <p class="m-0 font-bold text-amber-950">查詢會顯示</p>
+                <p class="m-0 mt-1">目前狀態、取餐進度、餐點明細與通知紀錄。手機號碼輸入錯誤時會顯示無此訂單。</p>
+              </div>
 
-            <div class="rounded-md border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-              <p class="m-0 font-bold text-amber-950">查詢會顯示</p>
-              <p class="m-0 mt-1">目前狀態、取餐進度、餐點明細與通知紀錄。手機號碼輸入錯誤時會顯示無此訂單。</p>
-            </div>
-
-            <button
-              v-if="shouldShowLookupButton"
-              class="h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
-              type="submit"
-              :disabled="isLoading"
-            >
-              {{ lookupButtonLabel }}
-            </button>
-            <p
-              v-else
-              class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
-            >
-              目前已顯示這筆訂單狀態；修改查詢碼或手機號碼即可查詢其他訂單。
-            </p>
-            <p v-if="errorMessage" class="m-0 rounded-md border border-red-200 bg-red-50 p-3 font-semibold text-red-700">
-              {{ errorMessage }}
-            </p>
-          </form>
-
-          <section
-            v-if="authStore.user?.role === 'user'"
-            class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
-          >
-            <div>
-              <h2 class="m-0 text-lg font-bold text-amber-950">我的近期訂單</h2>
-              <p class="m-0 text-sm text-stone-600">直接查看會員訂單查詢碼、手機號碼與目前狀態。</p>
-            </div>
-            <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
-              載入會員訂單中...
-            </p>
-            <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
-              目前沒有會員訂單。
-            </p>
-            <ul v-else class="grid list-none gap-2 p-0">
-              <li
-                v-for="order in memberTrackingOrders"
-                :key="order.id"
-                class="grid gap-3 rounded-md border border-stone-200 p-3"
+              <button
+                v-if="shouldShowLookupButton"
+                class="h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
+                type="submit"
+                :disabled="isLoading"
               >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="grid gap-1">
-                    <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
-                    <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
+                {{ lookupButtonLabel }}
+              </button>
+              <p
+                v-else
+                class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
+              >
+                目前已顯示這筆訂單狀態；修改查詢碼或手機號碼即可查詢其他訂單。
+              </p>
+              <p v-if="errorMessage" class="m-0 rounded-md border border-red-200 bg-red-50 p-3 font-semibold text-red-700">
+                {{ errorMessage }}
+              </p>
+            </form>
+
+            <div
+              v-if="authStore.user?.role === 'user'"
+              class="grid gap-3 border-t border-stone-200 pt-4"
+            >
+              <div>
+                <h3 class="m-0 text-base font-bold text-amber-950">我的近期訂單</h3>
+                <p class="m-0 text-sm text-stone-600">不用輸入查詢碼，直接選一筆查看。</p>
+              </div>
+              <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
+                載入會員訂單中...
+              </p>
+              <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
+                目前沒有會員訂單。
+              </p>
+              <ul v-else class="grid list-none gap-2 p-0">
+                <li
+                  v-for="order in memberTrackingOrders"
+                  :key="order.id"
+                  class="grid gap-3 rounded-md border border-stone-200 p-3"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="grid gap-1">
+                      <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
+                      <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
+                    </div>
+                    <span :class="statusBadgeClass(order.status)">
+                      {{ statusLabel(order.status) }}
+                    </span>
                   </div>
-                  <span :class="statusBadgeClass(order.status)">
-                    {{ statusLabel(order.status) }}
-                  </span>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    class="min-h-9 rounded-md bg-amber-900 px-3 text-sm font-bold text-white"
-                    type="button"
-                    @click="selectMemberOrder(order)"
-                  >
-                    查看狀態
-                  </button>
-                  <button
-                    class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
-                    type="button"
-                    :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
-                    @click="fillMemberOrder(order)"
-                  >
-                    帶入查詢
-                  </button>
-                </div>
-              </li>
-            </ul>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      class="min-h-9 rounded-md bg-amber-900 px-3 text-sm font-bold text-white"
+                      type="button"
+                      @click="selectMemberOrder(order)"
+                    >
+                      查看這筆訂單狀態
+                    </button>
+                    <button
+                      class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
+                      type="button"
+                      :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
+                      @click="fillMemberOrder(order)"
+                    >
+                      複製到查詢欄
+                    </button>
+                  </div>
+                </li>
+              </ul>
+            </div>
           </section>
         </div>
 

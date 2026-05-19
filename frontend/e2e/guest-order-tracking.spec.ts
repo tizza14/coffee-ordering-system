@@ -15,7 +15,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.goto('/orders/guest');
 
     await expect(page.getByRole('heading', { name: '訂單追蹤' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '快速查詢' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '查詢訂單' })).toBeVisible();
     await expect(page.getByText('查詢會顯示')).toBeVisible();
     await expect(page.getByText('訂單查詢碼')).toBeVisible();
     await expect(page.getByText('手機號碼', { exact: true })).toBeVisible();
@@ -70,7 +70,7 @@ test.describe('訪客訂單追蹤', () => {
     await expect(page.getByText('訂單 MEM001')).toBeVisible();
     await expect(page.getByText('手機號碼：0912345678')).toBeVisible();
     await expect(page.getByText('可取餐')).toBeVisible();
-    await page.getByRole('button', { name: '帶入查詢' }).click();
+    await page.getByRole('button', { name: '複製到查詢欄' }).click();
     await expect(page.getByRole('textbox', { name: '訂單查詢碼' })).toHaveValue('MEM001');
     await expect(page.getByRole('textbox', { name: '手機號碼' })).toHaveValue('0912345678');
   });
