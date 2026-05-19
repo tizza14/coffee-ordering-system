@@ -93,5 +93,6 @@ export const env = {
   ),
   vapidPublicKey:  process.env.VAPID_PUBLIC_KEY  ?? '',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? '',
-  vapidEmail:      process.env.VAPID_EMAIL        ?? 'admin@example.com'
+  vapidEmail:      process.env.VAPID_EMAIL        ?? 'admin@example.com',
+  refreshTokenExpiresDays: Number(process.env.REFRESH_TOKEN_EXPIRES_DAYS ?? 30)
 };

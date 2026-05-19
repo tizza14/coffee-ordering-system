@@ -530,6 +530,7 @@ export async function updateOrderStatus(
     }
 
     order.status = nextStatus;
+    order.statusHistory.push({ status: nextStatus, changedBy: new mongoose.Types.ObjectId(actor.id), changedAt: new Date() });
     await order.save();
     await returnRedeemedPointsIfCancelled(order);
 
@@ -555,6 +556,7 @@ export async function updateOrderStatus(
   }
 
   order.status = nextStatus;
+  order.statusHistory.push({ status: nextStatus, changedBy: new mongoose.Types.ObjectId(actor.id), changedAt: new Date() });
   await order.save();
   await returnRedeemedPointsIfCancelled(order);
 

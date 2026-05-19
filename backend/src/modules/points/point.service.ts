@@ -1,4 +1,5 @@
 import { UserModel } from '../users/user.model';
+import { OrderModel } from '../orders/order.model';
 import { ApiError } from '../../utils/ApiError';
 
 export const REDEEM_POINTS_COST = 3;
@@ -53,4 +54,32 @@ export async function deductPointsForRedemption(userId: string) {
 export async function returnPoints(userId: string, points: number) {
   if (points <= 0) return;
   await UserModel.findByIdAndUpdate(userId, { $inc: { points } });
+}
+
+export interface PointHistoryEntry {
+  orderId: string;
+  orderLookupCode: string | null;
+  orderType: 'purchase' | 'redeem';
+  delta: number;
+  createdAt: string;
+}
+
+/**
+ * Return point transaction history for a user derived from orders.
+ */
+export async function getPointHistory(userId: string): Promise<PointHistoryEntry[]> {
+  const orders = await OrderModel.find({
+    userId,
+    $or: [{ pointsEarned: { $gt: 0 } }, { pointsRedeemed: { $gt: 0 } }]
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  return orders.map((o) => ({
+    orderId: String(o._id),
+    orderLookupCode: o.orderLookupCode ?? null,
+    orderType: o.orderType as 'purchase' | 'redeem',
+    delta: o.orderType === 'redeem' ? -(o.pointsRedeemed ?? 0) : (o.pointsEarned ?? 0),
+    createdAt: (o.createdAt as Date).toISOString()
+  }));
 }

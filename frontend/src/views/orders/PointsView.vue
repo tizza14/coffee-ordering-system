@@ -116,11 +116,17 @@
       <ul class="grid list-none gap-2 p-0">
         <li
           v-for="record in pointHistory"
-          :key="record.id"
+          :key="record.orderId"
           class="flex items-center justify-between gap-3 rounded-lg border border-stone-200 bg-white p-3"
         >
           <div class="grid gap-0.5">
-            <span class="text-sm font-bold text-amber-950">{{ record.label }}</span>
+            <span class="text-sm font-bold text-amber-950">
+              {{
+                record.orderType === 'redeem'
+                  ? `兌換訂單 ${record.orderLookupCode ?? '兌換訂單'}`
+                  : `訂單 ${record.orderLookupCode ?? ''} 獲得點數`
+              }}
+            </span>
             <span class="text-xs text-stone-400">{{ formatDate(record.createdAt) }}</span>
           </div>
           <span
@@ -139,17 +145,16 @@
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
-import { useOrderStore } from '../../stores/order.store';
 import { useToastStore } from '../../stores/toast.store';
 import { useConfirmStore } from '../../stores/confirm.store';
 import { extractApiError } from '../../api/http';
 import * as productApi from '../../api/product.api';
 import * as orderApi from '../../api/order.api';
+import * as pointsApi from '../../api/points.api';
 
 const REDEEM_COST = 3;
 
 const authStore = useAuthStore();
-const orderStore = useOrderStore();
 const toastStore = useToastStore();
 const confirmStore = useConfirmStore();
 
@@ -158,27 +163,7 @@ const isLoadingProducts = ref(false);
 const redeemableProducts = ref<productApi.Product[]>([]);
 const isRedeeming = ref('');
 const lastRedeemOrder = ref<orderApi.Order | null>(null);
-
-interface PointRecord {
-  id: string;
-  label: string;
-  delta: number;
-  createdAt: string;
-}
-
-const pointHistory = computed<PointRecord[]>(() => {
-  return orderStore.myOrders
-    .filter((o) => o.pointsEarned > 0 || o.pointsRedeemed > 0)
-    .map((o) => ({
-      id: o.id,
-      label:
-        o.orderType === 'redeem'
-          ? `兌換訂單 ${displayOrderCode(o)}`
-          : `訂單 ${displayOrderCode(o)} 獲得點數`,
-      delta: o.orderType === 'redeem' ? -o.pointsRedeemed : o.pointsEarned,
-      createdAt: o.createdAt
-    }));
-});
+const pointHistory = ref<pointsApi.PointHistoryEntry[]>([]);
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('zh-TW', {
@@ -195,6 +180,10 @@ function displayOrderCode(order: orderApi.Order) {
   return '未產生查詢碼';
 }
 
+async function loadHistory() {
+  pointHistory.value = await pointsApi.getPointHistory();
+}
+
 async function redeem(productId: string, productName: string) {
   const confirmed = await confirmStore.confirm({
     title: '確認兌換',
@@ -209,7 +198,7 @@ async function redeem(productId: string, productName: string) {
     const redeemOrder = await orderApi.createRedeemOrder(productId);
     lastRedeemOrder.value = redeemOrder;
     await authStore.refreshUser();
-    await orderStore.loadMyOrders();
+    await loadHistory();
     toastStore.success(`兌換成功！剩餘 ${authStore.user?.points ?? 0} 點`);
   } catch (err) {
     toastStore.error(extractApiError(err) || '兌換失敗，請稍後再試。');
@@ -229,6 +218,6 @@ onMounted(async () => {
     isLoadingProducts.value = false;
   }
 
-  await orderStore.loadMyOrders();
+  await loadHistory();
 });
 </script>

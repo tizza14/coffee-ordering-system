@@ -25,7 +25,8 @@ describe('authStore', () => {
         email: 'alice@example.com',
         role: 'user'
       },
-      accessToken: 'token'
+      accessToken: 'token',
+      refreshToken: 'refresh-token'
     });
 
     const authStore = useAuthStore();
@@ -36,6 +37,7 @@ describe('authStore', () => {
 
     expect(authStore.user?.email).toBe('alice@example.com');
     expect(authStore.accessToken).toBe('token');
+    expect(authStore.refreshToken).toBe('refresh-token');
     expect(authStore.isAuthenticated).toBe(true);
     expect(JSON.parse(localStorage.getItem('coffee-ordering-auth') ?? '{}')).toEqual({
       user: {
@@ -44,7 +46,8 @@ describe('authStore', () => {
         email: 'alice@example.com',
         role: 'user'
       },
-      accessToken: 'token'
+      accessToken: 'token',
+      refreshToken: 'refresh-token'
     });
   });
 
@@ -56,7 +59,8 @@ describe('authStore', () => {
         email: 'alice@example.com',
         role: 'user'
       },
-      accessToken: 'token'
+      accessToken: 'token',
+      refreshToken: 'refresh-token'
     });
 
     const authStore = useAuthStore();

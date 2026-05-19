@@ -211,7 +211,7 @@ describe('E2E API flows', () => {
       .set('X-Guest-Token', orderResponse.body.guestToken);
 
     expect(notificationResponse.status).toBe(200);
-    expect(notificationResponse.body.data).toEqual(
+    expect(notificationResponse.body.notifications).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ type: 'order_paid', audience: 'guest' })
       ])

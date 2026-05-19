@@ -26,11 +26,10 @@ export const listGuestNotifications = asyncHandler(
     const phone = getQueryString(req.query.phone);
     const guestToken = getQueryString(req.headers['x-guest-token']);
 
-    // Verify guest access first
-    await orderService.getGuestOrder(lookupCode, phone, guestToken);
+    const order = await orderService.getGuestOrder(lookupCode, phone, guestToken);
 
     const notifications =
-      await notificationService.listGuestNotifications(lookupCode);
+      await notificationService.listGuestNotifications(lookupCode, order.id);
     res.json(notifications);
   }
 );

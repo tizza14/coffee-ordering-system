@@ -126,6 +126,92 @@ describe('Points & Redemption System', () => {
     });
   });
 
+  describe('GET /api/points/history', () => {
+    it('returns empty array when user has no point-related orders', async () => {
+      const { token } = await loginAsUser(0);
+      const res = await request(app)
+        .get('/api/points/history')
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([]);
+    });
+
+    it('returns earned points entry after payment', async () => {
+      const product = await ProductModel.create({
+        name: 'Test Coffee',
+        price: 200,
+        category: 'coffee',
+        isAvailable: true
+      });
+      const { token } = await loginAsUser(0);
+
+      const orderRes = await request(app)
+        .post('/api/orders')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ items: [{ productId: product._id, quantity: 1 }] });
+
+      mockedLinePayClient.requestPayment.mockResolvedValue({
+        transactionId: 'txn-hist',
+        paymentUrl: 'http://lp.example',
+        rawResponse: {}
+      });
+      mockedLinePayClient.confirmPayment.mockResolvedValue({
+        transactionId: 'txn-hist',
+        amount: 200,
+        currency: 'TWD',
+        rawResponse: {}
+      });
+
+      await request(app)
+        .post('/api/payments/line-pay/request')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ orderId: orderRes.body.id });
+      await request(app)
+        .post('/api/payments/line-pay/confirm')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ orderId: orderRes.body.id, transactionId: 'txn-hist' });
+
+      const res = await request(app)
+        .get('/api/points/history')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].delta).toBe(2);
+      expect(res.body.data[0].orderType).toBe('purchase');
+    });
+
+    it('returns redeemed points entry as negative delta', async () => {
+      const product = await ProductModel.create({
+        name: 'Free Coffee',
+        price: 100,
+        category: 'coffee',
+        isAvailable: true,
+        isRedeemable: true
+      });
+      const { token } = await loginAsUser(3);
+
+      await request(app)
+        .post('/api/orders/redeem')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ productId: product._id });
+
+      const res = await request(app)
+        .get('/api/points/history')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0].delta).toBe(-3);
+      expect(res.body.data[0].orderType).toBe('redeem');
+    });
+
+    it('returns 401 without auth token', async () => {
+      const res = await request(app).get('/api/points/history');
+      expect(res.status).toBe(401);
+    });
+  });
+
   describe('Redemption Flow (TC-024, TC-025, TC-026)', () => {
     it('allows user with 3 points to redeem product (TC-024)', async () => {
       const product = await ProductModel.create({

@@ -48,7 +48,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+        body: JSON.stringify({ ...buyerUser, points: 0 })
       });
     });
 
@@ -91,7 +91,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+        body: JSON.stringify({ ...buyerUser, points: 0 })
       });
     });
 
@@ -139,7 +139,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+        body: JSON.stringify({ ...buyerUser, points: 0 })
       });
     });
 
@@ -172,7 +172,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+        body: JSON.stringify({ ...buyerUser, points: 0 })
       });
     });
 
@@ -234,7 +234,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: staffUser })
+        body: JSON.stringify(staffUser)
       });
     });
 
@@ -315,7 +315,7 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: buyerUser })
+        body: JSON.stringify(buyerUser)
       });
     });
 

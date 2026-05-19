@@ -62,7 +62,8 @@ describe('notificationStore', () => {
       guestOrderLookupCode: 'GUEST01'
     };
     mockedNotificationApi.getGuestNotifications.mockResolvedValue({
-      data: [guestNotif]
+      orderId: 'order-id-1',
+      notifications: [guestNotif]
     });
     const notificationStore = useNotificationStore();
 

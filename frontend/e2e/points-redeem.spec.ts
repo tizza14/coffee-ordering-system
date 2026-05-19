@@ -57,8 +57,11 @@ test.describe('點數兌換', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerWith3Points, points: 3 } })
+        body: JSON.stringify({ ...buyerWith3Points, points: 3 })
       });
+    });
+    await page.route(`${API}/points/history`, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
     });
 
     // Use a user with 3 points in the login response
@@ -97,6 +100,9 @@ test.describe('點數兌換', () => {
       });
     });
     await mockRedeemableProducts(page);
+    await page.route(`${API}/points/history`, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
 
     await page.goto('/login');
     await page.fill('input[type="email"]', buyerWith3Points.email);
@@ -121,6 +127,9 @@ test.describe('點數兌換', () => {
       });
     });
     await mockRedeemableProducts(page);
+    await page.route(`${API}/points/history`, async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+    });
 
     await page.goto('/login');
     await page.fill('input[type="email"]', buyerWith3Points.email);

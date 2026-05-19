@@ -29,11 +29,11 @@ export async function listUserNotifications(userId: string) {
   return { data: notifications.map(toNotificationResponse) };
 }
 
-export async function listGuestNotifications(lookupCode: string) {
+export async function listGuestNotifications(lookupCode: string, orderId: string) {
   const notifications = await NotificationModel.find({
     guestOrderLookupCode: lookupCode
   }).sort({ createdAt: -1 });
-  return { data: notifications.map(toNotificationResponse) };
+  return { orderId, notifications: notifications.map(toNotificationResponse) };
 }
 
 export async function markNotificationRead(

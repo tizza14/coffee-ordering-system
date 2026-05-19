@@ -1,5 +1,14 @@
 import mongoose, { Schema, type InferSchemaType } from 'mongoose';
 
+const statusHistoryEntrySchema = new Schema(
+  {
+    status: { type: String, required: true },
+    changedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    changedAt: { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
+
 const orderItemSchema = new Schema(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -49,7 +58,8 @@ const orderSchema = new Schema(
         'cancelled'
       ],
       default: 'pending'
-    }
+    },
+    statusHistory: { type: [statusHistoryEntrySchema], default: [] }
   },
   { timestamps: true }
 );

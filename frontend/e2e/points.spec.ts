@@ -44,7 +44,22 @@ test.describe('點數兌換', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: currentPoints } })
+        body: JSON.stringify({ ...buyerUser, points: currentPoints })
+      });
+    });
+    await page.route(`${API}/points/history`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: currentPoints === 0 ? [{
+            orderId: redeemedOrder.id,
+            orderLookupCode: redeemedOrder.orderLookupCode,
+            orderType: 'redeem',
+            delta: -3,
+            createdAt: redeemedOrder.createdAt
+          }] : []
+        })
       });
     });
     await page.route(`${API}/orders/my**`, async (route) => {

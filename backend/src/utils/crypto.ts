@@ -11,3 +11,7 @@ export function createLookupCode() {
 export function createGuestToken() {
   return crypto.randomBytes(32).toString('hex');
 }
+
+export function createRefreshToken() {
+  return crypto.randomBytes(32).toString('hex');
+}

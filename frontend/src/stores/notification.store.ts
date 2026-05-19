@@ -24,7 +24,7 @@ export const useNotificationStore = defineStore('notifications', {
         phone,
         guestToken
       );
-      this.items = result.data;
+      this.items = result.notifications;
     },
     async markRead(
       id: string,

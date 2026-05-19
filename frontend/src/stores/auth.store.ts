@@ -15,6 +15,7 @@ export interface AuthUser {
 interface StoredAuthSession {
   user: AuthUser;
   accessToken: string;
+  refreshToken?: string;
 }
 
 function readStoredSession() {
@@ -33,12 +34,12 @@ function readStoredSession() {
   }
 }
 
-function writeStoredSession(user: AuthUser, accessToken: string) {
+function writeStoredSession(user: AuthUser, accessToken: string, refreshToken?: string) {
   if (typeof window === 'undefined') return;
 
   window.localStorage.setItem(
     AUTH_STORAGE_KEY,
-    JSON.stringify({ user, accessToken })
+    JSON.stringify({ user, accessToken, refreshToken })
   );
 }
 
@@ -52,39 +53,52 @@ export const useAuthStore = defineStore('auth', {
     const session = readStoredSession();
     return {
       user: session?.user ?? (null as AuthUser | null),
-      accessToken: session?.accessToken ?? ''
+      accessToken: session?.accessToken ?? '',
+      refreshToken: session?.refreshToken ?? ''
     };
   },
   getters: {
     isAuthenticated: (state) => Boolean(state.accessToken)
   },
   actions: {
-    setSession(user: AuthUser, accessToken: string) {
+    setSession(user: AuthUser, accessToken: string, refreshToken?: string) {
       this.user = user;
       this.accessToken = accessToken;
-      writeStoredSession(user, accessToken);
+      this.refreshToken = refreshToken ?? this.refreshToken;
+      writeStoredSession(user, accessToken, this.refreshToken);
     },
     async register(payload: authApi.RegisterPayload) {
       const result = await authApi.register(payload);
-      this.setSession(result.user, result.accessToken);
+      this.setSession(result.user, result.accessToken, result.refreshToken);
     },
     async login(payload: authApi.LoginPayload) {
       const result = await authApi.login(payload);
       useOrderStore().clearOrderLists();
-      this.setSession(result.user, result.accessToken);
+      this.setSession(result.user, result.accessToken, result.refreshToken);
     },
     async refreshUser() {
       if (!this.accessToken) return;
       try {
         const result = await authApi.getMe();
-        this.user = result.user;
-        writeStoredSession(result.user, this.accessToken);
+        this.user = result;
+        writeStoredSession(result, this.accessToken, this.refreshToken);
       } catch { /* ignore */ }
+    },
+    async tryRefreshTokens(): Promise<boolean> {
+      if (!this.refreshToken) return false;
+      try {
+        const result = await authApi.refreshAccessToken(this.refreshToken);
+        this.setSession(result.user, result.accessToken, result.refreshToken);
+        return true;
+      } catch {
+        return false;
+      }
     },
     logout() {
       useOrderStore().clearOrderLists();
       this.user = null;
       this.accessToken = '';
+      this.refreshToken = '';
       clearStoredSession();
     }
   }

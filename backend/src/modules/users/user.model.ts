@@ -12,7 +12,9 @@ const userSchema = new Schema(
     email: { type: String, required: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'staff', 'admin'], default: 'user' },
-    points: { type: Number, default: 0 }
+    points: { type: Number, default: 0 },
+    refreshTokenHash: { type: String },
+    refreshTokenExpiresAt: { type: Date }
   },
   { timestamps: true }
 );

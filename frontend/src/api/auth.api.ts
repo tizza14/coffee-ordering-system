@@ -4,6 +4,7 @@ import type { AuthUser } from '../stores/auth.store';
 export interface AuthResponse {
   user: AuthUser;
   accessToken: string;
+  refreshToken: string;
 }
 
 export interface RegisterPayload {
@@ -28,6 +29,11 @@ export async function login(payload: LoginPayload) {
 }
 
 export async function getMe() {
-  const response = await http.get<{ user: AuthUser }>('/auth/me');
+  const response = await http.get<AuthUser>('/auth/me');
+  return response.data;
+}
+
+export async function refreshAccessToken(refreshToken: string) {
+  const response = await http.post<AuthResponse>('/auth/refresh', { refreshToken });
   return response.data;
 }

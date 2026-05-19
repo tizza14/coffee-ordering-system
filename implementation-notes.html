@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Implementation Notes — Coffee Real-time Ordering System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1c1917;
+      background: #fafaf9;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: #78350f; margin-bottom: .25rem; }
+    .subtitle { color: #78716c; font-size: .9rem; margin-bottom: 2.5rem; }
+    h2 {
+      font-size: 1.15rem; font-weight: 700; color: #292524;
+      border-left: 4px solid #d97706; padding-left: .75rem;
+      margin: 2.5rem 0 1rem;
+    }
+    h3 { font-size: 1rem; font-weight: 700; color: #44403c; margin: 1.25rem 0 .5rem; }
+    p { margin-bottom: .75rem; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: .75rem; }
+    li { margin-bottom: .35rem; }
+    code {
+      background: #e7e5e4; border-radius: 3px;
+      padding: .15em .4em; font-size: .85em; font-family: "SF Mono", Consolas, monospace;
+    }
+    pre {
+      background: #292524; color: #e7e5e4; border-radius: 6px;
+      padding: 1rem; overflow-x: auto; margin: .75rem 0;
+      font-size: .82rem; font-family: "SF Mono", Consolas, monospace; line-height: 1.5;
+    }
+    .card {
+      background: #fff; border: 1px solid #e7e5e4; border-radius: 8px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+    }
+    .badge {
+      display: inline-block; font-size: .72rem; font-weight: 700;
+      padding: .2em .6em; border-radius: 999px; margin-right: .4rem; vertical-align: middle;
+    }
+    .badge-decision  { background: #dbeafe; color: #1e40af; }
+    .badge-deviation { background: #fee2e2; color: #991b1b; }
+    .badge-tradeoff  { background: #fef3c7; color: #92400e; }
+    .badge-open      { background: #f3e8ff; color: #6b21a8; }
+    .badge-ok        { background: #dcfce7; color: #166534; }
+    .badge-resolved  { background: #dcfce7; color: #166534; }
+    .resolved-card   { border-left: 4px solid #4ade80; }
+    table { width: 100%; border-collapse: collapse; margin: .75rem 0; font-size: .88rem; }
+    th { background: #f5f5f4; text-align: left; padding: .5rem .75rem; font-weight: 600; }
+    td { padding: .45rem .75rem; border-top: 1px solid #e7e5e4; vertical-align: top; }
+    tr:hover td { background: #fafaf9; }
+    .toc { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+    .toc h3 { margin-top: 0; color: #9a3412; }
+    .toc ol { margin-bottom: 0; }
+    .toc a { color: #9a3412; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    hr { border: none; border-top: 1px solid #e7e5e4; margin: 2rem 0; }
+    .updated { font-size: .8rem; color: #a8a29e; margin-top: 2.5rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>☕ Implementation Notes</h1>
+  <p class="subtitle">Coffee Real-time Ordering System — 規格實作對照紀錄<br>
+  最後更新：2026-05-19</p>
+
+  <div class="toc">
+    <h3>目錄</h3>
+    <ol>
+      <li><a href="#summary">整體實作狀態</a></li>
+      <li><a href="#deviations">偏離規格之處（已修正）</a></li>
+      <li><a href="#decisions">設計決定（規格含糊處的選擇）</a></li>
+      <li><a href="#tradeoffs">折衷考量</a></li>
+      <li><a href="#additions">規格外的防禦性實作</a></li>
+      <li><a href="#open">未決問題</a></li>
+      <li><a href="#changelog">變更紀錄</a></li>
+    </ol>
+  </div>
+
+  <!-- ─── 1. Summary ─── -->
+  <h2 id="summary">1. 整體實作狀態</h2>
+
+  <p>規格書 Phase 1–7 的功能全數實作完成，CI/CD、容器化、Swagger API 文件與 Seed 腳本皆已就緒。
+  下表為模組層級的快速確認：</p>
+
+  <table>
+    <tr><th>模組</th><th>狀態</th><th>備註</th></tr>
+    <tr><td>Auth（JWT, RBAC）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>bcrypt hash, JWT, getMe, 角色守衛</td></tr>
+    <tr><td>Product CRUD</td><td><span class="badge badge-ok">✓ 完成</span></td><td>分類篩選、isRedeemable 設定</td></tr>
+    <tr><td>Order（member / guest / redeem）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>所有訂單類型皆產生 orderLookupCode</td></tr>
+    <tr><td>Payment（Line Pay）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>HMAC 簽章、冪等 confirm、金額驗證</td></tr>
+    <tr><td>Points（入帳 / 兌換 / 退回）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>原子 MongoDB 操作防 race condition</td></tr>
+    <tr><td>Notification（REST + Socket.io）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>回應格式與規格有差異，見第 2 節</td></tr>
+    <tr><td>Web Push</td><td><span class="badge badge-ok">✓ 完成</span></td><td>VAPID 未設定時靜默略過</td></tr>
+    <tr><td>Sales Report</td><td><span class="badge badge-ok">✓ 完成</span></td><td>日/週/月/年/自訂區間，台北時區</td></tr>
+    <tr><td>Staff / Admin 頁面</td><td><span class="badge badge-ok">✓ 完成</span></td><td>訂單管理、商品 CRUD、使用者管理</td></tr>
+    <tr><td>WebSocket rooms</td><td><span class="badge badge-ok">✓ 完成</span></td><td>room:user / room:order / room:staff</td></tr>
+    <tr><td>RWD（桌機 + 手機）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Tailwind 響應式 utilities，Playwright 雙裝置 E2E</td></tr>
+    <tr><td>容器化（Docker）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Dockerfile × 2, Nginx, docker-compose, .dockerignore</td></tr>
+    <tr><td>CI（GitHub Actions）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend + frontend 平行 job；AWS deploy 已暫時註解</td></tr>
+    <tr><td>Swagger API 文件</td><td><span class="badge badge-ok">✓ 完成</span></td><td>/api-docs（swagger-jsdoc + swagger-ui-express）</td></tr>
+    <tr><td>Seed 腳本</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend/src/scripts/seed.ts，60 天歷史訂單</td></tr>
+  </table>
+
+  <!-- ─── 2. Deviations ─── -->
+  <h2 id="deviations">2. 偏離規格之處</h2>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-01：<code>GET /api/auth/me</code> 回應格式 — 已修正為規格要求的扁平格式
+    </h3>
+    <p><strong>規格要求（現已符合）：</strong></p>
+    <pre>{ "id": "...", "name": "Alice", "email": "...", "role": "user", "points": 3 }</pre>
+    <p><strong>原先實作（已修正）：</strong></p>
+    <pre>{ "user": { "id": "...", "name": "Alice", "email": "...", "role": "user", "points": 3 } }</pre>
+    <p><strong>修正內容（2026-05-19）：</strong></p>
+    <ul>
+      <li><code>backend/src/modules/auth/auth.controller.ts</code> — <code>getMe</code> 改為直接回傳扁平物件（移除 <code>user:</code> 包裝層）</li>
+      <li><code>frontend/src/api/auth.api.ts</code> — <code>getMe()</code> 型別改為 <code>http.get&lt;AuthUser&gt;</code></li>
+      <li><code>frontend/src/stores/auth.store.ts</code> — <code>refreshUser()</code> 直接使用 <code>result</code> 而非 <code>result.user</code></li>
+      <li>所有 E2E mock 與 Jest 測試的 <code>/auth/me</code> 回應一併更新</li>
+    </ul>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-02：<code>GET /api/notifications/guest/:lookupCode</code> 回應格式 — 已修正為規格要求的格式
+    </h3>
+    <p><strong>規格要求（現已符合）：</strong></p>
+    <pre>{ "orderId": "orderId", "notifications": [ {...}, ... ] }</pre>
+    <p><strong>原先實作（已修正）：</strong></p>
+    <pre>{ "data": [ {...}, ... ] }</pre>
+    <p><strong>修正內容（2026-05-19）：</strong></p>
+    <ul>
+      <li><code>backend/src/modules/notifications/notification.service.ts</code> — <code>listGuestNotifications(lookupCode, orderId)</code> 新增 <code>orderId</code> 參數，回傳 <code>{ orderId, notifications: [...] }</code></li>
+      <li><code>backend/src/modules/notifications/notification.controller.ts</code> — 從 <code>getGuestOrder()</code> 取出 <code>order.id</code> 傳入服務層</li>
+      <li><code>frontend/src/api/notification.api.ts</code> — 新增 <code>GuestNotificationListResponse</code> 介面，<code>getGuestNotifications()</code> 回傳新格式</li>
+      <li><code>frontend/src/stores/notification.store.ts</code> — <code>loadGuestNotifications()</code> 改讀 <code>result.notifications</code></li>
+      <li>Jest spec 與 Vitest spec 的 assertion 一併更新</li>
+    </ul>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-03：點數歷史 — 已新增獨立 API 端點
+    </h3>
+    <p><strong>原先實作（已取代）：</strong>
+    前端 <code>PointsView.vue</code> 從 <code>orderStore.myOrders</code>
+    篩選 <code>pointsEarned &gt; 0</code> 或 <code>pointsRedeemed &gt; 0</code> 的訂單在前端衍生，
+    受前端分頁上限（8 筆/次）制約。</p>
+    <p><strong>修正內容（2026-05-19）：</strong></p>
+    <ul>
+      <li>新增 <code>GET /api/points/history</code> 端點（需登入），回傳 <code>{ data: [{ orderId, orderLookupCode, orderType, delta, createdAt }] }</code>；<code>delta</code> 正數為獲得點數、負數為兌換扣除</li>
+      <li>新建 <code>backend/src/modules/points/point.controller.ts</code> 與 <code>point.routes.ts</code>，掛載於 <code>/api/points</code>；附 Swagger JSDoc 文件</li>
+      <li><code>PointsView.vue</code> 改由 <code>frontend/src/api/points.api.ts</code> <code>getPointHistory()</code> 取得資料，移除依賴 <code>orderStore</code> 的 computed</li>
+      <li>Playwright E2E 對應補上 <code>GET /api/points/history</code> mock（<code>points.spec.ts</code>、<code>points-redeem.spec.ts</code>）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-deviation">DEVIATION</span>
+      D-04：AWS deploy workflow 暫時停用
+    </h3>
+    <p><strong>規格：</strong> <code>.github/workflows/deploy.yml</code> 含 ECR + EC2 + S3 + CloudFront 部署步驟。</p>
+    <p><strong>現狀：</strong> deploy-backend 與 deploy-frontend 兩個 job 已全數註解，
+    保留 ci check job 確保 CI 仍執行。</p>
+    <p><strong>原因：</strong> AWS Secrets 尚未在 GitHub 倉庫設定；
+    保留程式碼只需取消註解即可重新啟用。</p>
+  </div>
+
+  <!-- ─── 3. Decisions ─── -->
+  <h2 id="decisions">3. 設計決定（規格含糊處的選擇）</h2>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-01：Line Pay Cancel 將 paymentStatus 更新為 <code>payment_failed</code>
+    </h3>
+    <p>規格說「將 paymentStatus 更新為 payment_failed 或維持 unpaid，依實作策略決定」。</p>
+    <p>選擇 <code>payment_failed</code>，因為 <code>unpaid</code> 無法區分「尚未進入付款流程」與
+    「進入後取消」，<code>payment_failed</code> 讓前端能顯示「重新付款或取消訂單」的清晰選項。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-02：Token 儲存策略採 localStorage（MVP 路線）
+    </h3>
+    <p>規格允許 localStorage 或 httpOnly cookie。採用 localStorage 以降低初期複雜度，
+    不需要 csrf 保護或 cookie 域設定，方便本機 / Vercel / Render 多環境切換。</p>
+    <p>後續若有 XSS 安全顧慮可遷移至 httpOnly cookie + refresh token 流程。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-03：會員訂單也要求填寫取餐手機號碼
+    </h3>
+    <p>規格的 <code>guestInfo</code> 說「會員訂單可保存取餐手機，用於訂單追蹤與取餐核對」（可選）。
+    實作上在結帳表單對會員也必填手機，理由：</p>
+    <ul>
+      <li>取餐叫號或簡訊通知需要手機</li>
+      <li>訂單追蹤頁（<code>/orders/guest</code>）的「我的近期訂單」區塊顯示手機號碼，若為空則顯示「會員訂單未留手機」</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-04：Staff 訂單管理頁「今日彙總」端點路徑
+    </h3>
+    <p>規格 API 路徑寫 <code>GET /api/orders/summary/today</code>，
+    但 Express router 掛載在 <code>/api/orders</code>，
+    實際路由為 <code>router.get('/summary/today', ...)</code>，
+    完整路徑即 <code>GET /api/orders/summary/today</code>，與規格一致。</p>
+    <p>（注意：Swagger 文件有對外暴露此路由）</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-05：手機版導覽採右側抽屜，點擊連結後自動關閉
+    </h3>
+    <p>規格要求「手機抽屜選單點擊導覽連結、登出或路由切換後應自動關閉」。
+    實作在 <code>router.afterEach</code> hook 自動將 <code>isMenuOpen</code> 設為 false，
+    確保直接修改 URL 也能關閉選單。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-06：Guest orderLookupCode 格式為 8 碼大寫英數
+    </h3>
+    <p>規格未規定格式，只要求 unique。
+    實作使用 <code>nanoid</code> 產生 8 碼大寫英數字串（e.g., <code>DEMO0001</code>），
+    易於人工輸入、不易猜測，且符合 unique sparse index 要求。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-07：Guest token 有效期 7 天
+    </h3>
+    <p>規格說「建議 7 天」，採用此建議值。<code>guestTokenExpiresAt = now + 7d</code>。</p>
+  </div>
+
+  <!-- ─── 4. Tradeoffs ─── -->
+  <h2 id="tradeoffs">4. 折衷考量</h2>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-01：MongoMemoryServer 整合測試 vs Mock DB
+    </h3>
+    <p><strong>選擇：</strong> 所有後端 Jest 測試使用真實 MongoDB（in-memory），不 mock。</p>
+    <p><strong>優點：</strong> 測試可捕捉真實查詢、索引行為與 Mongoose schema 驗證。
+    過去此類測試曾發現 mock 測試無法發現的 migration 問題。</p>
+    <p><strong>代價：</strong> 測試必須 <code>--runInBand</code>（共用 MongoMemoryServer），
+    並行執行會造成 port 衝突與 state 污染。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-02：前端 E2E 使用 <code>page.route()</code> mock 攔截，不起真實後端
+    </h3>
+    <p><strong>選擇：</strong> Playwright 測試在 CI 不起真實 Node 後端，完全透過 mock interceptor 回應。</p>
+    <p><strong>優點：</strong> CI 快速穩定，不需要 MongoDB 或 Line Pay sandbox，
+    可測試前端所有分支行為（包含錯誤狀態）。</p>
+    <p><strong>代價：</strong> 無法測試真實 API contract；需要另外依賴後端 Jest 測試確保後端正確性。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-03：點數計算（原子更新 vs 應用層加減）
+    </h3>
+    <p><strong>選擇：</strong> 使用 MongoDB <code>$inc</code> 原子操作更新 <code>User.points</code>。</p>
+    <p><strong>優點：</strong> 防止並發 confirm 重複加點（對同一張訂單 confirm 兩次不會重複入帳）。
+    <code>pointsEarned</code> 欄位作為冪等鎖，只在值為 0 時才執行 <code>$inc</code>。</p>
+    <p><strong>代價：</strong> 需要 <code>$inc</code> + <code>$set</code> 的複合更新，略增複雜度。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-04：Sales Report 時區處理集中在後端
+    </h3>
+    <p><strong>選擇：</strong> 前端只送 <code>YYYY-MM-DD</code> 字串，後端統一轉換為台北時間（UTC+8）邊界。</p>
+    <p><strong>優點：</strong> 前端不需處理時區，也不會因使用者瀏覽器時區不同而出現偏差。</p>
+    <p><strong>代價：</strong> 後端需維護 <code>getTaipeiDayRange()</code>，
+    若未來需支援多時區則需重構。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      T-05：狀態歷史紀錄（statusHistory）— 已實作
+    </h3>
+    <p>規格說「建議新增狀態歷史紀錄（可選）」。已於 2026-05-19 實作：</p>
+    <ul>
+      <li><code>backend/src/modules/orders/order.model.ts</code> — 新增 <code>statusHistoryEntrySchema</code>（<code>status</code>, <code>changedBy</code> ObjectId, <code>changedAt</code> Date），掛在 orderSchema 的 <code>statusHistory</code> 欄位（預設空陣列）</li>
+      <li><code>backend/src/modules/orders/order.service.ts</code> — <code>updateOrderStatus()</code> 每次狀態變更時 <code>push</code> 一筆 entry，記錄執行者的 userId</li>
+    </ul>
+    <p>此欄位可作為後台稽核軌跡，前端 UI 若需顯示可直接讀取訂單回應中的 <code>statusHistory</code> 陣列。</p>
+  </div>
+
+  <!-- ─── 5. Additions ─── -->
+  <h2 id="additions">5. 規格外的防禦性實作</h2>
+
+  <table>
+    <tr><th>功能</th><th>說明</th></tr>
+    <tr>
+      <td><code>helmet()</code></td>
+      <td>設定安全 HTTP headers（X-Content-Type-Options, CSP 等）。規格未提及，標準 Express 安全實踐。</td>
+    </tr>
+    <tr>
+      <td>Rate limiting</td>
+      <td>全 API：200 req/min；Auth 路由：20 req/15min。使用 <code>express-rate-limit</code>，測試環境自動跳過。</td>
+    </tr>
+    <tr>
+      <td>CORS 白名單</td>
+      <td><code>CLIENT_ORIGIN</code> 支援逗號分隔多個域名，從不使用 <code>origin: *</code>。</td>
+    </tr>
+    <tr>
+      <td>Zod 請求驗證</td>
+      <td><code>validateBody(schema)</code> middleware 搭配 Zod schema，統一回傳 400 + 欄位錯誤訊息。</td>
+    </tr>
+    <tr>
+      <td>asyncHandler 包裝</td>
+      <td>所有 async controller 包裹 <code>asyncHandler</code>，未捕捉的 Promise rejection 自動轉為 <code>errorMiddleware</code>。</td>
+    </tr>
+    <tr>
+      <td>JWT_SECRET 啟動驗證</td>
+      <td>若 <code>JWT_SECRET === 'change-me'</code> 且 <code>NODE_ENV === production</code>，啟動時拋出錯誤阻止部署。</td>
+    </tr>
+    <tr>
+      <td>Sparse unique indexes</td>
+      <td><code>orderLookupCode</code>、<code>linePayOrderId</code> 使用 sparse unique index，允許多筆 null 並對有值者強制 unique。</td>
+    </tr>
+    <tr>
+      <td>Backend health check</td>
+      <td><code>GET /health</code> 端點，docker-compose frontend 需等此端點成功才啟動。</td>
+    </tr>
+  </table>
+
+  <!-- ─── 6. Open Questions ─── -->
+  <h2 id="open">6. 未決問題</h2>
+
+  <div class="card resolved-card">
+    <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-01：<code>GET /api/auth/me</code> 回應統一為規格格式（扁平）</h3>
+    <p>已於 2026-05-19 修正。後端 controller 移除 <code>user:</code> 包裝層，前端 api / store / 所有 mock fixtures 一併更新。詳見 D-01。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-02：訪客通知回應加入 <code>orderId</code> 並改鍵名為 <code>notifications</code></h3>
+    <p>已於 2026-05-19 修正。後端服務、前端 api 層與測試 mock 全數更新。詳見 D-02。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-03：點數歷史獨立後端 API — 已實作</h3>
+    <p>已於 2026-05-19 新增 <code>GET /api/points/history</code> 端點：</p>
+    <ul>
+      <li><strong>後端</strong>：<code>point.service.ts</code> 新增 <code>getPointHistory(userId)</code>，查詢該使用者所有 <code>pointsEarned &gt; 0</code> 或 <code>pointsRedeemed &gt; 0</code> 的訂單，依 <code>createdAt</code> 倒序排列，回傳 <code>{ data: [{ orderId, orderLookupCode, orderType, delta, createdAt }] }</code>；<code>delta</code> 正數代表獲得、負數代表兌換扣除</li>
+      <li><strong>後端</strong>：新增 <code>point.controller.ts</code>、<code>point.routes.ts</code>，掛載於 <code>/api/points</code>；加入 Swagger JSDoc 文件</li>
+      <li><strong>前端</strong>：新增 <code>frontend/src/api/points.api.ts</code> 提供 <code>getPointHistory()</code>；<code>PointsView.vue</code> 改為呼叫 API（移除依賴 <code>orderStore.myOrders</code> 的 computed 衍生）</li>
+      <li><strong>測試</strong>：<code>point.spec.ts</code> 新增 4 個 test case（空陣列、獲得點數、兌換負 delta、401 未授權），全數通過</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="badge badge-open">OPEN</span> Q-04：AWS deploy workflow 何時重新啟用？</h3>
+    <p><code>.github/workflows/deploy.yml</code> 的 <code>deploy-backend</code> 與
+    <code>deploy-frontend</code> job 目前已全數以 <code>#</code> 註解。
+    啟用條件：在 GitHub repository → Settings → Secrets 設定以下金鑰：
+    <code>AWS_ACCESS_KEY_ID</code>、<code>AWS_SECRET_ACCESS_KEY</code>、<code>AWS_REGION</code>、
+    <code>EC2_HOST</code>、<code>EC2_SSH_KEY</code>、<code>S3_BUCKET</code>、
+    <code>CLOUDFRONT_DISTRIBUTION_ID</code>，以及其他 backend 環境變數後即可取消註解。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-05：statusHistory（狀態歷史紀錄）已實作</h3>
+    <p>已於 2026-05-19 實作。Order model 追加 <code>statusHistory: [{ status, changedBy, changedAt }]</code>，
+    每次 <code>updateOrderStatus()</code> 自動 push 一筆紀錄。詳見 T-05。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-06：Refresh Token 已實作</h3>
+    <p>已於 2026-05-19 實作完整的 Refresh Token 流程：</p>
+    <ul>
+      <li><strong>後端</strong>：<code>User</code> model 新增 <code>refreshTokenHash</code> + <code>refreshTokenExpiresAt</code>；<code>auth.service.ts</code> 的 <code>register()</code> 和 <code>login()</code> 皆發放 refresh token；新增 <code>POST /api/auth/refresh</code> 端點，支援 token rotation（每次刷新即作廢舊 token、發放新 token），有效期由 <code>REFRESH_TOKEN_EXPIRES_DAYS</code>（預設 30 天）控制</li>
+      <li><strong>前端</strong>：<code>auth.store.ts</code> 儲存 refresh token 至 localStorage；<code>http.ts</code> axios 401 攔截器自動呼叫 <code>tryRefreshTokens()</code>，刷新成功後重試原始請求，失敗則執行 <code>logout()</code></li>
+      <li><strong>安全性</strong>：raw token 僅在 response 中出現一次；DB 只存 SHA-256 hash；<code>_retry</code> flag 防止無限重試迴圈</li>
+    </ul>
+  </div>
+
+  <hr />
+
+  <!-- ─── 7. Changelog ─── -->
+  <h2 id="changelog">7. 變更紀錄</h2>
+
+  <table>
+    <tr><th>日期</th><th>項目</th><th>說明</th></tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>Q-01 / D-01</td>
+      <td><code>GET /api/auth/me</code> 回應格式改為規格要求的扁平物件，移除 <code>user:</code> 包裝層。後端 controller、前端 api / store、所有 E2E mock 一併更新。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>Q-02 / D-02</td>
+      <td>訪客通知 <code>GET /api/notifications/guest/:lookupCode</code> 回應格式改為 <code>{ orderId, notifications: [] }</code>，符合規格。後端 service / controller、前端 api / store、Jest + Vitest 測試 mock 一併更新。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>Q-05 / T-05</td>
+      <td>Order model 追加 <code>statusHistory</code> sub-document array，<code>updateOrderStatus()</code> 每次狀態變更自動記錄 <code>{ status, changedBy, changedAt }</code>。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>Q-06</td>
+      <td>實作完整 Refresh Token 流程（token rotation、SHA-256 hash 儲存、30 天有效期）。新增 <code>POST /api/auth/refresh</code> 端點；前端 axios 401 攔截器自動刷新並重試。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>D-04 / CI</td>
+      <td><code>.github/workflows/deploy.yml</code> 的 AWS deploy-backend / deploy-frontend job 全數以 <code>#</code> 註解，保留 CI check job。待 AWS secrets 設定完成後取消註解即可重新啟用。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>Q-03</td>
+      <td>新增 <code>GET /api/points/history</code> 端點（<code>point.service/controller/routes</code>）。前端 <code>PointsView.vue</code> 改呼叫 API，移除從 orderStore 衍生點數紀錄的 computed。新增 4 個後端測試。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>E2E 測試修正（舊）</td>
+      <td>修正 4 個 CI E2E 失敗：checkout heading 期望值、sales-report admin 測試 beforeEach 隔離、guest-order-tracking 手機版 race condition（await URL 確認後再導航）。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>D-03 / E2E 補 mock</td>
+      <td><code>points.spec.ts</code> 與 <code>points-redeem.spec.ts</code> 補上 <code>GET /api/points/history</code> mock，對應 <code>PointsView.vue</code> 改呼叫 API 的異動。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>D-01 / D-02 遺漏測試修正</td>
+      <td><code>rbac.spec.ts</code> 對 <code>GET /api/auth/me</code> 的斷言改為 <code>body.role</code>（D-01 扁平化）；<code>e2e.spec.ts</code> guest notification 斷言改為 <code>body.notifications</code>（D-02 格式修正）。全 95 個後端測試通過。</td>
+    </tr>
+  </table>
+
+  <hr />
+  <p class="updated">此文件隨實作持續更新。最後更新：2026-05-19</p>
+
+</div>
+</body>
+</html>

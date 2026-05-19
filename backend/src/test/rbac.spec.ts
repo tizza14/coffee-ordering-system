@@ -45,7 +45,7 @@ describe('Auth & RBAC Middleware', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.user.role).toBe('user');
+    expect(response.body.role).toBe('user');
   });
 
   it('rejects /me without token', async () => {

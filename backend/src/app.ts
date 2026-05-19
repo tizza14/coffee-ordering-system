@@ -12,6 +12,7 @@ import { orderRoutes } from './modules/orders/order.routes';
 import { paymentRoutes } from './modules/payments/payment.routes';
 import { productRoutes } from './modules/products/product.routes';
 import { userRoutes } from './modules/users/user.routes';
+import { pointRoutes } from './modules/points/point.routes';
 
 export const corsOptions = {
   origin: env.clientOrigins,
@@ -62,6 +63,7 @@ export function createApp() {
   app.use('/api/payments', paymentRoutes);
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/points', pointRoutes);
   app.use(errorMiddleware);
 
   return app;

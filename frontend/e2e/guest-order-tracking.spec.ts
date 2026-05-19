@@ -76,14 +76,14 @@ test.describe('訪客訂單追蹤', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [] })
+        body: JSON.stringify({ orderId: 'order-1', notifications: [] })
       });
     });
     await page.route(`${API}/auth/me`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+        body: JSON.stringify({ ...buyerUser, points: 0 })
       });
     });
 

@@ -16,6 +16,11 @@ export interface NotificationListResponse {
   data: Notification[];
 }
 
+export interface GuestNotificationListResponse {
+  orderId: string;
+  notifications: Notification[];
+}
+
 export async function getNotifications() {
   const response = await http.get<NotificationListResponse>('/notifications');
   return response.data;
@@ -29,7 +34,7 @@ export async function getGuestNotifications(
   const normalizedLookupCode = lookupCode.trim().toUpperCase();
   const normalizedPhone = phone?.trim();
   const normalizedGuestToken = guestToken?.trim();
-  const response = await http.get<NotificationListResponse>(
+  const response = await http.get<GuestNotificationListResponse>(
     `/notifications/guest/${encodeURIComponent(normalizedLookupCode)}`,
     {
       params: normalizedPhone ? { phone: normalizedPhone } : undefined,

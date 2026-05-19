@@ -39,7 +39,7 @@ describe('Notification API', () => {
     const userResponse = await request(app)
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${token}`);
-    const userId = userResponse.body.user.id;
+    const userId = userResponse.body.id;
 
     await NotificationModel.create({
       userId,
@@ -79,8 +79,9 @@ describe('Notification API', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toHaveLength(1);
-    expect(response.body.data[0].message).toBe('Guest notification');
+    expect(response.body.orderId).toBe(String(order._id));
+    expect(response.body.notifications).toHaveLength(1);
+    expect(response.body.notifications[0].message).toBe('Guest notification');
   });
 
   it('rejects guest notification access with wrong phone', async () => {
@@ -103,7 +104,7 @@ describe('Notification API', () => {
     const userResponse = await request(app)
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${token}`);
-    const userId = userResponse.body.user.id;
+    const userId = userResponse.body.id;
 
     const notif = await NotificationModel.create({
       userId,

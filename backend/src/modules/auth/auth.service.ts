@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from '../../config/env';
 import { ApiError } from '../../utils/ApiError';
+import { createRefreshToken, hashGuestToken } from '../../utils/crypto';
 import { UserModel } from '../users/user.model';
 import type { LoginInput, RegisterInput } from './auth.validators';
 
@@ -26,6 +27,19 @@ function toAuthUser(user: {
   };
 }
 
+async function issueRefreshToken(userId: string): Promise<string> {
+  const rawToken = createRefreshToken();
+  const hash = hashGuestToken(rawToken);
+  const expiresAt = new Date(
+    Date.now() + env.refreshTokenExpiresDays * 24 * 60 * 60 * 1000
+  );
+  await UserModel.findByIdAndUpdate(userId, {
+    refreshTokenHash: hash,
+    refreshTokenExpiresAt: expiresAt
+  });
+  return rawToken;
+}
+
 export async function register(input: RegisterInput) {
   const existingUser = await UserModel.findOne({ email: input.email });
   if (existingUser) {
@@ -42,9 +56,11 @@ export async function register(input: RegisterInput) {
   });
 
   const authUser = toAuthUser(user);
+  const refreshToken = await issueRefreshToken(authUser.id);
   return {
     user: authUser,
-    accessToken: signAccessToken({ id: authUser.id, role: authUser.role })
+    accessToken: signAccessToken({ id: authUser.id, role: authUser.role }),
+    refreshToken
   };
 }
 
@@ -68,8 +84,30 @@ export async function login(input: LoginInput) {
   }
 
   const authUser = toAuthUser(user);
+  const refreshToken = await issueRefreshToken(authUser.id);
   return {
     user: authUser,
-    accessToken: signAccessToken({ id: authUser.id, role: authUser.role })
+    accessToken: signAccessToken({ id: authUser.id, role: authUser.role }),
+    refreshToken
+  };
+}
+
+export async function refresh(rawRefreshToken: string) {
+  const hash = hashGuestToken(rawRefreshToken);
+  const user = await UserModel.findOne({
+    refreshTokenHash: hash,
+    refreshTokenExpiresAt: { $gt: new Date() }
+  });
+
+  if (!user) {
+    throw new ApiError(401, 'INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token');
+  }
+
+  const authUser = toAuthUser(user);
+  const newRefreshToken = await issueRefreshToken(authUser.id);
+  return {
+    user: authUser,
+    accessToken: signAccessToken({ id: authUser.id, role: authUser.role }),
+    refreshToken: newRefreshToken
   };
 }
