@@ -99,6 +99,12 @@ test.describe('點餐紀錄', () => {
     await page.goto('/orders/my');
 
     await expect(page.getByText('ORD001')).toBeVisible();
+    await page.getByRole('button', { name: /訂單 ORD001/ }).click();
+    await expect(page.getByText('訂單查詢碼')).toBeVisible();
+    await expect(page.getByText('手機號碼')).toBeVisible();
+    await expect(page.getByText('會員訂單未留手機')).toBeVisible();
+    await expect(page.getByText('目前狀態')).toBeVisible();
+    await expect(page.locator('p').filter({ hasText: /^待處理$/ })).toBeVisible();
   });
 
   test('訂單很多時先顯示最近 8 筆並可載入更多', async ({ page }) => {
@@ -235,10 +241,13 @@ test.describe('點餐紀錄', () => {
     await loginAs(page, staffUser.email);
     await page.goto('/orders/my');
 
-    expect(requestedAllOrders).toBe(true);
+    await expect.poll(() => requestedAllOrders).toBe(true);
     await expect(page.getByText('查看所有顧客的訂單狀態、付款結果與點餐明細。')).toBeVisible();
     await expect(page.getByText('GUEST01')).toBeVisible();
     await expect(page.getByText('UNPAID1')).toBeVisible();
+    await page.getByRole('button', { name: /訂單 GUEST01/ }).click();
+    await expect(page.getByText('0912345678')).toBeVisible();
+    await expect(page.locator('p').filter({ hasText: /^已完成$/ })).toBeVisible();
   });
 
   test('員工切換成一般使用者後不沿用完整訂單清單', async ({ page }) => {

@@ -79,10 +79,14 @@ export const router = createRouter({
 });
 
 router.beforeEach((to) => {
+  const authStore = useAuthStore();
+  if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
+    return '/products';
+  }
+
   const allowedRoles = to.meta.roles as RouteRole[] | undefined;
   if (!allowedRoles) return true;
 
-  const authStore = useAuthStore();
   const currentRole = getCurrentRouteRole(authStore.user?.role);
   if (canAccessRoute(allowedRoles, currentRole)) return true;
 

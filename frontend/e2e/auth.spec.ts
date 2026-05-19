@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clickLogout, mockAuth, mockProducts } from './helpers';
+import { clickLogout, mockAuth, mockProducts, openNavigation } from './helpers';
 
 test.describe('Authentication', () => {
   test('login page renders form', async ({ page }) => {
@@ -33,6 +33,10 @@ test.describe('Authentication', () => {
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL('/products');
     await expect(page.getByText('Latte')).toBeVisible();
+    await openNavigation(page);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '登入' })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '註冊' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '登出' })).toBeVisible();
   });
 
   test('logout navigates to login page', async ({ page }) => {
@@ -48,5 +52,22 @@ test.describe('Authentication', () => {
 
     await expect(page).toHaveURL('/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();
+  });
+
+  test('authenticated user cannot reopen login page', async ({ page }) => {
+    await mockAuth(page);
+    await mockProducts(page);
+    await page.goto('/login');
+    await page.fill('input[type="email"]', 'buyer@example.com');
+    await page.fill('input[type="password"]', 'password123');
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('/products');
+
+    await page.goto('/login');
+
+    await expect(page).toHaveURL('/products');
+    await openNavigation(page);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '登入' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '登出' })).toBeVisible();
   });
 });

@@ -158,6 +158,27 @@
 
         <!-- 展開詳情 -->
         <div v-if="openOrders.has(order.id)" class="border-t border-stone-200">
+          <div class="grid gap-3 border-b border-stone-100 bg-stone-50 p-4 sm:grid-cols-3">
+            <div>
+              <p class="m-0 text-xs font-bold text-stone-500">訂單查詢碼</p>
+              <p class="m-0 mt-1 font-bold text-amber-950">
+                {{ order.orderLookupCode || order.id.slice(-6) }}
+              </p>
+            </div>
+            <div>
+              <p class="m-0 text-xs font-bold text-stone-500">手機號碼</p>
+              <p class="m-0 mt-1 font-bold text-amber-950">
+                {{ displayPhone(order) }}
+              </p>
+            </div>
+            <div>
+              <p class="m-0 text-xs font-bold text-stone-500">目前狀態</p>
+              <p class="m-0 mt-1 font-bold text-amber-950">
+                {{ statusLabel(liveStatus(order)) }}
+              </p>
+            </div>
+          </div>
+
           <!-- 狀態步驟條 -->
           <div class="p-4" :class="stepperBgClass(liveStatus(order))">
             <div v-if="liveStatus(order) === 'cancelled'" class="rounded-md border border-red-200 bg-red-50 p-3 text-center">
@@ -502,6 +523,10 @@ function compactItems(order: Order) {
   const firstLabel = `${firstItem.name} x${firstItem.quantity}`;
   if (restItems.length === 0) return firstLabel;
   return `${firstLabel} 等 ${order.items.length} 項`;
+}
+
+function displayPhone(order: Order) {
+  return order.guestInfo?.phone || '會員訂單未留手機';
 }
 
 function setFilter(filter: OrderFilter) {
