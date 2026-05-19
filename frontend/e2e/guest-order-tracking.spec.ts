@@ -29,7 +29,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.fill('input[pattern]', '0912345678');
     await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
-    await expect(page.locator('p.text-red-700')).toBeVisible();
+    await expect(page.getByText('無此訂單，請確認查詢碼與手機號碼是否正確。')).toBeVisible();
   });
 
   test('查詢成功後顯示訂單狀態', async ({ page }) => {

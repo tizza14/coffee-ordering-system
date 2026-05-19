@@ -22,6 +22,12 @@ These are seed-script defaults for the live demo. **Do not reuse these credentia
 
 Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. Guests use **訂單追蹤** with lookup code and phone/token to check an order. Creating a member account is required for **點餐紀錄**, full historical records, and points.
 
+## UI Notes
+
+- Desktop uses the top navigation bar; mobile uses a right-side drawer menu opened from the header menu button.
+- The Checkout **前往付款** button is responsive: full-width on mobile for touch comfort, fixed width from `sm` screens upward. Member checkout and guest checkout share the same button sizing.
+- The Products **前往結帳** button also keeps a stable fixed size on wider screens and becomes full-width on narrow screens.
+
 ## Demo Flow
 
 1. Open the frontend and browse Products.

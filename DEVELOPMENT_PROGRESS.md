@@ -757,6 +757,40 @@ Verified:
 
 ---
 
+## Post-Ship Enhancements (2026-05-19 rev 7)
+
+### Mobile Navigation RWD
+
+- `App.vue` desktop keeps the horizontal top navigation.
+- Mobile header now shows brand + menu button, and navigation items are shown in a right-side drawer.
+- Drawer uses the same role-based navigation rules as desktop:
+  - Guest does not see 「點餐紀錄」.
+  - User sees member features only.
+  - Staff/Admin see staff/admin links.
+- Drawer closes after link click, logout, or route change.
+
+### Stable Checkout CTAs
+
+- Product page 「前往結帳」 keeps stable sizing: fixed width on wider screens and full-width on narrow screens.
+- Checkout page 「前往付款」 now uses one shared responsive style for both member and guest checkout:
+  - mobile: full-width, fixed height
+  - `sm` and above: fixed width and fixed height
+- This prevents CTA width changes when switching between 會員點餐 and 訪客點餐.
+
+### Documentation
+
+- README documents mobile drawer navigation and responsive checkout CTA behavior.
+- Render/Vercel deployment guide includes post-deploy UI validation items.
+- Specification now includes global navigation RWD rules and checkout CTA sizing requirements.
+
+Verified:
+
+- `frontend`: `npm.cmd run build`
+- `frontend`: `npm.cmd run e2e -- product-shop.spec.ts checkout.spec.ts auth.spec.ts --project=mobile-chrome`
+- `frontend`: `npm.cmd run e2e -- staff-admin.spec.ts sales-report.spec.ts --project=mobile-chrome`
+
+---
+
 ## Post-Ship Enhancements (2026-05-18 rev 4)
 
 ### CI/CD Gate + README Security Hardening

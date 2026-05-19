@@ -228,6 +228,7 @@
 </template>
 
 <script setup lang="ts">
+import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useNotificationStore } from '../../stores/notification.store';
@@ -249,6 +250,11 @@ const notificationsOpen = ref(true);
 const loadedLookupCode = ref('');
 const loadedPhone = ref('');
 const loadedGuestToken = ref('');
+
+interface ApiErrorBody {
+  code?: string;
+  message?: string;
+}
 
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
@@ -383,8 +389,15 @@ async function load() {
     loadedLookupCode.value = trackingLookupCode;
     loadedPhone.value = trackingPhone;
     loadedGuestToken.value = trackingGuestToken;
-  } catch {
-    errorMessage.value = '無法載入訪客訂單，請確認查詢碼與手機號碼是否正確。';
+  } catch (error) {
+    if (
+      axios.isAxiosError<ApiErrorBody>(error) &&
+      (error.response?.status === 404 || error.response?.data?.code === 'ORDER_NOT_FOUND')
+    ) {
+      errorMessage.value = '無此訂單，請確認查詢碼與手機號碼是否正確。';
+    } else {
+      errorMessage.value = '無法載入訪客訂單，請稍後再試。';
+    }
   } finally {
     isLoading.value = false;
   }

@@ -1321,10 +1321,19 @@ type PaymentStatus =
 ## User
 
 * 商品列表頁（`/products`）— 骨架屏載入、分類篩選
-* 購物車頁 / 結帳頁（`/checkout`）— 訪客/會員結帳
+* 購物車頁 / 結帳頁（`/checkout`）— 訪客/會員結帳；「前往付款」按鈕需手機滿版、平板/桌機固定寬度，切換訪客/會員模式時不得造成按鈕尺寸跳動
 * 點餐紀錄頁（`/orders/my`）— 可收合訂單卡、狀態步驟條、即時更新、推播通知開關
 * 訂單追蹤頁（`/orders/guest`）— 訪客輸入查詢碼、左右雙欄、狀態步驟條
 * 我的點數頁（`/points`）— 點數餘額、進度條、可兌換商品列表、點數紀錄歷史
+
+---
+
+## Global Navigation
+
+* 桌機版使用上方水平導覽列。
+* 手機版 Header 顯示品牌與選單按鈕，導覽項目改由右側抽屜選單呈現。
+* 導覽項目需依角色顯示：Guest 不顯示「點餐紀錄」；User 顯示自己的會員功能；Staff/Admin 顯示員工與管理功能。
+* 手機抽屜選單點擊導覽連結、登出或路由切換後應自動關閉。
 
 ---
 
@@ -2379,6 +2388,7 @@ And 不可扣除會員點數
 | NFR-011 | Deployability | Backend 必須可透過 Docker image 部署，runtime secrets 必須由環境變數注入。 |
 | NFR-012 | Portability | Local integration environment 應可透過 Docker Compose 啟動 Frontend + Backend + MongoDB。 |
 | NFR-013 | Deployability | Frontend container 必須使用靜態檔 server，並支援 SPA fallback 避免 route refresh 404。 |
+| NFR-014 | Usability | 手機版主要導覽需使用側邊抽屜，主要 CTA 按鈕需具備穩定尺寸與觸控友善寬度。 |
 
 ---
 
