@@ -59,7 +59,7 @@
                 v-else
                 class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
               >
-                目前已顯示這筆訂單狀態；修改查詢碼或手機號碼即可查詢其他訂單。
+                目前已顯示這筆訂單狀態；修改查詢碼或手機號碼後可重新查詢。
               </p>
               <p v-if="errorMessage" class="m-0 rounded-md border border-red-200 bg-red-50 p-3 font-semibold text-red-700">
                 {{ errorMessage }}
@@ -104,7 +104,7 @@
                       查看這筆訂單狀態
                     </button>
                     <button
-                      class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
+                      class="min-h-9 cursor-pointer rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:cursor-not-allowed disabled:opacity-50"
                       type="button"
                       :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
                       @click="fillMemberOrder(order)"
@@ -304,7 +304,7 @@
 
 <script setup lang="ts">
 import axios from 'axios';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { Order } from '../../api/order.api';
 import { useAuthStore } from '../../stores/auth.store';
@@ -359,7 +359,7 @@ const isCurrentQueryLoaded = computed(
 const shouldShowLookupButton = computed(() => !isCurrentQueryLoaded.value);
 const lookupButtonLabel = computed(() => {
   if (isLoading.value) return '查詢中...';
-  return orderStore.currentOrder ? '查詢其他訂單' : '查詢並顯示訂單狀態';
+  return '查詢並顯示訂單狀態';
 });
 const memberTrackingOrders = computed(() => orderStore.myOrders.slice(0, 5));
 
@@ -481,11 +481,13 @@ function displayPhone(order: Order) {
   return order.guestInfo?.phone || '會員訂單未留手機';
 }
 
-function fillMemberOrder(order: Order) {
+async function fillMemberOrder(order: Order) {
   if (!order.orderLookupCode || !order.guestInfo?.phone) return;
   lookupCode.value = order.orderLookupCode;
   phone.value = order.guestInfo.phone;
   guestToken.value = '';
+  await nextTick();
+  await load();
 }
 
 function selectMemberOrder(order: Order) {

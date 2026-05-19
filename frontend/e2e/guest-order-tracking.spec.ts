@@ -52,6 +52,34 @@ test.describe('訪客訂單追蹤', () => {
         })
       });
     });
+    await page.route(`${API}/orders/guest/MEM001**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'order-1',
+          orderLookupCode: 'MEM001',
+          guestInfo: { phone: '0912345678' },
+          status: 'ready',
+          paymentStatus: 'paid',
+          orderType: 'purchase',
+          items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+          totalAmount: 120,
+          paidAmount: 120,
+          pointsEarned: 1,
+          pointsRedeemed: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        })
+      });
+    });
+    await page.route(`${API}/notifications/guest/MEM001**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [] })
+      });
+    });
     await page.route(`${API}/auth/me`, async (route) => {
       await route.fulfill({
         status: 200,
@@ -73,6 +101,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.getByRole('button', { name: '複製到查詢欄' }).click();
     await expect(page.getByRole('textbox', { name: '訂單查詢碼' })).toHaveValue('MEM001');
     await expect(page.getByRole('textbox', { name: '手機號碼' })).toHaveValue('0912345678');
+    await expect(page.getByText('您的餐點已完成，請到櫃檯取餐。')).toBeVisible();
   });
 
   test('查詢碼不存在時顯示錯誤訊息', async ({ page }) => {
@@ -186,9 +215,9 @@ test.describe('訪客訂單追蹤', () => {
 
     await expect(page.getByText('ABC123')).toBeVisible();
     await expect(page.getByText('目前已顯示這筆訂單狀態')).toBeVisible();
-    await expect(page.getByRole('button', { name: '查詢其他訂單' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '查詢並顯示訂單狀態' })).toHaveCount(0);
     await page.fill('input:first-of-type', 'ABC124');
-    await expect(page.getByRole('button', { name: '查詢其他訂單' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '查詢並顯示訂單狀態' })).toBeVisible();
   });
 
   test('通知紀錄 404 時仍顯示訂單資料', async ({ page }) => {
