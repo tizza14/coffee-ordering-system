@@ -19,7 +19,7 @@ test.describe('結帳流程', () => {
 
   test('訪客訂單查詢頁可正常顯示', async ({ page }) => {
     await page.goto('/orders/guest');
-    await expect(page.getByRole('heading', { name: '訪客訂單追蹤' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '訂單追蹤' })).toBeVisible();
   });
 
   test('結帳頁會顯示購物車品項與總計', async ({ page }) => {

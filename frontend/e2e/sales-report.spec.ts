@@ -132,15 +132,16 @@ test.describe('銷售報表頁面', () => {
     await page.getByRole('button', { name: '自訂區間' }).click();
     await expect(page.getByRole('button', { name: '查詢' })).toBeDisabled();
   });
+});
 
-  test('管理者也可進入銷售報表', async ({ page: _page }) => {
-    const page2 = _page;
-    await mockAuth(page2, [adminUser]);
-    await mockProducts(page2);
-    await mockSalesReport(page2);
-    await loginAs(page2, 'admin@example.com');
-    await clickNavigationLink(page2, '銷售報表');
-    await expect(page2).toHaveURL('/staff/sales');
-    await expect(page2.getByRole('heading', { name: '銷售報表' })).toBeVisible();
+test.describe('銷售報表管理者存取', () => {
+  test('管理者也可進入銷售報表', async ({ page }) => {
+    await mockAuth(page, [adminUser]);
+    await mockProducts(page);
+    await mockSalesReport(page);
+    await loginAs(page, 'admin@example.com');
+    await clickNavigationLink(page, '銷售報表');
+    await expect(page).toHaveURL('/staff/sales');
+    await expect(page.getByRole('heading', { name: '銷售報表' })).toBeVisible();
   });
 });
