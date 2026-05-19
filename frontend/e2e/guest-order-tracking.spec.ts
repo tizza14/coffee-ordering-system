@@ -91,6 +91,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.fill('input[type="email"]', buyerUser.email);
     await page.fill('input[type="password"]', buyerUser.password);
     await page.click('button[type="submit"]');
+    await expect(page).toHaveURL('/products');
     await page.goto('/orders/guest');
 
     await expect(page.getByRole('heading', { name: '我的近期訂單' })).toBeVisible();
