@@ -364,6 +364,7 @@ async function load() {
   const trackingLookupCode = normalizedLookupCode.value;
   const trackingPhone = normalizedPhone.value;
   const trackingGuestToken = normalizedGuestToken.value;
+  const tokenForLookup = trackingPhone ? '' : trackingGuestToken;
   lookupCode.value = trackingLookupCode;
   phone.value = trackingPhone;
   guestToken.value = trackingGuestToken;
@@ -372,20 +373,20 @@ async function load() {
     const order = await orderStore.loadGuestOrder(
       trackingLookupCode,
       trackingPhone || undefined,
-      trackingGuestToken || undefined
+      tokenForLookup || undefined
     );
 
     try {
       await notificationStore.loadGuestNotifications(
         trackingLookupCode,
         trackingPhone || undefined,
-        trackingGuestToken || undefined
+        tokenForLookup || undefined
       );
     } catch {
       notificationStore.items = [];
     }
 
-    if (trackingGuestToken) {
+    if (trackingGuestToken && order.id) {
       socketStore.connect({
         orderLookupCode: trackingLookupCode,
         guestToken: trackingGuestToken
