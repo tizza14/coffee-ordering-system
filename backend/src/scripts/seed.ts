@@ -101,7 +101,7 @@ function buildHistoricalOrders(
       orders.push({
         ...(isGuest
           ? { guestInfo: { name: pick(GUEST_NAMES, r), phone: pick(GUEST_PHONES, r) } }
-          : { userId }),
+          : { userId, guestInfo: { phone: pick(GUEST_PHONES, r) } }),
         orderLookupCode: lookupCode(),
         items,
         totalAmount,
@@ -150,6 +150,7 @@ function buildTodayOrders(
     // 2. 製作中 — 會員
     {
       userId: memberId,
+      guestInfo: { phone: '0912345678' },
       orderLookupCode: 'DEMO0002',
       items: [{ productId: ameri._id, name: ameri.name, price: ameri.price, quantity: 1 }],
       totalAmount: ameri.price,
@@ -171,6 +172,7 @@ function buildTodayOrders(
     // 4. 已完成今日早些時候 — 會員
     {
       userId: memberId,
+      guestInfo: { phone: '0912345678' },
       orderLookupCode: 'DEMO0004',
       items: [{ productId: latte._id, name: latte.name, price: latte.price, quantity: 1 }],
       totalAmount: latte.price,
@@ -180,6 +182,7 @@ function buildTodayOrders(
     // 5. 店員自己下的訂單 — 今日已完成
     {
       userId: staffId,
+      guestInfo: { phone: '0923456789' },
       orderLookupCode: 'DEMO0005',
       items: [
         { productId: ameri._id, name: ameri.name, price: ameri.price, quantity: 1 },

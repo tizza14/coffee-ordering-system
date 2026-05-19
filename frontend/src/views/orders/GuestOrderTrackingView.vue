@@ -1,160 +1,149 @@
 <template>
-  <section
-    class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6 lg:grid-cols-2"
-  >
-    <!-- 左欄：訪客訂單追蹤 -->
-    <div class="grid content-start gap-4">
-      <header>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">訪客訂單追蹤</h1>
-        <p class="m-0 text-stone-600">輸入查詢碼與手機號碼，立即顯示訂單進度與點餐明細。</p>
+  <section class="min-h-[calc(100vh-64px)] bg-amber-50 p-4 sm:p-6">
+    <div class="mx-auto grid max-w-6xl content-start gap-5">
+      <header class="grid gap-2">
+        <p class="m-0 text-sm font-extrabold uppercase text-amber-700">Order Tracking</p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950 sm:text-3xl">訂單追蹤</h1>
+        <p class="m-0 max-w-3xl text-stone-600">
+          訪客可用查詢碼與手機查詢；會員登入後可直接查看自己的近期訂單，並快速帶入查詢。
+        </p>
       </header>
 
-      <form
-        class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
-        @submit.prevent="load"
-      >
-        <div class="rounded-md border border-amber-100 bg-amber-50 p-3">
-          <p class="m-0 text-sm font-bold text-amber-950">查詢後會顯示</p>
-          <ul class="m-0 mt-2 grid list-disc gap-1 pl-5 text-sm text-stone-700">
-            <li>目前訂單狀態與取餐進度</li>
-            <li>點餐明細與總金額</li>
-            <li>店家更新狀態後的通知紀錄</li>
-          </ul>
-        </div>
-
-        <label class="grid gap-1.5 font-semibold">
-          訂單查詢碼
-          <input
-            v-model="lookupCode"
-            class="min-h-10 rounded-md border border-stone-400 px-2.5"
-            placeholder="例如 DEMO0001"
-            required
-          />
-        </label>
-        <label class="grid gap-1.5 font-semibold">
-          手機號碼
-          <input
-            v-model="phone"
-            class="min-h-10 rounded-md border border-stone-400 px-2.5"
-            pattern="09[0-9]{8}"
-            placeholder="例如 0912345678"
-            :required="!normalizedGuestToken"
-          />
-        </label>
-        <p class="m-0 text-xs text-stone-500">
-          查詢碼在付款完成頁顯示；手機號碼需與下單時填寫的號碼相同。
-        </p>
-        <button
-          v-if="shouldShowLookupButton"
-          class="min-h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
-          type="submit"
-          :disabled="isLoading"
-        >
-          {{ lookupButtonLabel }}
-        </button>
-        <p
-          v-else
-          class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
-        >
-          目前已顯示這筆訂單狀態；若要查詢其他訂單，請修改查詢碼或手機號碼。
-        </p>
-        <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
-          {{ errorMessage }}
-        </p>
-      </form>
-
-      <section
-        v-if="authStore.user?.role === 'user'"
-        class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
-      >
-        <div>
-          <h2 class="m-0 text-lg font-bold text-amber-950">我的訂單查詢資訊</h2>
-          <p class="m-0 text-sm text-stone-600">
-            登入後可直接查看你近期會員訂單的查詢碼、手機號碼與目前狀態。
-          </p>
-        </div>
-        <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
-          載入會員訂單中...
-        </p>
-        <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
-          目前沒有會員訂單。
-        </p>
-        <ul v-else class="grid list-none gap-2 p-0">
-          <li
-            v-for="order in memberTrackingOrders"
-            :key="order.id"
-            class="grid gap-2 rounded-md border border-stone-200 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+        <div class="grid content-start gap-4">
+          <form
+            class="grid gap-4 rounded-lg border border-stone-300 bg-white p-5"
+            @submit.prevent="load"
           >
-            <div class="grid gap-1">
-              <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
-              <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
-              <span class="text-sm text-stone-600">目前狀態：{{ statusLabel(order.status) }}</span>
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="m-0 text-lg font-bold text-amber-950">快速查詢</h2>
+                <p class="m-0 text-sm text-stone-600">輸入查詢碼與手機號碼，核對後顯示訂單狀態。</p>
+              </div>
+              <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
+                訪客 / 會員
+              </span>
             </div>
+
+            <div class="grid gap-3">
+              <label class="grid gap-1.5 font-semibold">
+                訂單查詢碼
+                <input
+                  v-model="lookupCode"
+                  class="min-h-11 rounded-md border border-stone-400 px-3"
+                  placeholder="例如 DEMO0001"
+                  required
+                />
+              </label>
+              <label class="grid gap-1.5 font-semibold">
+                手機號碼
+                <input
+                  v-model="phone"
+                  class="min-h-11 rounded-md border border-stone-400 px-3"
+                  pattern="09[0-9]{8}"
+                  placeholder="例如 0912345678"
+                  :required="!normalizedGuestToken"
+                />
+              </label>
+            </div>
+
+            <div class="rounded-md border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
+              <p class="m-0 font-bold text-amber-950">查詢會顯示</p>
+              <p class="m-0 mt-1">目前狀態、取餐進度、餐點明細與通知紀錄。手機號碼輸入錯誤時會顯示無此訂單。</p>
+            </div>
+
             <button
-              class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
-              type="button"
-              :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
-              @click="fillMemberOrder(order)"
+              v-if="shouldShowLookupButton"
+              class="h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
+              type="submit"
+              :disabled="isLoading"
             >
-              帶入查詢
+              {{ lookupButtonLabel }}
             </button>
-          </li>
-        </ul>
-      </section>
+            <p
+              v-else
+              class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
+            >
+              目前已顯示這筆訂單狀態；修改查詢碼或手機號碼即可查詢其他訂單。
+            </p>
+            <p v-if="errorMessage" class="m-0 rounded-md border border-red-200 bg-red-50 p-3 font-semibold text-red-700">
+              {{ errorMessage }}
+            </p>
+          </form>
 
-      <!-- 通知紀錄 -->
-      <section
-        v-if="notificationStore.items.length > 0"
-        class="rounded-lg border border-stone-300 bg-white"
-      >
-        <button
-          class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg px-4 text-left font-bold text-amber-950"
-          type="button"
-          :aria-expanded="notificationsOpen"
-          @click="notificationsOpen = !notificationsOpen"
-        >
-          <span>
-            通知紀錄
-            <span class="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
-              {{ notificationStore.items.length }}
-            </span>
-          </span>
-          <span class="text-sm text-stone-500">{{ notificationsOpen ? '收合' : '展開' }}</span>
-        </button>
-        <ul
-          v-if="notificationsOpen"
-          class="grid list-none gap-2 border-t border-stone-200 p-3"
-        >
-          <li
-            v-for="notification in notificationStore.items"
-            :key="notification.id"
-            class="flex items-start gap-3 rounded-lg border border-stone-200 bg-white p-3"
+          <section
+            v-if="authStore.user?.role === 'user'"
+            class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
           >
-            <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
-            <div class="grid gap-0.5">
-              <strong class="text-sm text-amber-950">{{ notification.message }}</strong>
-              <span class="text-xs text-stone-400">{{ formatTime(notification.createdAt) }}</span>
+            <div>
+              <h2 class="m-0 text-lg font-bold text-amber-950">我的近期訂單</h2>
+              <p class="m-0 text-sm text-stone-600">直接查看會員訂單查詢碼、手機號碼與目前狀態。</p>
             </div>
-          </li>
-        </ul>
-      </section>
-    </div>
+            <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
+              載入會員訂單中...
+            </p>
+            <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
+              目前沒有會員訂單。
+            </p>
+            <ul v-else class="grid list-none gap-2 p-0">
+              <li
+                v-for="order in memberTrackingOrders"
+                :key="order.id"
+                class="grid gap-3 rounded-md border border-stone-200 p-3"
+              >
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="grid gap-1">
+                    <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
+                    <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
+                  </div>
+                  <span :class="statusBadgeClass(order.status)">
+                    {{ statusLabel(order.status) }}
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    class="min-h-9 rounded-md bg-amber-900 px-3 text-sm font-bold text-white"
+                    type="button"
+                    @click="selectMemberOrder(order)"
+                  >
+                    查看狀態
+                  </button>
+                  <button
+                    class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
+                    type="button"
+                    :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
+                    @click="fillMemberOrder(order)"
+                  >
+                    帶入查詢
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </section>
+        </div>
 
-    <!-- 右欄：訂單狀態 -->
-    <div class="grid content-start gap-4">
-      <header>
-        <h2 class="m-0 text-2xl font-bold text-amber-950">訂單狀態</h2>
-        <p class="m-0 text-stone-600">查詢後即時顯示訂單進度與明細。</p>
-      </header>
+        <div class="grid content-start gap-4">
+          <section class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="m-0 text-xl font-bold text-amber-950">目前訂單狀態</h2>
+                <p class="m-0 text-sm text-stone-600">查詢或選取訂單後，這裡會固定顯示進度與明細。</p>
+              </div>
+              <span
+                v-if="orderStore.currentOrder"
+                :class="statusBadgeClass(liveCurrentStatus)"
+              >
+                {{ statusLabel(liveCurrentStatus) }}
+              </span>
+            </div>
 
       <div
         v-if="!orderStore.currentOrder"
-        class="grid min-h-40 place-items-center rounded-lg border border-dashed border-stone-300 bg-white p-6 text-center text-stone-500"
+        class="grid min-h-52 place-items-center rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-stone-500"
       >
         <div>
-          <p class="m-0 text-2xl">📋</p>
           <p class="m-0 mt-2 font-semibold">查詢結果會顯示在這裡</p>
-          <p class="m-0 text-sm">送出查詢後，這裡會顯示進度條、餐點明細與通知紀錄。</p>
+          <p class="m-0 text-sm">送出查詢或從「我的近期訂單」選取一筆訂單。</p>
         </div>
       </div>
 
@@ -164,9 +153,20 @@
           class="rounded-lg border p-5 transition-colors"
           :class="stepperContainerClass"
         >
-          <p class="m-0 mb-4 text-xs font-bold uppercase tracking-widest opacity-60">
-            訂單 {{ orderStore.currentOrder.orderLookupCode }}
-          </p>
+          <div class="mb-4 grid gap-2 rounded-md bg-white/70 p-3 sm:grid-cols-3">
+            <p class="m-0">
+              <span class="block text-xs font-bold text-stone-500">訂單查詢碼</span>
+              <strong class="text-amber-950">{{ displayOrderCode(orderStore.currentOrder) }}</strong>
+            </p>
+            <p class="m-0">
+              <span class="block text-xs font-bold text-stone-500">手機號碼</span>
+              <strong class="text-amber-950">{{ displayPhone(orderStore.currentOrder) }}</strong>
+            </p>
+            <p class="m-0">
+              <span class="block text-xs font-bold text-stone-500">付款狀態</span>
+              <strong class="text-amber-950">{{ paymentLabel(orderStore.currentOrder.paymentStatus) }}</strong>
+            </p>
+          </div>
 
           <!-- 已取消特殊狀態 -->
           <div
@@ -263,6 +263,45 @@
           </div>
         </div>
       </template>
+          </section>
+
+          <section
+            v-if="notificationStore.items.length > 0"
+            class="rounded-lg border border-stone-300 bg-white"
+          >
+            <button
+              class="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg px-4 text-left font-bold text-amber-950"
+              type="button"
+              :aria-expanded="notificationsOpen"
+              @click="notificationsOpen = !notificationsOpen"
+            >
+              <span>
+                通知紀錄
+                <span class="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+                  {{ notificationStore.items.length }}
+                </span>
+              </span>
+              <span class="text-sm text-stone-500">{{ notificationsOpen ? '收合' : '展開' }}</span>
+            </button>
+            <ul
+              v-if="notificationsOpen"
+              class="grid list-none gap-2 border-t border-stone-200 p-3"
+            >
+              <li
+                v-for="notification in notificationStore.items"
+                :key="notification.id"
+                class="flex items-start gap-3 rounded-lg border border-stone-200 bg-white p-3"
+              >
+                <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
+                <div class="grid gap-0.5">
+                  <strong class="text-sm text-amber-950">{{ notification.message }}</strong>
+                  <span class="text-xs text-stone-400">{{ formatTime(notification.createdAt) }}</span>
+                </div>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -306,6 +345,9 @@ interface CodedError {
 
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
+);
+const liveCurrentStatus = computed(
+  () => currentStatus.value ?? orderStore.currentOrder?.status ?? 'pending'
 );
 const latestNotification = computed(() => notificationStore.items[0]);
 const normalizedLookupCode = computed(() => lookupCode.value.trim().toUpperCase());
@@ -414,6 +456,25 @@ function statusLabel(status: Order['status']) {
   return labels[status];
 }
 
+function statusBadgeClass(status: Order['status']) {
+  const base = 'rounded-full px-2.5 py-1 text-xs font-extrabold';
+  if (status === 'ready') return `${base} bg-emerald-600 text-white`;
+  if (status === 'completed') return `${base} bg-emerald-100 text-emerald-800`;
+  if (status === 'cancelled') return `${base} bg-red-100 text-red-700`;
+  return `${base} bg-amber-100 text-amber-900`;
+}
+
+function paymentLabel(status: Order['paymentStatus']) {
+  const labels: Record<Order['paymentStatus'], string> = {
+    unpaid: '未付款',
+    payment_pending: '付款處理中',
+    paid: '已付款',
+    payment_failed: '付款失敗',
+    refunded: '已退款'
+  };
+  return labels[status];
+}
+
 function displayOrderCode(order: Order) {
   if (order.orderLookupCode) return order.orderLookupCode;
   if (order.orderType === 'redeem') return '兌換訂單';
@@ -428,6 +489,17 @@ function fillMemberOrder(order: Order) {
   if (!order.orderLookupCode || !order.guestInfo?.phone) return;
   lookupCode.value = order.orderLookupCode;
   phone.value = order.guestInfo.phone;
+  guestToken.value = '';
+}
+
+function selectMemberOrder(order: Order) {
+  orderStore.currentOrder = order;
+  notificationStore.items = [];
+  loadedLookupCode.value = order.orderLookupCode ?? '';
+  loadedPhone.value = order.guestInfo?.phone ?? '';
+  loadedGuestToken.value = '';
+  if (order.orderLookupCode) lookupCode.value = order.orderLookupCode;
+  if (order.guestInfo?.phone) phone.value = order.guestInfo.phone;
   guestToken.value = '';
 }
 

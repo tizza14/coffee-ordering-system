@@ -791,6 +791,38 @@ Verified:
 
 ---
 
+## Post-Ship Enhancements (2026-05-19 rev 8)
+
+### Member Tracking And Order Codes
+
+- Member checkout now collects a pickup phone so member orders can show phone information in tracking and order history.
+- Member purchase orders and redeem orders generate customer-facing `orderLookupCode`.
+- `/orders/guest` now also serves logged-in `user` customers by listing their recent member order lookup code, pickup phone, and current status, with a "帶入查詢" action.
+- `/orders/guest` was redesigned into a tracking workspace: quick lookup on the left, member recent orders below it, and a persistent current-order status panel with lookup code, phone, payment state, stepper, items, and notifications.
+- The UI no longer falls back to displaying internal Mongo order IDs as customer-facing order numbers. Orders without lookup codes show neutral labels such as `未產生查詢碼` or `兌換訂單`.
+- Guest tracking clears stale guest tracking state after lookup failure so old seeded lookup codes do not reappear after refresh.
+
+### Points Redemption UX
+
+- After point redemption, the points page shows where points went, remaining points, the created redeem order, and a direct link to order history for tracking.
+- Redeem orders in order history show `點數兌換` and consumed points.
+
+### Seed Refresh
+
+- Production Atlas `coffee_ordering` seed was refreshed.
+- Demo guest lookup examples:
+  - `DEMO0001` / `0912345678`
+  - `DEMO0003` / `0934567890`
+
+Verified:
+
+- `frontend`: `npm.cmd run build`
+- `frontend`: `npm.cmd run e2e -- guest-order-tracking.spec.ts my-orders.spec.ts points.spec.ts`
+- `frontend`: `npm.cmd run e2e -- auth.spec.ts`
+- `backend`: `npm.cmd run seed` against Atlas `coffee_ordering`
+
+---
+
 ## Post-Ship Enhancements (2026-05-18 rev 4)
 
 ### CI/CD Gate + README Security Hardening

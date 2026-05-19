@@ -20,23 +20,24 @@ These are seed-script defaults for the live demo. **Do not reuse these credentia
 | Staff | staff@demo.com | demo1234 |
 | Member | user@demo.com | demo1234 |
 
-Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. Guests use **訂單追蹤** with lookup code and phone/token to check an order. Creating a member account is required for **點餐紀錄**, full historical records, and points.
+Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. Guests use **訂單追蹤** with lookup code and phone/token to check an order. Members enter a pickup phone during checkout; member orders also receive a lookup code and appear in **訂單追蹤** after login with lookup code, phone, and current status. Creating a member account is required for **點餐紀錄**, full historical records, and points.
 
 ## UI Notes
 
 - Desktop uses the top navigation bar; mobile uses a right-side drawer menu opened from the header menu button.
 - The Checkout **前往付款** button is responsive: full-width on mobile for touch comfort, fixed width from `sm` screens upward. Member checkout and guest checkout share the same button sizing.
 - The Products **前往結帳** button also keeps a stable fixed size on wider screens and becomes full-width on narrow screens.
+- Internal Mongo order IDs are not shown as customer-facing order numbers. UI displays `orderLookupCode`; orders without one show a neutral label such as `未產生查詢碼` or `兌換訂單`.
 
 ## Demo Flow
 
 1. Open the frontend and browse Products.
 2. Add one or more items to the cart.
 3. Go to Checkout.
-4. For guest checkout, fill name, phone, and optional email. No account is required.
+4. For guest checkout, fill name, phone, and optional email. For member checkout, fill the pickup phone.
 5. Submit the order and continue through the payment confirmation flow.
 6. For guest orders, open **訂單追蹤** and enter the lookup code and phone manually.
-7. Use Member login to open **點餐紀錄** for that member's own orders.
+7. Use Member login to open **訂單追蹤** or **點餐紀錄** for that member's own orders. The tracking page shows the member order lookup code, pickup phone, and current status.
 8. Use Staff/Admin login to open **點餐紀錄** for all orders, or **員工訂單** to process paid pending orders in order: `pending → accepted → preparing → ready → completed`.
 9. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
 10. Use Admin login to manage products and user roles.
@@ -119,6 +120,13 @@ The seed script creates 3 demo accounts, 10 products, and **60 days of historica
 
 Seed clears all existing users, products, and orders before inserting.
 
+Current seeded guest lookup examples:
+
+| Lookup Code | Phone | Status |
+| --- | --- | --- |
+| `DEMO0001` | `0912345678` | 待處理 |
+| `DEMO0003` | `0934567890` | 可取餐 |
+
 ### Seed against local MongoDB
 
 Make sure local MongoDB is running, then:
@@ -175,4 +183,4 @@ npm run build
 - Render backend `MONGODB_URI` must include the database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
 - Demo payment uses `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
 - Staff order status transitions are strict. The UI only shows valid next actions, and the backend rejects invalid transitions with `INVALID_STATUS_TRANSITION`.
-- Access rules: guests do not have a **點餐紀錄** page and can only track their own order through **訂單追蹤**; members see only their own **點餐紀錄**; staff/admin can see complete order history.
+- Access rules: guests do not have a **點餐紀錄** page and can only track their own order through **訂單追蹤**; members see their own lookup code, pickup phone, status, and **點餐紀錄**; staff/admin can see complete order history.

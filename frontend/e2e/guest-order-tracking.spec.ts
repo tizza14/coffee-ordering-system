@@ -14,9 +14,9 @@ test.describe('訪客訂單追蹤', () => {
   test('頁面顯示查詢表單', async ({ page }) => {
     await page.goto('/orders/guest');
 
-    await expect(page.getByRole('heading', { name: '訪客訂單追蹤' })).toBeVisible();
-    await expect(page.getByText('查詢後會顯示')).toBeVisible();
-    await expect(page.getByText('目前訂單狀態與取餐進度')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '訂單追蹤' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '快速查詢' })).toBeVisible();
+    await expect(page.getByText('查詢會顯示')).toBeVisible();
     await expect(page.getByText('訂單查詢碼')).toBeVisible();
     await expect(page.getByText('手機號碼', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: '查詢並顯示訂單狀態' })).toBeVisible();
@@ -66,13 +66,13 @@ test.describe('訪客訂單追蹤', () => {
     await page.click('button[type="submit"]');
     await page.goto('/orders/guest');
 
-    await expect(page.getByText('我的訂單查詢資訊')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '我的近期訂單' })).toBeVisible();
     await expect(page.getByText('訂單 MEM001')).toBeVisible();
     await expect(page.getByText('手機號碼：0912345678')).toBeVisible();
-    await expect(page.getByText('目前狀態：可取餐')).toBeVisible();
+    await expect(page.getByText('可取餐')).toBeVisible();
     await page.getByRole('button', { name: '帶入查詢' }).click();
-    await expect(page.locator('input:first-of-type')).toHaveValue('MEM001');
-    await expect(page.locator('input[pattern]')).toHaveValue('0912345678');
+    await expect(page.getByRole('textbox', { name: '訂單查詢碼' })).toHaveValue('MEM001');
+    await expect(page.getByRole('textbox', { name: '手機號碼' })).toHaveValue('0912345678');
   });
 
   test('查詢碼不存在時顯示錯誤訊息', async ({ page }) => {
