@@ -133,6 +133,7 @@ export const useOrderStore = defineStore('orders', {
       phone?: string,
       guestToken?: string
     ) {
+      this.currentOrder = null;
       this.currentOrder = await orderApi.getGuestOrder(
         lookupCode,
         phone,

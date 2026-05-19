@@ -256,6 +256,10 @@ interface ApiErrorBody {
   message?: string;
 }
 
+interface CodedError {
+  code?: string;
+}
+
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
 );
@@ -390,10 +394,12 @@ async function load() {
     loadedPhone.value = trackingPhone;
     loadedGuestToken.value = trackingGuestToken;
   } catch (error) {
-    if (
+    const isOrderNotFound =
       axios.isAxiosError<ApiErrorBody>(error) &&
-      (error.response?.status === 404 || error.response?.data?.code === 'ORDER_NOT_FOUND')
-    ) {
+      (error.response?.status === 404 || error.response?.data?.code === 'ORDER_NOT_FOUND');
+    const isEmptyResult = (error as CodedError).code === 'ORDER_NOT_FOUND';
+
+    if (isOrderNotFound || isEmptyResult) {
       errorMessage.value = '無此訂單，請確認查詢碼與手機號碼是否正確。';
     } else {
       errorMessage.value = '無法載入訪客訂單，請稍後再試。';

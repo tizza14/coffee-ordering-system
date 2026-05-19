@@ -44,6 +44,10 @@ export interface OrderListResponse {
   data: Order[];
 }
 
+interface ApiError extends Error {
+  code?: string;
+}
+
 export interface TodayOrderSummary {
   date: string;
   timezone: string;
@@ -172,7 +176,7 @@ export async function getGuestOrder(
   const normalizedLookupCode = lookupCode.trim().toUpperCase();
   const normalizedPhone = phone?.trim();
   const normalizedGuestToken = guestToken?.trim();
-  const response = await http.get<Order>(
+  const response = await http.get<Order | Order[] | OrderListResponse>(
     `/orders/guest/${encodeURIComponent(normalizedLookupCode)}`,
     {
       params: normalizedPhone ? { phone: normalizedPhone } : undefined,
@@ -181,5 +185,18 @@ export async function getGuestOrder(
         : undefined
     }
   );
-  return response.data;
+  const payload = response.data;
+  const order = Array.isArray(payload)
+    ? payload[0]
+    : Array.isArray((payload as OrderListResponse).data)
+      ? (payload as OrderListResponse).data[0]
+      : (payload as Order);
+
+  if (!order?.id) {
+    const error = new Error('Order not found') as ApiError;
+    error.code = 'ORDER_NOT_FOUND';
+    throw error;
+  }
+
+  return order;
 }
