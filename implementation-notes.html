@@ -74,7 +74,7 @@
     <h3>目錄</h3>
     <ol>
       <li><a href="#summary">整體實作狀態</a></li>
-      <li><a href="#deviations">偏離規格之處（已修正）</a></li>
+      <li><a href="#deviations">偏離規格之處</a></li>
       <li><a href="#decisions">設計決定（規格含糊處的選擇）</a></li>
       <li><a href="#tradeoffs">折衷考量</a></li>
       <li><a href="#additions">規格外的防禦性實作</a></li>
@@ -86,24 +86,25 @@
   <!-- ─── 1. Summary ─── -->
   <h2 id="summary">1. 整體實作狀態</h2>
 
-  <p>規格書 Phase 1–7 的功能全數實作完成，CI/CD、容器化、Swagger API 文件與 Seed 腳本皆已就緒。
+  <p>規格書 Phase 1–7 的功能全數實作完成，另追加 Refresh Token 與點數歷史 API。
+  CI/CD、容器化、Swagger API 文件與 Seed 腳本皆已就緒。
   下表為模組層級的快速確認：</p>
 
   <table>
     <tr><th>模組</th><th>狀態</th><th>備註</th></tr>
-    <tr><td>Auth（JWT, RBAC）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>bcrypt hash, JWT, getMe, 角色守衛</td></tr>
+    <tr><td>Auth（JWT, RBAC）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>bcrypt hash、JWT、getMe（扁平格式）、Refresh Token rotation、角色守衛</td></tr>
     <tr><td>Product CRUD</td><td><span class="badge badge-ok">✓ 完成</span></td><td>分類篩選、isRedeemable 設定</td></tr>
-    <tr><td>Order（member / guest / redeem）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>所有訂單類型皆產生 orderLookupCode</td></tr>
+    <tr><td>Order（member / guest / redeem）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>所有訂單類型皆產生 orderLookupCode；statusHistory 稽核軌跡</td></tr>
     <tr><td>Payment（Line Pay）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>HMAC 簽章、冪等 confirm、金額驗證</td></tr>
-    <tr><td>Points（入帳 / 兌換 / 退回）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>原子 MongoDB 操作防 race condition</td></tr>
-    <tr><td>Notification（REST + Socket.io）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>回應格式與規格有差異，見第 2 節</td></tr>
+    <tr><td>Points（入帳 / 兌換 / 退回 / 歷史）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>原子 MongoDB 操作防 race condition；<code>GET /api/points/history</code> 獨立端點</td></tr>
+    <tr><td>Notification（REST + Socket.io）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>會員與訪客格式皆符合規格（D-01、D-02 已修正）</td></tr>
     <tr><td>Web Push</td><td><span class="badge badge-ok">✓ 完成</span></td><td>VAPID 未設定時靜默略過</td></tr>
     <tr><td>Sales Report</td><td><span class="badge badge-ok">✓ 完成</span></td><td>日/週/月/年/自訂區間，台北時區</td></tr>
     <tr><td>Staff / Admin 頁面</td><td><span class="badge badge-ok">✓ 完成</span></td><td>訂單管理、商品 CRUD、使用者管理</td></tr>
     <tr><td>WebSocket rooms</td><td><span class="badge badge-ok">✓ 完成</span></td><td>room:user / room:order / room:staff</td></tr>
     <tr><td>RWD（桌機 + 手機）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Tailwind 響應式 utilities，Playwright 雙裝置 E2E</td></tr>
     <tr><td>容器化（Docker）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Dockerfile × 2, Nginx, docker-compose, .dockerignore</td></tr>
-    <tr><td>CI（GitHub Actions）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend + frontend 平行 job；AWS deploy 已暫時註解</td></tr>
+    <tr><td>CI（GitHub Actions）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend + frontend 平行 job；AWS deploy 已暫時註解（見 D-04）</td></tr>
     <tr><td>Swagger API 文件</td><td><span class="badge badge-ok">✓ 完成</span></td><td>/api-docs（swagger-jsdoc + swagger-ui-express）</td></tr>
     <tr><td>Seed 腳本</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend/src/scripts/seed.ts，60 天歷史訂單</td></tr>
   </table>
@@ -122,10 +123,10 @@
     <pre>{ "user": { "id": "...", "name": "Alice", "email": "...", "role": "user", "points": 3 } }</pre>
     <p><strong>修正內容（2026-05-19）：</strong></p>
     <ul>
-      <li><code>backend/src/modules/auth/auth.controller.ts</code> — <code>getMe</code> 改為直接回傳扁平物件（移除 <code>user:</code> 包裝層）</li>
+      <li><code>auth.controller.ts</code> — <code>getMe</code> 移除 <code>user:</code> 包裝層，直接回傳扁平物件</li>
       <li><code>frontend/src/api/auth.api.ts</code> — <code>getMe()</code> 型別改為 <code>http.get&lt;AuthUser&gt;</code></li>
       <li><code>frontend/src/stores/auth.store.ts</code> — <code>refreshUser()</code> 直接使用 <code>result</code> 而非 <code>result.user</code></li>
-      <li>所有 E2E mock 與 Jest 測試的 <code>/auth/me</code> 回應一併更新</li>
+      <li>所有 E2E mock（<code>my-orders.spec.ts</code>、<code>points.spec.ts</code> 等）與後端 <code>rbac.spec.ts</code> 斷言一併更新</li>
     </ul>
   </div>
 
@@ -140,11 +141,11 @@
     <pre>{ "data": [ {...}, ... ] }</pre>
     <p><strong>修正內容（2026-05-19）：</strong></p>
     <ul>
-      <li><code>backend/src/modules/notifications/notification.service.ts</code> — <code>listGuestNotifications(lookupCode, orderId)</code> 新增 <code>orderId</code> 參數，回傳 <code>{ orderId, notifications: [...] }</code></li>
-      <li><code>backend/src/modules/notifications/notification.controller.ts</code> — 從 <code>getGuestOrder()</code> 取出 <code>order.id</code> 傳入服務層</li>
-      <li><code>frontend/src/api/notification.api.ts</code> — 新增 <code>GuestNotificationListResponse</code> 介面，<code>getGuestNotifications()</code> 回傳新格式</li>
+      <li><code>notification.service.ts</code> — <code>listGuestNotifications()</code> 新增 <code>orderId</code> 參數，回傳 <code>{ orderId, notifications: [...] }</code></li>
+      <li><code>notification.controller.ts</code> — 從 <code>getGuestOrder()</code> 取出 <code>order.id</code> 傳入服務層</li>
+      <li><code>frontend/src/api/notification.api.ts</code> — 新增 <code>GuestNotificationListResponse</code> 介面</li>
       <li><code>frontend/src/stores/notification.store.ts</code> — <code>loadGuestNotifications()</code> 改讀 <code>result.notifications</code></li>
-      <li>Jest spec 與 Vitest spec 的 assertion 一併更新</li>
+      <li>後端 <code>e2e.spec.ts</code>、前端 Vitest <code>notification.store.spec.ts</code>、E2E <code>guest-order-tracking.spec.ts</code> 全數更新</li>
     </ul>
   </div>
 
@@ -156,13 +157,14 @@
     <p><strong>原先實作（已取代）：</strong>
     前端 <code>PointsView.vue</code> 從 <code>orderStore.myOrders</code>
     篩選 <code>pointsEarned &gt; 0</code> 或 <code>pointsRedeemed &gt; 0</code> 的訂單在前端衍生，
-    受前端分頁上限（8 筆/次）制約。</p>
+    受前端分頁上限（8 筆/次）制約，歷史紀錄不完整。</p>
     <p><strong>修正內容（2026-05-19）：</strong></p>
     <ul>
-      <li>新增 <code>GET /api/points/history</code> 端點（需登入），回傳 <code>{ data: [{ orderId, orderLookupCode, orderType, delta, createdAt }] }</code>；<code>delta</code> 正數為獲得點數、負數為兌換扣除</li>
-      <li>新建 <code>backend/src/modules/points/point.controller.ts</code> 與 <code>point.routes.ts</code>，掛載於 <code>/api/points</code>；附 Swagger JSDoc 文件</li>
-      <li><code>PointsView.vue</code> 改由 <code>frontend/src/api/points.api.ts</code> <code>getPointHistory()</code> 取得資料，移除依賴 <code>orderStore</code> 的 computed</li>
-      <li>Playwright E2E 對應補上 <code>GET /api/points/history</code> mock（<code>points.spec.ts</code>、<code>points-redeem.spec.ts</code>）</li>
+      <li>新增 <code>GET /api/points/history</code>（需登入），回傳 <code>{ data: [{ orderId, orderLookupCode, orderType, delta, createdAt }] }</code>；<code>delta</code> 正數為獲得點數、負數為兌換扣除</li>
+      <li>新建 <code>point.controller.ts</code> 與 <code>point.routes.ts</code>，掛載於 <code>/api/points</code>；附 Swagger JSDoc 文件</li>
+      <li><code>PointsView.vue</code> 改由 <code>frontend/src/api/points.api.ts</code> 的 <code>getPointHistory()</code> 取得資料，移除依賴 <code>orderStore</code> 的 computed</li>
+      <li>Playwright E2E（<code>points.spec.ts</code>、<code>points-redeem.spec.ts</code>）補上 <code>GET /api/points/history</code> mock</li>
+      <li><code>point.spec.ts</code> 新增 4 個 test case（空陣列、獲得點數、兌換負 delta、401 未授權），全數通過</li>
     </ul>
   </div>
 
@@ -172,10 +174,8 @@
       D-04：AWS deploy workflow 暫時停用
     </h3>
     <p><strong>規格：</strong> <code>.github/workflows/deploy.yml</code> 含 ECR + EC2 + S3 + CloudFront 部署步驟。</p>
-    <p><strong>現狀：</strong> deploy-backend 與 deploy-frontend 兩個 job 已全數註解，
-    保留 ci check job 確保 CI 仍執行。</p>
-    <p><strong>原因：</strong> AWS Secrets 尚未在 GitHub 倉庫設定；
-    保留程式碼只需取消註解即可重新啟用。</p>
+    <p><strong>現狀：</strong> <code>deploy-backend</code> 與 <code>deploy-frontend</code> 兩個 job 已全數以 <code>#</code> 註解，保留 <code>ci</code> check job 確保 CI 仍執行。</p>
+    <p><strong>原因：</strong> AWS Secrets 尚未在 GitHub 倉庫設定；保留程式碼只需取消註解即可重新啟用。詳見 Q-04。</p>
   </div>
 
   <!-- ─── 3. Decisions ─── -->
@@ -197,8 +197,10 @@
       DC-02：Token 儲存策略採 localStorage（MVP 路線）
     </h3>
     <p>規格允許 localStorage 或 httpOnly cookie。採用 localStorage 以降低初期複雜度，
-    不需要 csrf 保護或 cookie 域設定，方便本機 / Vercel / Render 多環境切換。</p>
-    <p>後續若有 XSS 安全顧慮可遷移至 httpOnly cookie + refresh token 流程。</p>
+    不需要 CSRF 保護或 cookie 域設定，方便本機 / Vercel / Render 多環境切換。</p>
+    <p>Refresh Token 已於 2026-05-19 實作（見 Q-06），但同樣儲存於 localStorage。
+    兩個 token 共存於 localStorage 代表 XSS 仍可同時竊取兩者，Refresh Token 的安全效益相較
+    httpOnly cookie 方案有所折扣。詳見 T-06。</p>
   </div>
 
   <div class="card">
@@ -220,7 +222,7 @@
       DC-04：Staff 訂單管理頁「今日彙總」端點路徑
     </h3>
     <p>規格 API 路徑寫 <code>GET /api/orders/summary/today</code>，
-    但 Express router 掛載在 <code>/api/orders</code>，
+    Express router 掛載在 <code>/api/orders</code>，
     實際路由為 <code>router.get('/summary/today', ...)</code>，
     完整路徑即 <code>GET /api/orders/summary/today</code>，與規格一致。</p>
     <p>（注意：Swagger 文件有對外暴露此路由）</p>
@@ -242,7 +244,7 @@
       DC-06：Guest orderLookupCode 格式為 8 碼大寫英數
     </h3>
     <p>規格未規定格式，只要求 unique。
-    實作使用 <code>nanoid</code> 產生 8 碼大寫英數字串（e.g., <code>DEMO0001</code>），
+    實作使用 <code>nanoid</code> 產生 8 碼大寫英數字串（e.g., <code>A1B2C3D4</code>），
     易於人工輸入、不易猜測，且符合 unique sparse index 要求。</p>
   </div>
 
@@ -252,6 +254,19 @@
       DC-07：Guest token 有效期 7 天
     </h3>
     <p>規格說「建議 7 天」，採用此建議值。<code>guestTokenExpiresAt = now + 7d</code>。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-decision">DECISION</span>
+      DC-08：Refresh Token 有效期 30 天，token rotation
+    </h3>
+    <p>規格說「Refresh Token 可作為未來擴充」，未規定有效期與 rotation 策略。選擇：</p>
+    <ul>
+      <li><strong>有效期 30 天</strong>（<code>REFRESH_TOKEN_EXPIRES_DAYS</code>，可透過環境變數調整）：平衡使用者便利性與安全性。</li>
+      <li><strong>Token rotation</strong>：每次 <code>POST /api/auth/refresh</code> 成功後，舊 token 立即作廢、發放新 token。一旦 token 被盜用且對方先刷新，原使用者的下一次請求將因 401 自動 logout，降低無限延長攻擊視窗的風險。</li>
+      <li><strong>DB 只存 SHA-256 hash</strong>：raw token 僅在 response 中出現一次，後端無法反推原始值。</li>
+    </ul>
   </div>
 
   <!-- ─── 4. Tradeoffs ─── -->
@@ -264,7 +279,7 @@
     </h3>
     <p><strong>選擇：</strong> 所有後端 Jest 測試使用真實 MongoDB（in-memory），不 mock。</p>
     <p><strong>優點：</strong> 測試可捕捉真實查詢、索引行為與 Mongoose schema 驗證。
-    過去此類測試曾發現 mock 測試無法發現的 migration 問題。</p>
+    此類測試曾發現 mock 測試無法發現的 migration 問題。</p>
     <p><strong>代價：</strong> 測試必須 <code>--runInBand</code>（共用 MongoMemoryServer），
     並行執行會造成 port 衝突與 state 污染。</p>
   </div>
@@ -277,7 +292,8 @@
     <p><strong>選擇：</strong> Playwright 測試在 CI 不起真實 Node 後端，完全透過 mock interceptor 回應。</p>
     <p><strong>優點：</strong> CI 快速穩定，不需要 MongoDB 或 Line Pay sandbox，
     可測試前端所有分支行為（包含錯誤狀態）。</p>
-    <p><strong>代價：</strong> 無法測試真實 API contract；需要另外依賴後端 Jest 測試確保後端正確性。</p>
+    <p><strong>代價：</strong> 無法測試真實 API contract；需要另外依賴後端 Jest 測試確保後端正確性。
+    每次後端回應格式異動（如 D-01、D-02）都必須同步更新所有 mock fixture。</p>
   </div>
 
   <div class="card">
@@ -302,15 +318,43 @@
     若未來需支援多時區則需重構。</p>
   </div>
 
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-05：點數歷史資料來源（後端 API vs 前端 computed）
+    </h3>
+    <p><strong>原始做法：</strong> <code>PointsView.vue</code> 從 <code>orderStore.myOrders</code> 過濾衍生，不額外呼叫後端。</p>
+    <p><strong>現行做法：</strong> 新增 <code>GET /api/points/history</code> 端點，後端查詢所有有點數異動的訂單並回傳（見 D-03）。</p>
+    <p><strong>改動原因：</strong> 前端 computed 受分頁上限制約（8 筆/次），若歷史訂單超過此上限，舊點數紀錄需手動「載入更多」才顯示，體驗不佳且不完整。</p>
+    <p><strong>代價：</strong> 多一個 API 端點需維護；每次進入點數頁會發一次額外請求。</p>
+  </div>
+
+  <div class="card">
+    <h3>
+      <span class="badge badge-tradeoff">TRADEOFF</span>
+      T-06：Refresh Token 儲存於 localStorage vs httpOnly cookie
+    </h3>
+    <p><strong>現行做法：</strong> Access Token 與 Refresh Token 皆儲存於 <code>localStorage</code>。</p>
+    <p><strong>替代方案：</strong> Refresh Token 存入 <code>httpOnly cookie</code>，Access Token 仍放 localStorage（或記憶體）。httpOnly cookie 對 JavaScript 不可讀，XSS 攻擊無法直接竊取 Refresh Token。</p>
+    <p><strong>選擇 localStorage 的理由：</strong></p>
+    <ul>
+      <li>Vercel + Render 跨域部署下，cookie 的 <code>SameSite</code>、<code>Secure</code>、<code>Domain</code> 設定較複雜，需配合 CORS <code>credentials: true</code>，初期容易出錯。</li>
+      <li>本地開發環境（<code>http://localhost</code>）的 <code>Secure</code> cookie 有限制。</li>
+      <li>兩種 token 都在 localStorage 時，Token rotation 仍可限制攻擊視窗：若 Refresh Token 被盜用後對方先刷新，原使用者下次請求將收到 401 並被自動 logout。</li>
+    </ul>
+    <p><strong>代價：</strong> XSS 仍可同時竊取兩個 token，Refresh Token 相較 httpOnly cookie 方案安全性較低。
+    若日後有更嚴格的安全需求，遷移路徑為：後端 <code>POST /api/auth/refresh</code> 改以 <code>httpOnly cookie</code> 設定 Refresh Token，前端移除 localStorage 中的 <code>refreshToken</code> 欄位。</p>
+  </div>
+
   <div class="card resolved-card">
     <h3>
       <span class="badge badge-resolved">✓ RESOLVED</span>
-      T-05：狀態歷史紀錄（statusHistory）— 已實作
+      T-07：statusHistory（狀態歷史紀錄）— 已實作
     </h3>
     <p>規格說「建議新增狀態歷史紀錄（可選）」。已於 2026-05-19 實作：</p>
     <ul>
-      <li><code>backend/src/modules/orders/order.model.ts</code> — 新增 <code>statusHistoryEntrySchema</code>（<code>status</code>, <code>changedBy</code> ObjectId, <code>changedAt</code> Date），掛在 orderSchema 的 <code>statusHistory</code> 欄位（預設空陣列）</li>
-      <li><code>backend/src/modules/orders/order.service.ts</code> — <code>updateOrderStatus()</code> 每次狀態變更時 <code>push</code> 一筆 entry，記錄執行者的 userId</li>
+      <li><code>order.model.ts</code> — 新增 <code>statusHistoryEntrySchema</code>（<code>status</code>、<code>changedBy</code> ObjectId、<code>changedAt</code> Date），掛在 orderSchema 的 <code>statusHistory</code> 欄位（預設空陣列）</li>
+      <li><code>order.service.ts</code> — <code>updateOrderStatus()</code> 每次狀態變更時 <code>push</code> 一筆 entry，記錄執行者的 userId</li>
     </ul>
     <p>此欄位可作為後台稽核軌跡，前端 UI 若需顯示可直接讀取訂單回應中的 <code>statusHistory</code> 陣列。</p>
   </div>
@@ -326,7 +370,7 @@
     </tr>
     <tr>
       <td>Rate limiting</td>
-      <td>全 API：200 req/min；Auth 路由：20 req/15min。使用 <code>express-rate-limit</code>，測試環境自動跳過。</td>
+      <td>全 API：200 req/min；Auth 路由：20 req/15min。使用 <code>express-rate-limit</code>，測試環境自動跳過（<code>skip: () => env.nodeEnv === 'test'</code>）。</td>
     </tr>
     <tr>
       <td>CORS 白名單</td>
@@ -350,7 +394,15 @@
     </tr>
     <tr>
       <td>Backend health check</td>
-      <td><code>GET /health</code> 端點，docker-compose frontend 需等此端點成功才啟動。</td>
+      <td><code>GET /health</code> 端點，docker-compose frontend 服務依賴此端點的 healthcheck 後才啟動。</td>
+    </tr>
+    <tr>
+      <td>Refresh Token（規格「未來擴充」提前實作）</td>
+      <td>規格標注「可作為未來擴充」，已提前實作：<code>POST /api/auth/refresh</code> token rotation；<code>User</code> model 儲存 SHA-256 hash；前端 axios 401 攔截器自動刷新並重試原始請求。有效期 30 天，可透過 <code>REFRESH_TOKEN_EXPIRES_DAYS</code> 調整。</td>
+    </tr>
+    <tr>
+      <td>Points History API（規格暗示，獨立端點為擴充）</td>
+      <td>規格要求 <code>/points</code> 頁顯示點數紀錄歷史，但未定義獨立 API 端點。新增 <code>GET /api/points/history</code>，解決前端 computed 受分頁上限制約的問題（見 D-03、T-05）。</td>
     </tr>
   </table>
 
@@ -369,13 +421,7 @@
 
   <div class="card resolved-card">
     <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-03：點數歷史獨立後端 API — 已實作</h3>
-    <p>已於 2026-05-19 新增 <code>GET /api/points/history</code> 端點：</p>
-    <ul>
-      <li><strong>後端</strong>：<code>point.service.ts</code> 新增 <code>getPointHistory(userId)</code>，查詢該使用者所有 <code>pointsEarned &gt; 0</code> 或 <code>pointsRedeemed &gt; 0</code> 的訂單，依 <code>createdAt</code> 倒序排列，回傳 <code>{ data: [{ orderId, orderLookupCode, orderType, delta, createdAt }] }</code>；<code>delta</code> 正數代表獲得、負數代表兌換扣除</li>
-      <li><strong>後端</strong>：新增 <code>point.controller.ts</code>、<code>point.routes.ts</code>，掛載於 <code>/api/points</code>；加入 Swagger JSDoc 文件</li>
-      <li><strong>前端</strong>：新增 <code>frontend/src/api/points.api.ts</code> 提供 <code>getPointHistory()</code>；<code>PointsView.vue</code> 改為呼叫 API（移除依賴 <code>orderStore.myOrders</code> 的 computed 衍生）</li>
-      <li><strong>測試</strong>：<code>point.spec.ts</code> 新增 4 個 test case（空陣列、獲得點數、兌換負 delta、401 未授權），全數通過</li>
-    </ul>
+    <p>已於 2026-05-19 新增 <code>GET /api/points/history</code> 端點。詳見 D-03、T-05。</p>
   </div>
 
   <div class="card">
@@ -391,16 +437,16 @@
   <div class="card resolved-card">
     <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-05：statusHistory（狀態歷史紀錄）已實作</h3>
     <p>已於 2026-05-19 實作。Order model 追加 <code>statusHistory: [{ status, changedBy, changedAt }]</code>，
-    每次 <code>updateOrderStatus()</code> 自動 push 一筆紀錄。詳見 T-05。</p>
+    每次 <code>updateOrderStatus()</code> 自動 push 一筆紀錄。詳見 T-07。</p>
   </div>
 
   <div class="card resolved-card">
     <h3><span class="badge badge-resolved">✓ RESOLVED</span> Q-06：Refresh Token 已實作</h3>
     <p>已於 2026-05-19 實作完整的 Refresh Token 流程：</p>
     <ul>
-      <li><strong>後端</strong>：<code>User</code> model 新增 <code>refreshTokenHash</code> + <code>refreshTokenExpiresAt</code>；<code>auth.service.ts</code> 的 <code>register()</code> 和 <code>login()</code> 皆發放 refresh token；新增 <code>POST /api/auth/refresh</code> 端點，支援 token rotation（每次刷新即作廢舊 token、發放新 token），有效期由 <code>REFRESH_TOKEN_EXPIRES_DAYS</code>（預設 30 天）控制</li>
+      <li><strong>後端</strong>：<code>User</code> model 新增 <code>refreshTokenHash</code> + <code>refreshTokenExpiresAt</code>；<code>register()</code> 和 <code>login()</code> 皆發放 refresh token；<code>POST /api/auth/refresh</code> 支援 token rotation，有效期由 <code>REFRESH_TOKEN_EXPIRES_DAYS</code>（預設 30 天）控制</li>
       <li><strong>前端</strong>：<code>auth.store.ts</code> 儲存 refresh token 至 localStorage；<code>http.ts</code> axios 401 攔截器自動呼叫 <code>tryRefreshTokens()</code>，刷新成功後重試原始請求，失敗則執行 <code>logout()</code></li>
-      <li><strong>安全性</strong>：raw token 僅在 response 中出現一次；DB 只存 SHA-256 hash；<code>_retry</code> flag 防止無限重試迴圈</li>
+      <li><strong>安全性</strong>：raw token 僅在 response 中出現一次；DB 只存 SHA-256 hash；<code>_retry</code> flag 防止無限重試迴圈。注意 token 目前存於 localStorage，詳見 T-06</li>
     </ul>
   </div>
 
@@ -413,48 +459,38 @@
     <tr><th>日期</th><th>項目</th><th>說明</th></tr>
     <tr>
       <td>2026-05-19</td>
-      <td>Q-01 / D-01</td>
-      <td><code>GET /api/auth/me</code> 回應格式改為規格要求的扁平物件，移除 <code>user:</code> 包裝層。後端 controller、前端 api / store、所有 E2E mock 一併更新。</td>
+      <td>D-01 / Q-01</td>
+      <td><code>GET /api/auth/me</code> 回應格式改為規格要求的扁平物件，移除 <code>user:</code> 包裝層。後端 controller、前端 api / store、所有 E2E mock 與後端 <code>rbac.spec.ts</code> 一併更新。</td>
     </tr>
     <tr>
       <td>2026-05-19</td>
-      <td>Q-02 / D-02</td>
-      <td>訪客通知 <code>GET /api/notifications/guest/:lookupCode</code> 回應格式改為 <code>{ orderId, notifications: [] }</code>，符合規格。後端 service / controller、前端 api / store、Jest + Vitest 測試 mock 一併更新。</td>
+      <td>D-02 / Q-02</td>
+      <td>訪客通知 <code>GET /api/notifications/guest/:lookupCode</code> 回應格式改為 <code>{ orderId, notifications: [] }</code>，符合規格。後端 service / controller、前端 api / store、Jest + Vitest + E2E mock 一併更新。</td>
     </tr>
     <tr>
       <td>2026-05-19</td>
-      <td>Q-05 / T-05</td>
+      <td>T-07 / Q-05</td>
       <td>Order model 追加 <code>statusHistory</code> sub-document array，<code>updateOrderStatus()</code> 每次狀態變更自動記錄 <code>{ status, changedBy, changedAt }</code>。</td>
     </tr>
     <tr>
       <td>2026-05-19</td>
-      <td>Q-06</td>
-      <td>實作完整 Refresh Token 流程（token rotation、SHA-256 hash 儲存、30 天有效期）。新增 <code>POST /api/auth/refresh</code> 端點；前端 axios 401 攔截器自動刷新並重試。</td>
+      <td>Q-06 / DC-08 / T-06</td>
+      <td>實作完整 Refresh Token 流程（token rotation、SHA-256 hash 儲存、30 天有效期）。新增 <code>POST /api/auth/refresh</code>；前端 axios 401 攔截器自動刷新並重試。Token 儲存於 localStorage，安全折衷見 T-06。</td>
+    </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>D-03 / Q-03 / T-05</td>
+      <td>新增 <code>GET /api/points/history</code> 端點（<code>point.service/controller/routes</code>）。前端 <code>PointsView.vue</code> 改呼叫 API，移除依賴 orderStore computed。E2E 補上對應 mock。新增 4 個後端測試。</td>
     </tr>
     <tr>
       <td>2026-05-19</td>
       <td>D-04 / CI</td>
-      <td><code>.github/workflows/deploy.yml</code> 的 AWS deploy-backend / deploy-frontend job 全數以 <code>#</code> 註解，保留 CI check job。待 AWS secrets 設定完成後取消註解即可重新啟用。</td>
+      <td><code>.github/workflows/deploy.yml</code> 的 AWS deploy job 全數以 <code>#</code> 註解，保留 CI check job。待 AWS secrets 設定完成後取消註解即可重新啟用。</td>
     </tr>
     <tr>
       <td>2026-05-19</td>
-      <td>Q-03</td>
-      <td>新增 <code>GET /api/points/history</code> 端點（<code>point.service/controller/routes</code>）。前端 <code>PointsView.vue</code> 改呼叫 API，移除從 orderStore 衍生點數紀錄的 computed。新增 4 個後端測試。</td>
-    </tr>
-    <tr>
-      <td>2026-05-19</td>
-      <td>E2E 測試修正（舊）</td>
-      <td>修正 4 個 CI E2E 失敗：checkout heading 期望值、sales-report admin 測試 beforeEach 隔離、guest-order-tracking 手機版 race condition（await URL 確認後再導航）。</td>
-    </tr>
-    <tr>
-      <td>2026-05-19</td>
-      <td>D-03 / E2E 補 mock</td>
-      <td><code>points.spec.ts</code> 與 <code>points-redeem.spec.ts</code> 補上 <code>GET /api/points/history</code> mock，對應 <code>PointsView.vue</code> 改呼叫 API 的異動。</td>
-    </tr>
-    <tr>
-      <td>2026-05-19</td>
-      <td>D-01 / D-02 遺漏測試修正</td>
-      <td><code>rbac.spec.ts</code> 對 <code>GET /api/auth/me</code> 的斷言改為 <code>body.role</code>（D-01 扁平化）；<code>e2e.spec.ts</code> guest notification 斷言改為 <code>body.notifications</code>（D-02 格式修正）。全 95 個後端測試通過。</td>
+      <td>E2E 修正</td>
+      <td>修正多個 CI E2E 失敗：checkout heading 期望值、sales-report admin 測試 beforeEach 隔離、guest-order-tracking 手機版 race condition；以及 D-01 / D-02 格式修正後所有對應 mock fixture 的同步更新。</td>
     </tr>
   </table>
 
