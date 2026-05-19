@@ -272,7 +272,7 @@ export async function confirmLinePay(
     await pointService.earnPoints(String(order.userId), pointsEarned);
   }
 
-  const message = `Payment confirmed for order ${order._id}`;
+  const message = `訂單 ${order.orderLookupCode || order._id} 已確認付款`;
   const notification = await notificationService.createNotification({
     userId: order.userId ? String(order.userId) : undefined,
     guestOrderLookupCode: order.orderLookupCode || undefined,

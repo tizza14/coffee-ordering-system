@@ -580,7 +580,17 @@ async function returnRedeemedPointsIfCancelled(order: OrderDocument) {
 }
 
 async function notifyStatusUpdate(order: OrderDocument) {
-  const message = `Order ${order.orderLookupCode || order._id} status updated to ${order.status}`;
+  const statusLabels: Record<string, string> = {
+    pending: '待處理',
+    accepted: '已接單',
+    preparing: '製作中',
+    ready: '可取餐',
+    completed: '已完成',
+    cancelled: '已取消'
+  };
+
+  const statusLabel = statusLabels[order.status] || order.status;
+  const message = `訂單 ${order.orderLookupCode || order._id} 狀態已更新為 ${statusLabel}`;
 
   // Create notification for user/guest
   const notification = await notificationService.createNotification({
