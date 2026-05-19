@@ -9,20 +9,73 @@
         </p>
       </header>
 
-      <div class="grid gap-5 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div class="grid gap-5 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]">
         <div class="grid content-start gap-4">
-          <section class="grid gap-5 rounded-lg border border-stone-300 bg-white p-5">
+          <section class="grid gap-5 rounded-lg border border-stone-300 bg-white p-4 sm:p-5">
             <div class="flex items-start justify-between gap-3">
               <div>
-                <h2 class="m-0 text-lg font-bold text-amber-950">查詢訂單</h2>
-                <p class="m-0 text-sm text-stone-600">手動查詢，或從會員近期訂單直接查看狀態。</p>
+                <h2 class="m-0 text-lg font-bold text-amber-950">
+                  {{ authStore.user?.role === 'user' ? '快速查詢' : '輸入訂單資料' }}
+                </h2>
+                <p class="m-0 text-sm text-stone-600">
+                  {{ authStore.user?.role === 'user' ? '點選近期訂單即可查看狀態，也可手動查詢其他訂單。' : '請輸入結帳後取得的查詢碼與手機號碼。' }}
+                </p>
               </div>
               <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-900">
-                訪客 / 會員
+                {{ authStore.user?.role === 'user' ? '會員' : '訪客' }}
               </span>
             </div>
 
-            <form class="grid gap-3" @submit.prevent="load">
+            <div
+              v-if="authStore.user?.role === 'user'"
+              class="grid gap-3"
+            >
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <h3 class="m-0 text-base font-bold text-amber-950">我的近期訂單</h3>
+                  <p class="m-0 text-sm text-stone-600">點選一筆訂單，系統會自動帶入並查詢。</p>
+                </div>
+              </div>
+              <p v-if="isLoadingMemberOrders" class="m-0 rounded-md bg-stone-50 p-3 text-sm text-stone-500">
+                載入會員訂單中...
+              </p>
+              <p v-else-if="memberTrackingOrders.length === 0" class="m-0 rounded-md bg-stone-50 p-3 text-sm text-stone-500">
+                目前沒有會員訂單。
+              </p>
+              <ul v-else class="grid list-none gap-2 p-0">
+                <li
+                  v-for="order in memberTrackingOrders"
+                  :key="order.id"
+                >
+                  <button
+                    class="grid w-full cursor-pointer gap-3 rounded-md border border-stone-200 bg-white p-3 text-left transition hover:border-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="button"
+                    :aria-label="`查詢訂單 ${displayOrderCode(order)}`"
+                    :disabled="!order.orderLookupCode || !order.guestInfo?.phone || isLoading"
+                    @click="fillMemberOrder(order)"
+                  >
+                    <span class="flex flex-wrap items-start justify-between gap-3">
+                      <span class="grid gap-1">
+                        <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
+                        <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
+                      </span>
+                      <span :class="statusBadgeClass(order.status)">
+                        {{ statusLabel(order.status) }}
+                      </span>
+                    </span>
+                    <span class="text-sm font-bold text-amber-900">
+                      {{ isCurrentMemberOrder(order) ? '目前顯示中' : '點選查看狀態' }}
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <form class="grid gap-3 border-t border-stone-200 pt-4" @submit.prevent="load">
+              <div>
+                <h3 class="m-0 text-base font-bold text-amber-950">手動查詢</h3>
+                <p class="m-0 text-sm text-stone-600">查詢碼與手機號碼需與訂單資料相符。</p>
+              </div>
               <label class="grid gap-1.5 font-semibold">
                 訂單查詢碼
                 <input
@@ -42,10 +95,6 @@
                   :required="!normalizedGuestToken"
                 />
               </label>
-              <div class="rounded-md border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                <p class="m-0 font-bold text-amber-950">查詢會顯示</p>
-                <p class="m-0 mt-1">目前狀態、取餐進度、餐點明細與通知紀錄。手機號碼輸入錯誤時會顯示無此訂單。</p>
-              </div>
 
               <button
                 v-if="shouldShowLookupButton"
@@ -65,56 +114,6 @@
                 {{ errorMessage }}
               </p>
             </form>
-
-            <div
-              v-if="authStore.user?.role === 'user'"
-              class="grid gap-3 border-t border-stone-200 pt-4"
-            >
-              <div>
-                <h3 class="m-0 text-base font-bold text-amber-950">我的近期訂單</h3>
-                <p class="m-0 text-sm text-stone-600">不用輸入查詢碼，直接選一筆查看。</p>
-              </div>
-              <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
-                載入會員訂單中...
-              </p>
-              <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
-                目前沒有會員訂單。
-              </p>
-              <ul v-else class="grid list-none gap-2 p-0">
-                <li
-                  v-for="order in memberTrackingOrders"
-                  :key="order.id"
-                  class="grid gap-3 rounded-md border border-stone-200 p-3"
-                >
-                  <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div class="grid gap-1">
-                      <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
-                      <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
-                    </div>
-                    <span :class="statusBadgeClass(order.status)">
-                      {{ statusLabel(order.status) }}
-                    </span>
-                  </div>
-                  <div class="flex flex-wrap gap-2">
-                    <button
-                      class="min-h-9 rounded-md bg-amber-900 px-3 text-sm font-bold text-white"
-                      type="button"
-                      @click="selectMemberOrder(order)"
-                    >
-                      查看這筆訂單狀態
-                    </button>
-                    <button
-                      class="min-h-9 cursor-pointer rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:cursor-not-allowed disabled:opacity-50"
-                      type="button"
-                      :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
-                      @click="fillMemberOrder(order)"
-                    >
-                      複製到查詢欄
-                    </button>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </section>
         </div>
 
@@ -359,7 +358,7 @@ const isCurrentQueryLoaded = computed(
 const shouldShowLookupButton = computed(() => !isCurrentQueryLoaded.value);
 const lookupButtonLabel = computed(() => {
   if (isLoading.value) return '查詢中...';
-  return '查詢並顯示訂單狀態';
+  return '查詢訂單';
 });
 const memberTrackingOrders = computed(() => orderStore.myOrders.slice(0, 5));
 
@@ -490,15 +489,13 @@ async function fillMemberOrder(order: Order) {
   await load();
 }
 
-function selectMemberOrder(order: Order) {
-  orderStore.currentOrder = order;
-  notificationStore.items = [];
-  loadedLookupCode.value = order.orderLookupCode ?? '';
-  loadedPhone.value = order.guestInfo?.phone ?? '';
-  loadedGuestToken.value = '';
-  if (order.orderLookupCode) lookupCode.value = order.orderLookupCode;
-  if (order.guestInfo?.phone) phone.value = order.guestInfo.phone;
-  guestToken.value = '';
+function isCurrentMemberOrder(order: Order) {
+  return Boolean(
+    orderStore.currentOrder &&
+      order.orderLookupCode &&
+      order.orderLookupCode === loadedLookupCode.value &&
+      order.guestInfo?.phone === loadedPhone.value
+  );
 }
 
 async function loadMemberTrackingOrders() {
