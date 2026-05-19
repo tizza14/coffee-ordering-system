@@ -43,7 +43,8 @@ describe('orderStore', () => {
     await orderStore.createMemberOrder(cartItems);
 
     expect(mockedOrderApi.createMemberOrder).toHaveBeenCalledWith({
-      items: [{ productId: 'p1', quantity: 2 }]
+      items: [{ productId: 'p1', quantity: 2 }],
+      guestInfo: undefined
     });
     expect(orderStore.currentOrder?.id).toBe('o1');
   });

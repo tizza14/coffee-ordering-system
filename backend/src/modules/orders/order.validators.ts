@@ -6,7 +6,11 @@ const orderItemInputSchema = z.object({
 });
 
 export const createOrderSchema = z.object({
-  items: z.array(orderItemInputSchema).min(1)
+  items: z.array(orderItemInputSchema).min(1),
+  guestInfo: z.object({
+    phone: z.string().regex(/^09\d{8}$/),
+    email: z.string().email().optional()
+  }).optional()
 });
 
 export const createGuestOrderSchema = createOrderSchema.extend({

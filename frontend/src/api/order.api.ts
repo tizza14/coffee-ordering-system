@@ -73,6 +73,10 @@ export interface CreateOrderPayload {
     productId: string;
     quantity: number;
   }>;
+  guestInfo?: {
+    phone: string;
+    email?: string;
+  };
 }
 
 export interface CreateGuestOrderPayload extends CreateOrderPayload {

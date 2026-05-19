@@ -57,6 +57,8 @@ describe('Order API', () => {
 
     expect(response.status).toBe(201);
     expect(response.body.userId).toEqual(expect.any(String));
+    expect(response.body.orderLookupCode).toEqual(expect.any(String));
+    expect(response.body.orderLookupCode).not.toBe(response.body.id);
     expect(response.body.totalAmount).toBe(240);
     expect(response.body.paymentStatus).toBe('unpaid');
     expect(response.body.status).toBe('pending');

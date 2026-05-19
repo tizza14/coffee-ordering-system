@@ -58,6 +58,22 @@
         </label>
       </div>
 
+      <div v-else class="grid gap-3">
+        <label class="grid gap-1.5 font-semibold">
+          取餐手機
+          <input
+            v-model="memberPhone"
+            class="min-h-10 rounded-md border border-stone-400 px-2.5"
+            pattern="09[0-9]{8}"
+            placeholder="例如 0912345678"
+            required
+          />
+        </label>
+        <p class="m-0 text-xs text-stone-500">
+          此手機會顯示在訂單追蹤與點餐紀錄，用於核對取餐訂單。
+        </p>
+      </div>
+
       <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
         {{ errorMessage }}
       </p>
@@ -115,6 +131,7 @@ const mode = ref(authStore.isAuthenticated ? 'member' : 'guest');
 const guestName = ref('');
 const guestPhone = ref('');
 const guestEmail = ref('');
+const memberPhone = ref('');
 const errorMessage = ref('');
 
 async function submit() {
@@ -122,7 +139,9 @@ async function submit() {
   try {
     const order =
       mode.value === 'member'
-        ? await orderStore.createMemberOrder(cartStore.items)
+        ? await orderStore.createMemberOrder(cartStore.items, {
+            phone: memberPhone.value
+          })
         : await orderStore.createGuestOrder(cartStore.items, {
             name: guestName.value,
             phone: guestPhone.value,
@@ -130,7 +149,7 @@ async function submit() {
           });
     const payment = await paymentStore.requestLinePay(
       order.id,
-      orderStore.guestToken || undefined
+      mode.value === 'guest' ? orderStore.guestToken || undefined : undefined
     );
     cartStore.clearCart();
     window.location.assign(payment.paymentUrl);

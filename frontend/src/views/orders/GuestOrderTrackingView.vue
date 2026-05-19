@@ -63,6 +63,45 @@
         </p>
       </form>
 
+      <section
+        v-if="authStore.user?.role === 'user'"
+        class="grid gap-3 rounded-lg border border-stone-300 bg-white p-5"
+      >
+        <div>
+          <h2 class="m-0 text-lg font-bold text-amber-950">我的訂單查詢資訊</h2>
+          <p class="m-0 text-sm text-stone-600">
+            登入後可直接查看你近期會員訂單的查詢碼、手機號碼與目前狀態。
+          </p>
+        </div>
+        <p v-if="isLoadingMemberOrders" class="m-0 text-sm text-stone-500">
+          載入會員訂單中...
+        </p>
+        <p v-else-if="memberTrackingOrders.length === 0" class="m-0 text-sm text-stone-500">
+          目前沒有會員訂單。
+        </p>
+        <ul v-else class="grid list-none gap-2 p-0">
+          <li
+            v-for="order in memberTrackingOrders"
+            :key="order.id"
+            class="grid gap-2 rounded-md border border-stone-200 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+          >
+            <div class="grid gap-1">
+              <strong class="text-amber-950">訂單 {{ displayOrderCode(order) }}</strong>
+              <span class="text-sm text-stone-600">手機號碼：{{ displayPhone(order) }}</span>
+              <span class="text-sm text-stone-600">目前狀態：{{ statusLabel(order.status) }}</span>
+            </div>
+            <button
+              class="min-h-9 rounded-md border border-amber-900 bg-white px-3 text-sm font-bold text-amber-950 disabled:opacity-50"
+              type="button"
+              :disabled="!order.orderLookupCode || !order.guestInfo?.phone"
+              @click="fillMemberOrder(order)"
+            >
+              帶入查詢
+            </button>
+          </li>
+        </ul>
+      </section>
+
       <!-- 通知紀錄 -->
       <section
         v-if="notificationStore.items.length > 0"
@@ -232,11 +271,14 @@
 import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import type { Order } from '../../api/order.api';
+import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 
 const route = useRoute();
+const authStore = useAuthStore();
 const orderStore = useOrderStore();
 const notificationStore = useNotificationStore();
 const socketStore = useSocketStore();
@@ -251,6 +293,7 @@ const notificationsOpen = ref(true);
 const loadedLookupCode = ref('');
 const loadedPhone = ref('');
 const loadedGuestToken = ref('');
+const isLoadingMemberOrders = ref(false);
 
 interface ApiErrorBody {
   code?: string;
@@ -280,6 +323,7 @@ const lookupButtonLabel = computed(() => {
   if (isLoading.value) return '查詢中...';
   return orderStore.currentOrder ? '查詢其他訂單' : '查詢並顯示訂單狀態';
 });
+const memberTrackingOrders = computed(() => orderStore.myOrders.slice(0, 5));
 
 const steps = [
   { status: 'pending',   label: '待處理' },
@@ -358,6 +402,45 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+function statusLabel(status: Order['status']) {
+  const labels: Record<Order['status'], string> = {
+    pending: '待處理',
+    accepted: '已接單',
+    preparing: '製作中',
+    ready: '可取餐',
+    completed: '已完成',
+    cancelled: '已取消'
+  };
+  return labels[status];
+}
+
+function displayOrderCode(order: Order) {
+  if (order.orderLookupCode) return order.orderLookupCode;
+  if (order.orderType === 'redeem') return '兌換訂單';
+  return '未產生查詢碼';
+}
+
+function displayPhone(order: Order) {
+  return order.guestInfo?.phone || '會員訂單未留手機';
+}
+
+function fillMemberOrder(order: Order) {
+  if (!order.orderLookupCode || !order.guestInfo?.phone) return;
+  lookupCode.value = order.orderLookupCode;
+  phone.value = order.guestInfo.phone;
+  guestToken.value = '';
+}
+
+async function loadMemberTrackingOrders() {
+  if (authStore.user?.role !== 'user') return;
+  isLoadingMemberOrders.value = true;
+  try {
+    await orderStore.loadMyOrders();
+  } finally {
+    isLoadingMemberOrders.value = false;
+  }
+}
+
 async function load() {
   errorMessage.value = '';
   isLoading.value = true;
@@ -422,6 +505,7 @@ async function load() {
 }
 
 onMounted(() => {
+  void loadMemberTrackingOrders();
   if (lookupCode.value && (guestToken.value || phone.value)) {
     void load();
   }

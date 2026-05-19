@@ -79,11 +79,15 @@ export const useOrderStore = defineStore('orders', {
       this.guestPhone = '';
       clearGuestTrackingSession();
     },
-    async createMemberOrder(items: CartItem[]) {
+    async createMemberOrder(
+      items: CartItem[],
+      guestInfo?: { phone: string; email?: string }
+    ) {
       this.isLoading = true;
       try {
         this.currentOrder = await orderApi.createMemberOrder({
-          items: toOrderItems(items)
+          items: toOrderItems(items),
+          guestInfo
         });
         return this.currentOrder;
       } finally {

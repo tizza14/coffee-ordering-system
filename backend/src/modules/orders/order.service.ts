@@ -234,6 +234,8 @@ export async function createMemberOrder(
   const { orderItems, totalAmount } = await buildOrderItems(input.items);
   const order = await OrderModel.create({
     userId: new mongoose.Types.ObjectId(userId),
+    guestInfo: input.guestInfo,
+    orderLookupCode: createLookupCode(),
     items: orderItems,
     totalAmount,
     orderType: 'purchase'
@@ -283,6 +285,7 @@ export async function createRedeemOrder(
   try {
     order = await OrderModel.create({
       userId: new mongoose.Types.ObjectId(userId),
+      orderLookupCode: createLookupCode(),
       items: [
         {
           productId: product._id,

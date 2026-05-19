@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
+import { mockAuth, mockProducts } from './helpers';
 
 const API = 'http://localhost:3000/api';
+const buyerUser = {
+  id: 'u1',
+  name: 'Buyer',
+  email: 'buyer@example.com',
+  password: 'password123',
+  role: 'user' as const
+};
 
 test.describe('訪客訂單追蹤', () => {
   test('頁面顯示查詢表單', async ({ page }) => {
@@ -13,6 +21,58 @@ test.describe('訪客訂單追蹤', () => {
     await expect(page.getByText('手機號碼', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: '查詢並顯示訂單狀態' })).toBeVisible();
     await expect(page.getByText('查詢結果會顯示在這裡')).toBeVisible();
+  });
+
+  test('user 登入後顯示自己的訂單查詢碼手機與狀態', async ({ page }) => {
+    await mockAuth(page, [buyerUser]);
+    await mockProducts(page);
+    await page.route(`${API}/orders/my**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            {
+              id: 'order-1',
+              orderLookupCode: 'MEM001',
+              guestInfo: { phone: '0912345678' },
+              status: 'ready',
+              paymentStatus: 'paid',
+              orderType: 'purchase',
+              items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+              totalAmount: 120,
+              paidAmount: 120,
+              pointsEarned: 1,
+              pointsRedeemed: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          ],
+          pagination: { page: 1, limit: 20, total: 1 }
+        })
+      });
+    });
+    await page.route(`${API}/auth/me`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: { ...buyerUser, points: 0 } })
+      });
+    });
+
+    await page.goto('/login');
+    await page.fill('input[type="email"]', buyerUser.email);
+    await page.fill('input[type="password"]', buyerUser.password);
+    await page.click('button[type="submit"]');
+    await page.goto('/orders/guest');
+
+    await expect(page.getByText('我的訂單查詢資訊')).toBeVisible();
+    await expect(page.getByText('訂單 MEM001')).toBeVisible();
+    await expect(page.getByText('手機號碼：0912345678')).toBeVisible();
+    await expect(page.getByText('目前狀態：可取餐')).toBeVisible();
+    await page.getByRole('button', { name: '帶入查詢' }).click();
+    await expect(page.locator('input:first-of-type')).toHaveValue('MEM001');
+    await expect(page.locator('input[pattern]')).toHaveValue('0912345678');
   });
 
   test('查詢碼不存在時顯示錯誤訊息', async ({ page }) => {
