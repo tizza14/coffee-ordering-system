@@ -492,6 +492,11 @@
       <td>E2E 修正</td>
       <td>修正多個 CI E2E 失敗：checkout heading 期望值、sales-report admin 測試 beforeEach 隔離、guest-order-tracking 手機版 race condition；以及 D-01 / D-02 格式修正後所有對應 mock fixture 的同步更新。</td>
     </tr>
+    <tr>
+      <td>2026-05-19</td>
+      <td>D-02 / E2E 殘留 mock 修正</td>
+      <td><code>guest-order-tracking.spec.ts</code> 第 207、286 行的通知 mock 遺漏 D-02 格式更新（仍為 <code>{ data: [] }</code>），導致 <code>notificationStore.items</code> 被設為 <code>undefined</code>，進而使 <code>latestNotification</code> computed 拋出 TypeError，Vue 無法完成渲染，「目前已顯示這筆訂單狀態」文字不出現。修正為 <code>{ orderId: 'order-1', notifications: [] }</code>，並加上 <code>{ exact: false }</code> 確保部分文字匹配。</td>
+    </tr>
   </table>
 
   <hr />

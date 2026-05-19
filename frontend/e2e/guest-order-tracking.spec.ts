@@ -204,7 +204,7 @@ test.describe('訪客訂單追蹤', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [] })
+        body: JSON.stringify({ orderId: 'order-1', notifications: [] })
       });
     });
 
@@ -214,7 +214,7 @@ test.describe('訪客訂單追蹤', () => {
     await page.getByRole('button', { name: '查詢訂單' }).click();
 
     await expect(page.getByText('ABC123')).toBeVisible();
-    await expect(page.getByText('目前已顯示這筆訂單狀態')).toBeVisible();
+    await expect(page.getByText('目前已顯示這筆訂單狀態', { exact: false })).toBeVisible();
     await expect(page.getByRole('button', { name: '查詢訂單' })).toHaveCount(0);
     await page.fill('input:first-of-type', 'ABC124');
     await expect(page.getByRole('button', { name: '查詢訂單' })).toBeVisible();
@@ -283,7 +283,7 @@ test.describe('訪客訂單追蹤', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [] })
+        body: JSON.stringify({ orderId: 'order-1', notifications: [] })
       });
     });
 
