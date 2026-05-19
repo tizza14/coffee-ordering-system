@@ -182,5 +182,5 @@ npm run build
 - Render backend should set `FRONTEND_URL` to the deployed frontend URL. In production, the backend refuses to generate localhost Line Pay redirect URLs and falls back to the first non-local frontend origin.
 - Render backend `MONGODB_URI` must include the database name, e.g. `mongodb+srv://<user>:<password>@<cluster-host>/coffee_ordering?retryWrites=true&w=majority`. If the URI ends at `.mongodb.net/?...`, MongoDB writes to the default `test` database.
 - Demo payment uses `LINE_PAY_MOCK=true`. If real or sandbox Line Pay returns an unusable response, the backend falls back to a demo confirmation URL outside test mode.
-- Staff order status transitions are strict. The UI only shows valid next actions, and the backend rejects invalid transitions with `INVALID_STATUS_TRANSITION`.
+- All customer-facing notification messages (e.g. payment confirmations and status updates) are localized to Traditional Chinese. Order status transitions (pending, accepted, preparing, ready, completed, cancelled) are displayed in Traditional Chinese.
 - Access rules: guests do not have a **點餐紀錄** page and can only track their own order through **訂單追蹤**; members see their own lookup code, pickup phone, status, and **點餐紀錄**; staff/admin can see complete order history.

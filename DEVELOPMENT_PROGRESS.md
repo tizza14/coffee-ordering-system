@@ -455,6 +455,18 @@ Implemented:
   - `CheckoutView.vue`: 前往付款
   - `AdminProductsView.vue`: 新增/更新, 取消, 重新整理, 編輯, 刪除
 
+---
+
+## Post-Ship Enhancements (2026-05-19 rev 9)
+
+### Notification Localization
+
+- **Traditional Chinese Messages**: Localized all customer-facing notification messages in `payment.service.ts` and `order.service.ts`.
+  - Payment confirmation: `訂單 ${order.orderLookupCode || order._id} 已確認付款`
+  - Status updates: `訂單 ${order.orderLookupCode || order._id} 狀態已更新為 [繁體中文狀態]` (e.g., 待處理, 已接單, 製作中, 可取餐, 已完成, 已取消).
+- **Consistency**: Standardized order identifiers in notifications to prefer `orderLookupCode` over internal Mongo IDs for better user readability.
+- **Verification**: Updated backend logic and verified via Jest tests that notifications are correctly generated and emitted with localized content.
+
 ## Verification Summary
 
 Backend commands run from `backend`:

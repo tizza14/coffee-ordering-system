@@ -910,7 +910,7 @@ Response:
       "id": "notificationId",
       "orderId": "orderId",
       "type": "order_status_updated",
-      "message": "Your order is preparing",
+      "message": "訂單 12345678 狀態已更新為 製作中",
       "isRead": false,
       "createdAt": "2026-05-13T00:12:00.000Z"
     }
@@ -937,7 +937,7 @@ Response:
     {
       "id": "notificationId",
       "type": "order_ready",
-      "message": "Your order is ready",
+      "message": "訂單 12345678 狀態已更新為 可取餐",
       "isRead": false,
       "createdAt": "2026-05-13T00:15:00.000Z"
     }
@@ -1225,7 +1225,7 @@ notifications_loaded
     {
       "id": "notificationId",
       "type": "order_status_updated",
-      "message": "Your order is preparing",
+      "message": "訂單 12345678 狀態已更新為 製作中",
       "isRead": false,
       "createdAt": "2026-05-13T00:12:00.000Z"
     }
