@@ -1,6 +1,6 @@
 # Coffee Ordering System
 
-![CI](https://github.com/binghan60/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/tizza14/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
 
 Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, and a sales report dashboard for staff and admin.
 
