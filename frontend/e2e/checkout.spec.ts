@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mockProducts } from './helpers';
+import { clickNavigationLink, mockProducts } from './helpers';
 
 test.describe('結帳流程', () => {
   test('購物車沒商品時會顯示空狀態', async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe('結帳流程', () => {
     await page.goto('/products');
     await page.locator('li', { hasText: 'Latte' }).getByRole('button', { name: '加入' }).click();
     // SPA navigation preserves cart state
-    await page.getByRole('navigation').getByRole('link', { name: '結帳' }).click();
+    await clickNavigationLink(page, '結帳');
     await expect(page.getByText('姓名')).toBeVisible();
     await expect(page.getByText('手機')).toBeVisible();
   });
@@ -27,7 +27,7 @@ test.describe('結帳流程', () => {
     await page.goto('/products');
     await page.locator('li', { hasText: 'Latte' }).getByRole('button', { name: '加入' }).click();
     // SPA navigation preserves cart state
-    await page.getByRole('navigation').getByRole('link', { name: '結帳' }).click();
+    await clickNavigationLink(page, '結帳');
     await expect(page.getByText('Latte x 1')).toBeVisible();
     await expect(page.locator('aside footer').getByText('NT$ 120')).toBeVisible();
   });

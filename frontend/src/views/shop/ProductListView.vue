@@ -157,7 +157,7 @@
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
       <RouterLink
-        class="grid min-h-10 place-items-center rounded-md bg-amber-900 px-4 font-bold text-white no-underline"
+        class="grid h-11 w-36 shrink-0 place-items-center justify-self-end rounded-md bg-amber-900 px-4 font-bold text-white no-underline max-[820px]:w-full"
         to="/checkout"
       >
         前往結帳

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mockAuth, mockProducts } from './helpers';
+import { clickLogout, mockAuth, mockProducts } from './helpers';
 
 const API = 'http://localhost:3000/api';
 
@@ -314,7 +314,7 @@ test.describe('點餐紀錄', () => {
     await page.goto('/orders/my');
     await expect(page.getByText('ALL001')).toBeVisible();
 
-    await page.getByRole('button', { name: '登出' }).click();
+    await clickLogout(page);
     await expect(page).toHaveURL('/login');
     await loginAs(page, buyerUser.email);
     await page.goto('/orders/my');

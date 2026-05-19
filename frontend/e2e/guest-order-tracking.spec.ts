@@ -67,6 +67,10 @@ test.describe('訪客訂單追蹤', () => {
     await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
 
     await expect(page.getByText('ABC123')).toBeVisible();
+    await expect(page.getByText('目前已顯示這筆訂單狀態')).toBeVisible();
+    await expect(page.getByRole('button', { name: '查詢其他訂單' })).toHaveCount(0);
+    await page.fill('input:first-of-type', 'ABC124');
+    await expect(page.getByRole('button', { name: '查詢其他訂單' })).toBeVisible();
   });
 
   test('通知紀錄 404 時仍顯示訂單資料', async ({ page }) => {

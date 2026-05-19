@@ -128,3 +128,20 @@ export async function apiLogin(
 export async function setAuthToken(page: Page, token: string) {
   await page.evaluate((t) => localStorage.setItem('accessToken', t), token);
 }
+
+export async function openNavigation(page: Page) {
+  const menuButton = page.getByRole('button', { name: '開啟選單' });
+  if (await menuButton.isVisible().catch(() => false)) {
+    await menuButton.click();
+  }
+}
+
+export async function clickNavigationLink(page: Page, name: string | RegExp) {
+  await openNavigation(page);
+  await page.getByRole('navigation').getByRole('link', { name }).click();
+}
+
+export async function clickLogout(page: Page) {
+  await openNavigation(page);
+  await page.getByRole('button', { name: '登出' }).click();
+}

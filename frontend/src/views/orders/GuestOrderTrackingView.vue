@@ -44,12 +44,19 @@
           查詢碼在付款完成頁顯示；手機號碼需與下單時填寫的號碼相同。
         </p>
         <button
+          v-if="shouldShowLookupButton"
           class="min-h-11 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
           type="submit"
           :disabled="isLoading"
         >
-          {{ isLoading ? '查詢中...' : '查詢並顯示訂單狀態' }}
+          {{ lookupButtonLabel }}
         </button>
+        <p
+          v-else
+          class="m-0 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"
+        >
+          目前已顯示這筆訂單狀態；若要查詢其他訂單，請修改查詢碼或手機號碼。
+        </p>
         <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
           {{ errorMessage }}
         </p>
@@ -239,11 +246,29 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const itemDetailsOpen = ref(true);
 const notificationsOpen = ref(true);
+const loadedLookupCode = ref('');
+const loadedPhone = ref('');
+const loadedGuestToken = ref('');
 
 const currentStatus = computed(
   () => socketStore.latestOrderUpdate?.status ?? orderStore.currentOrder?.status
 );
 const latestNotification = computed(() => notificationStore.items[0]);
+const normalizedLookupCode = computed(() => lookupCode.value.trim().toUpperCase());
+const normalizedPhone = computed(() => phone.value.trim());
+const normalizedGuestToken = computed(() => guestToken.value.trim());
+const isCurrentQueryLoaded = computed(
+  () =>
+    Boolean(orderStore.currentOrder) &&
+    normalizedLookupCode.value === loadedLookupCode.value &&
+    normalizedPhone.value === loadedPhone.value &&
+    normalizedGuestToken.value === loadedGuestToken.value
+);
+const shouldShowLookupButton = computed(() => !isCurrentQueryLoaded.value);
+const lookupButtonLabel = computed(() => {
+  if (isLoading.value) return '查詢中...';
+  return orderStore.currentOrder ? '查詢其他訂單' : '查詢並顯示訂單狀態';
+});
 
 const steps = [
   { status: 'pending',   label: '待處理' },
@@ -325,9 +350,9 @@ function formatTime(value: string) {
 async function load() {
   errorMessage.value = '';
   isLoading.value = true;
-  const trackingLookupCode = lookupCode.value.trim().toUpperCase();
-  const trackingPhone = phone.value.trim();
-  const trackingGuestToken = guestToken.value.trim();
+  const trackingLookupCode = normalizedLookupCode.value;
+  const trackingPhone = normalizedPhone.value;
+  const trackingGuestToken = normalizedGuestToken.value;
   lookupCode.value = trackingLookupCode;
   phone.value = trackingPhone;
   guestToken.value = trackingGuestToken;
@@ -355,6 +380,9 @@ async function load() {
       });
       socketStore.joinOrderRoom(order.id);
     }
+    loadedLookupCode.value = trackingLookupCode;
+    loadedPhone.value = trackingPhone;
+    loadedGuestToken.value = trackingGuestToken;
   } catch {
     errorMessage.value = '無法載入訪客訂單，請確認查詢碼與手機號碼是否正確。';
   } finally {

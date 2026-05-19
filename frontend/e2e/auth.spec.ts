@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mockAuth, mockProducts } from './helpers';
+import { clickLogout, mockAuth, mockProducts } from './helpers';
 
 test.describe('Authentication', () => {
   test('login page renders form', async ({ page }) => {
@@ -44,7 +44,7 @@ test.describe('Authentication', () => {
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL('/products');
 
-    await page.getByRole('button', { name: '登出' }).click();
+    await clickLogout(page);
 
     await expect(page).toHaveURL('/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();

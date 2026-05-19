@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mockAuth, mockProducts } from './helpers';
+import { clickNavigationLink, mockAuth, mockProducts } from './helpers';
 
 const staffUser = {
   id: 'staff-1',
@@ -152,7 +152,7 @@ test.describe('員工與管理者流程', () => {
     });
 
     await loginAs(page, 'staff@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: '員工訂單' }).click();
+    await clickNavigationLink(page, '員工訂單');
 
     await expect(page).toHaveURL('/staff/orders');
     await expect(page.getByText('今日營收')).toBeVisible();
@@ -225,7 +225,7 @@ test.describe('員工與管理者流程', () => {
     });
 
     await loginAs(page, 'admin@example.com');
-    await page.locator('a[href="/admin/products"]').click();
+    await clickNavigationLink(page, '商品管理');
 
     await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();
     await page.getByLabel('商品名稱').fill('Espresso');
@@ -289,7 +289,7 @@ test.describe('員工與管理者流程', () => {
     });
 
     await loginAs(page, 'admin@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: '使用者管理' }).click();
+    await clickNavigationLink(page, '使用者管理');
 
     await expect(page.getByRole('heading', { name: '使用者管理' })).toBeVisible();
     await expect(page.getByText('buyer@example.com')).toBeVisible();
@@ -329,7 +329,7 @@ test.describe('已登入導覽', () => {
       await route.fulfill({ json: { data: [] } });
     });
 
-    await page.getByRole('navigation').getByRole('link', { name: '點餐紀錄' }).click();
+    await clickNavigationLink(page, '點餐紀錄');
     await expect(page).toHaveURL('/orders/my');
     await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
   });
@@ -382,7 +382,7 @@ test.describe('Toast 通知與確認對話框', () => {
       }
     });
     await loginAs(page, 'admin@example.com');
-    await page.locator('a[href="/admin/products"]').click();
+    await clickNavigationLink(page, '商品管理');
     await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();
   }
 
@@ -429,7 +429,7 @@ test.describe('Toast 通知與確認對話框', () => {
       await route.fulfill({ json: { id: 'o1', orderLookupCode: 'XYZ', guestInfo: { name: 'Alice', phone: '0900000000' }, items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }], totalAmount: 120, orderType: 'purchase', paymentStatus: 'paid', status, paidAmount: 120, pointsEarned: 0, pointsRedeemed: 0, createdAt: '2026-05-18T01:00:00.000Z', updatedAt: '2026-05-18T01:00:00.000Z' } });
     });
     await loginAs(page, 'staff@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: '員工訂單' }).click();
+    await clickNavigationLink(page, '員工訂單');
     await page.getByRole('button', { name: '接單' }).click();
     await expect(page.getByText('訂單狀態已更新')).toBeVisible();
   });

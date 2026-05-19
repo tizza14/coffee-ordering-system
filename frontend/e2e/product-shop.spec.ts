@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mockProducts } from './helpers';
+import { mockProducts, openNavigation } from './helpers';
 
 test.describe('商品頁', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,6 +9,7 @@ test.describe('商品頁', () => {
   test('商品列表頁可正常顯示導覽與商品', async ({ page }) => {
     await page.goto('/products');
     await expect(page.locator('text=咖啡點餐系統')).toBeVisible();
+    await openNavigation(page);
     await expect(page.getByRole('navigation').getByRole('link', { name: '結帳' })).toBeVisible();
     await expect(page.getByText('Latte')).toBeVisible();
   });

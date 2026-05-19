@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mockAuth, mockProducts } from './helpers';
+import { clickNavigationLink, mockAuth, mockProducts, openNavigation } from './helpers';
 
 const staffUser = {
   id: 'staff-1',
@@ -72,6 +72,7 @@ test.describe('銷售報表路由保護', () => {
     await mockAuth(page, [staffUser]);
     await mockProducts(page);
     await loginAs(page, 'staff@example.com');
+    await openNavigation(page);
     await expect(
       page.getByRole('navigation').getByRole('link', { name: '銷售報表' })
     ).toBeVisible();
@@ -84,7 +85,7 @@ test.describe('銷售報表頁面', () => {
     await mockProducts(page);
     await mockSalesReport(page);
     await loginAs(page, 'staff@example.com');
-    await page.getByRole('navigation').getByRole('link', { name: '銷售報表' }).click();
+    await clickNavigationLink(page, '銷售報表');
     await expect(page).toHaveURL('/staff/sales');
     await expect(page.getByText('銷售品項明細')).toBeVisible();
   });
@@ -138,7 +139,7 @@ test.describe('銷售報表頁面', () => {
     await mockProducts(page2);
     await mockSalesReport(page2);
     await loginAs(page2, 'admin@example.com');
-    await page2.getByRole('navigation').getByRole('link', { name: '銷售報表' }).click();
+    await clickNavigationLink(page2, '銷售報表');
     await expect(page2).toHaveURL('/staff/sales');
     await expect(page2.getByRole('heading', { name: '銷售報表' })).toBeVisible();
   });
