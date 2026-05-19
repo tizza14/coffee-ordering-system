@@ -50,6 +50,27 @@ test.describe('訪客訂單追蹤', () => {
     await expect(page.getByText('查詢結果會顯示在這裡')).toBeVisible();
   });
 
+  test('手機號碼不符時顯示無此訂單', async ({ page }) => {
+    await page.route(`${API}/orders/guest/**`, async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          code: 'GUEST_LOOKUP_INVALID',
+          message: 'Invalid guest lookup information'
+        })
+      });
+    });
+
+    await page.goto('/orders/guest');
+    await page.fill('input:first-of-type', '0FDC8A05');
+    await page.fill('input[pattern]', '0912312340');
+    await page.getByRole('button', { name: '查詢並顯示訂單狀態' }).click();
+
+    await expect(page.getByText('無此訂單，請確認查詢碼與手機號碼是否正確。')).toBeVisible();
+    await expect(page.getByText('查詢結果會顯示在這裡')).toBeVisible();
+  });
+
   test('查詢成功後顯示訂單狀態', async ({ page }) => {
     await page.route(`${API}/orders/guest/ABC123**`, async (route) => {
       await route.fulfill({

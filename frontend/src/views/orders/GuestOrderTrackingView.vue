@@ -38,6 +38,7 @@
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
             placeholder="例如 0912345678"
+            :required="!normalizedGuestToken"
           />
         </label>
         <p class="m-0 text-xs text-stone-500">
@@ -366,6 +367,7 @@ async function load() {
   lookupCode.value = trackingLookupCode;
   phone.value = trackingPhone;
   guestToken.value = trackingGuestToken;
+  notificationStore.items = [];
   try {
     const order = await orderStore.loadGuestOrder(
       trackingLookupCode,
@@ -396,8 +398,12 @@ async function load() {
   } catch (error) {
     const isOrderNotFound =
       axios.isAxiosError<ApiErrorBody>(error) &&
-      (error.response?.status === 404 || error.response?.data?.code === 'ORDER_NOT_FOUND');
-    const isEmptyResult = (error as CodedError).code === 'ORDER_NOT_FOUND';
+      (error.response?.status === 404 ||
+        error.response?.data?.code === 'ORDER_NOT_FOUND' ||
+        error.response?.data?.code === 'GUEST_LOOKUP_INVALID');
+    const isEmptyResult =
+      (error as CodedError).code === 'ORDER_NOT_FOUND' ||
+      (error as CodedError).code === 'GUEST_LOOKUP_INVALID';
 
     if (isOrderNotFound || isEmptyResult) {
       errorMessage.value = '無此訂單，請確認查詢碼與手機號碼是否正確。';
