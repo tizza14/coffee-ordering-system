@@ -160,7 +160,7 @@
         <div class="flex items-start justify-between gap-4 max-[760px]:flex-col">
           <div>
             <h2 class="m-0 text-xl font-bold text-amber-950">
-              訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
+              訂單 {{ order.orderLookupCode || '未產生查詢碼' }}
             </h2>
             <p class="m-0 text-stone-600">
               {{ order.guestInfo?.name || order.userId || '會員訂單' }}

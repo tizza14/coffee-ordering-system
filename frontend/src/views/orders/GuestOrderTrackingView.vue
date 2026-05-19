@@ -407,6 +407,11 @@ async function load() {
       (error as CodedError).code === 'GUEST_LOOKUP_INVALID';
 
     if (isOrderNotFound || isEmptyResult) {
+      orderStore.clearGuestTrackingSession();
+      guestToken.value = '';
+      loadedLookupCode.value = '';
+      loadedPhone.value = '';
+      loadedGuestToken.value = '';
       errorMessage.value = '無此訂單，請確認查詢碼與手機號碼是否正確。';
     } else {
       errorMessage.value = '無法載入訪客訂單，請稍後再試。';

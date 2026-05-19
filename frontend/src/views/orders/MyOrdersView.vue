@@ -130,7 +130,7 @@
           <div class="grid min-w-0 gap-1">
             <div class="flex flex-wrap items-center gap-2">
               <strong class="text-base text-amber-950">
-                訂單 {{ order.orderLookupCode || order.id.slice(-6) }}
+                訂單 {{ displayOrderCode(order) }}
               </strong>
               <span
                 v-if="order.orderType === 'redeem'"
@@ -162,7 +162,7 @@
             <div>
               <p class="m-0 text-xs font-bold text-stone-500">訂單查詢碼</p>
               <p class="m-0 mt-1 font-bold text-amber-950">
-                {{ order.orderLookupCode || order.id.slice(-6) }}
+                {{ displayOrderCode(order) }}
               </p>
             </div>
             <div>
@@ -529,6 +529,12 @@ function compactItems(order: Order) {
   const firstLabel = `${firstItem.name} x${firstItem.quantity}`;
   if (restItems.length === 0) return firstLabel;
   return `${firstLabel} 等 ${order.items.length} 項`;
+}
+
+function displayOrderCode(order: Order) {
+  if (order.orderLookupCode) return order.orderLookupCode;
+  if (order.orderType === 'redeem') return '兌換訂單';
+  return '未產生查詢碼';
 }
 
 function displayPhone(order: Order) {

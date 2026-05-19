@@ -41,6 +41,11 @@ function writeGuestTrackingSession(session: GuestTrackingSession) {
   );
 }
 
+function clearGuestTrackingSession() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(GUEST_TRACKING_STORAGE_KEY);
+}
+
 export const useOrderStore = defineStore('orders', {
   state: () => {
     const guestTrackingSession = readGuestTrackingSession();
@@ -67,6 +72,12 @@ export const useOrderStore = defineStore('orders', {
       this.guestToken = session.guestToken;
       this.guestPhone = session.phone ?? '';
       writeGuestTrackingSession(session);
+    },
+    clearGuestTrackingSession() {
+      this.guestLookupCode = '';
+      this.guestToken = '';
+      this.guestPhone = '';
+      clearGuestTrackingSession();
     },
     async createMemberOrder(items: CartItem[]) {
       this.isLoading = true;

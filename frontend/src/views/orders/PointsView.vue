@@ -30,7 +30,7 @@
       <div>
         <p class="m-0 text-sm font-extrabold text-emerald-700">兌換成功</p>
         <h2 class="m-0 mt-1 text-xl font-bold text-amber-950">
-          已建立兌換訂單 {{ lastRedeemOrder.orderLookupCode || lastRedeemOrder.id.slice(-6) }}
+          已建立兌換訂單 {{ displayOrderCode(lastRedeemOrder) }}
         </h2>
       </div>
       <div class="grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
@@ -173,8 +173,8 @@ const pointHistory = computed<PointRecord[]>(() => {
       id: o.id,
       label:
         o.orderType === 'redeem'
-          ? `兌換訂單 ${o.orderLookupCode ?? o.id.slice(-6)}`
-          : `訂單 ${o.orderLookupCode ?? o.id.slice(-6)} 獲得點數`,
+          ? `兌換訂單 ${displayOrderCode(o)}`
+          : `訂單 ${displayOrderCode(o)} 獲得點數`,
       delta: o.orderType === 'redeem' ? -o.pointsRedeemed : o.pointsEarned,
       createdAt: o.createdAt
     }));
@@ -187,6 +187,12 @@ function formatDate(value: string) {
     hour: '2-digit',
     minute: '2-digit'
   }).format(new Date(value));
+}
+
+function displayOrderCode(order: orderApi.Order) {
+  if (order.orderLookupCode) return order.orderLookupCode;
+  if (order.orderType === 'redeem') return '兌換訂單';
+  return '未產生查詢碼';
 }
 
 async function redeem(productId: string, productName: string) {
