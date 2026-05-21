@@ -584,11 +584,22 @@ DELETE /api/products/:id (admin)
 
 ### GET /api/products
 
+預設回傳 `isAvailable = true` 的可販售商品，供公開商品頁、購物車與點數兌換頁使用。Admin 商品管理頁若需要同時顯示上架與下架商品，需傳 `available=all`。
+
 Query:
 
 ```http
 GET /api/products?category=coffee&available=true&page=1&limit=20
 ```
+
+Query parameters:
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `category` | `coffee` / `dessert` | 依商品分類篩選 |
+| `available` | `true` / `false` / `all` | 未傳時等同 `true`；`false` 只查下架商品；`all` 查全部商品，供 Admin 管理頁使用 |
+| `page` | number | 頁碼，預設 `1` |
+| `limit` | number | 每頁筆數，預設 `20`，最大 `100` |
 
 Response:
 
@@ -2095,7 +2106,8 @@ Line Pay 在本專案中作為主要線上付款方式，需支援：
 3. 建立咖啡或甜點商品
 4. 更新商品名稱、價格、分類、描述
 5. 上架或下架商品
-6. 商品列表頁即時反映可售狀態
+6. 商品管理頁透過 `GET /api/products?available=all` 顯示上架與下架商品
+7. 公開商品列表頁只顯示上架商品，並即時反映可售狀態
 ```
 
 ### 使用者管理

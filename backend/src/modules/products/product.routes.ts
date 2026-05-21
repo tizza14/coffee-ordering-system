@@ -17,10 +17,11 @@ export const productRoutes = Router();
  *     parameters:
  *       - in: query
  *         name: category
- *         schema: { type: string, enum: [coffee, non-coffee, food] }
+ *         schema: { type: string, enum: [coffee, dessert] }
  *       - in: query
- *         name: isRedeemable
- *         schema: { type: boolean }
+ *         name: available
+ *         schema: { oneOf: [{ type: boolean }, { type: string, enum: [all] }] }
+ *         description: Defaults to true. Use false for hidden products or all for admin listings.
  *     responses:
  *       200:
  *         description: Product list
@@ -50,7 +51,7 @@ productRoutes.get('/', productController.listProducts);
  *             properties:
  *               name: { type: string }
  *               price: { type: number }
- *               category: { type: string, enum: [coffee, non-coffee, food] }
+ *               category: { type: string, enum: [coffee, dessert] }
  *               description: { type: string }
  *               isAvailable: { type: boolean }
  *               isRedeemable: { type: boolean }
@@ -96,7 +97,7 @@ productRoutes.post(
  *             properties:
  *               name: { type: string }
  *               price: { type: number }
- *               category: { type: string, enum: [coffee, non-coffee, food] }
+ *               category: { type: string, enum: [coffee, dessert] }
  *               description: { type: string }
  *               isAvailable: { type: boolean }
  *               isRedeemable: { type: boolean }

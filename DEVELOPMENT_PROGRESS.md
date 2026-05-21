@@ -59,6 +59,7 @@ Implemented:
 
 - `ProductModel` with name, price, category, description, availability, redeemable flag, and redeem points.
 - Public product list API: `GET /api/products`.
+- Public product list defaults to available products only; `available=false` returns hidden products and `available=all` supports admin listings with both available and unavailable products.
 - Admin-only product APIs:
   - `POST /api/products`
   - `PUT /api/products/:id`
@@ -70,6 +71,7 @@ Implemented:
 Verified:
 
 - `TC-001`: public product list only returns available products by default.
+- Admin product management loads all products through `available=all`, including unavailable items.
 - Category filtering.
 - Admin create/update/delete product.
 - Redeemable products expose `isRedeemable` and fixed `redeemPoints = 3`.

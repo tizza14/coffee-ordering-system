@@ -22,7 +22,7 @@ export interface ProductListResponse {
 }
 
 export interface ProductListQuery {
-  available?: boolean;
+  available?: boolean | 'all';
 }
 
 export type ProductPayload = Omit<Product, 'id'>;

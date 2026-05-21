@@ -42,6 +42,10 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 9. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
 10. Use Admin login to manage products and user roles.
 
+## API Notes
+
+- `GET /api/products` returns available products by default. Use `available=false` to list hidden products and `available=all` for admin product management lists that include both available and unavailable products.
+
 ## Local Development
 
 ### Prerequisites

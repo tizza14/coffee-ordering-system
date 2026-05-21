@@ -37,7 +37,9 @@ describe('productAdminStore', () => {
 
     await store.loadProducts();
 
-    expect(mockedProductApi.getProducts).toHaveBeenCalledWith();
+    expect(mockedProductApi.getProducts).toHaveBeenCalledWith({
+      available: 'all'
+    });
     expect(store.products).toHaveLength(1);
   });
 

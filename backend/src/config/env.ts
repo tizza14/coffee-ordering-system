@@ -75,8 +75,8 @@ export const env = {
   linePayChannelId,
   linePayChannelSecret,
   linePayMock:
-    process.env.LINE_PAY_MOCK === 'true' ||
-    (process.env.NODE_ENV !== 'test' &&
+    process.env.NODE_ENV !== 'test' &&
+    (process.env.LINE_PAY_MOCK === 'true' ||
       (['test-channel-id', 'your-channel-id'].includes(linePayChannelId) ||
         ['test-channel-secret', 'your-channel-secret'].includes(
           linePayChannelSecret

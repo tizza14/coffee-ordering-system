@@ -23,10 +23,11 @@ export const listProducts = asyncHandler(
       req.query.category === 'coffee' || req.query.category === 'dessert'
         ? req.query.category
         : undefined;
-    const available =
-      req.query.available === undefined
-        ? undefined
-        : String(req.query.available) === 'true';
+    const availableParam = req.query.available;
+    const available: boolean | undefined =
+      availableParam === undefined ? true :
+      String(availableParam) === 'all' ? undefined :
+      String(availableParam) === 'true';
 
     const result = await productService.listProducts({
       category,
