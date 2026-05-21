@@ -200,7 +200,7 @@ const filteredProducts = computed(() => {
 onMounted(async () => {
   isLoading.value = true;
   try {
-    const result = await getProducts();
+    const result = await getProducts({ available: true });
     products.value = result.data;
   } catch {
     errorMessage.value = '無法載入商品。';

@@ -196,6 +196,21 @@
   <div class="card resolved-card">
     <h3>
       <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-07：Admin 商品管理頁商品列表空白（2026-05-21）
+    </h3>
+    <p><strong>問題：</strong> <code>product-admin.store.ts</code> 呼叫 <code>getProducts({ available: false })</code>，意圖取得「所有商品含下架」，但後端 controller 將 <code>available=false</code> 解析為「只回傳 isAvailable=false 的商品」，導致所有上架商品（isAvailable=true）都被過濾掉，Admin 頁面商品列表一片空白。</p>
+    <p><strong>修正（三處）：</strong></p>
+    <ul>
+      <li><code>product.controller.ts</code> — <code>available</code> 未傳時改為 <code>undefined</code>（不篩選），原本錯誤 default 為 <code>true</code></li>
+      <li><code>product-admin.store.ts</code> — 改為 <code>getProducts()</code>（不傳 available），後端不篩選 → 回傳全部商品</li>
+      <li><code>ProductListView.vue</code> — 補上明確的 <code>available: true</code>，確保公開商品頁只顯示上架商品</li>
+    </ul>
+    <p><strong>結果：</strong> Admin 頁顯示全部商品；公開商品頁只顯示上架商品；行為符合原始設計意圖。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
       D-06：product.service.ts 漏回傳 imageUrl（2026-05-21）
     </h3>
     <p><strong>問題：</strong> <code>ProductModel</code> 與 validator 都已有 <code>imageUrl</code> 欄位，但 <code>listProducts()</code> 的 map 與 <code>toProductResponse()</code> 皆未包含此欄位，導致 API 從不回傳圖片網址。</p>
@@ -520,6 +535,11 @@
       <td>2026-05-21</td>
       <td>D-06 / Bug Fix</td>
       <td><code>product.service.ts</code> 的 <code>listProducts()</code> 與 <code>toProductResponse()</code> 補回 <code>imageUrl</code> 欄位，修正 API 從不回傳圖片網址的 bug。</td>
+    </tr>
+    <tr>
+      <td>2026-05-21</td>
+      <td>D-07 / Bug Fix</td>
+      <td>修正 Admin 商品管理頁空白問題：<code>product.controller.ts</code> 的 <code>available</code> 未傳時改為 <code>undefined</code>（不篩選）；<code>product-admin.store.ts</code> 改為 <code>getProducts()</code>；<code>ProductListView.vue</code> 補上明確 <code>available: true</code>。</td>
     </tr>
     <tr>
       <td>2026-05-21</td>

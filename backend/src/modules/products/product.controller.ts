@@ -25,7 +25,7 @@ export const listProducts = asyncHandler(
         : undefined;
     const available =
       req.query.available === undefined
-        ? true
+        ? undefined
         : String(req.query.available) === 'true';
 
     const result = await productService.listProducts({

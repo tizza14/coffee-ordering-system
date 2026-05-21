@@ -10,7 +10,7 @@ export const useProductAdminStore = defineStore('productAdmin', {
     async loadProducts() {
       this.isLoading = true;
       try {
-        const result = await productApi.getProducts({ available: false });
+        const result = await productApi.getProducts();
         this.products = result.data;
       } finally {
         this.isLoading = false;
