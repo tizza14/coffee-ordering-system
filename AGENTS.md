@@ -18,7 +18,7 @@ Every code change must include matching documentation updates before handoff. Ch
 - `DEVELOPMENT_PROGRESS.md`
 - `Coffee Real-time Ordering System 規格書.md`
 - Backend Swagger/JSDoc route comments
-- `Coffee Ordering AI Agents 開發參考.md`
+- `docs/archive/Coffee Ordering AI Agents 開發參考.md` when historical agent planning context changes
 - Local-only guidance such as `CLAUDE.md`, when present
 
 Update docs whenever behavior, API contracts, UI flows, environment variables, deployment steps, tests, or operational assumptions change. If no docs need changes, say so explicitly in the handoff.
@@ -26,6 +26,11 @@ Update docs whenever behavior, API contracts, UI flows, environment variables, d
 ## Encoding Rule
 
 Markdown files use UTF-8 with BOM to prevent Traditional Chinese mojibake in Windows tools. Keep `.editorconfig` in sync with this rule.
+
+## Documentation Layout
+
+- Root docs are active handoff material: `README.md`, `AGENTS.md`, `DEVELOPMENT_PROGRESS.md`, and `Coffee Real-time Ordering System 規格書.md`.
+- Historical or long-form reference material lives in `docs/archive/`.
 
 ## Project Checks
 

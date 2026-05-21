@@ -53,6 +53,8 @@ Every code change must include matching documentation updates before handoff. Ch
 
 Markdown files are encoded as UTF-8 with BOM in `.editorconfig` so Windows tools do not misread Traditional Chinese as ANSI/Big5. Agent-facing rules are tracked in `AGENTS.md`; local-only guidance may also exist in `CLAUDE.md`.
 
+Active project docs stay in the repository root. Historical or long-form references live in `docs/archive/`, including `docs/archive/Coffee Ordering AI Agents 開發參考.md` and `docs/archive/implementation-notes.html`.
+
 ## Local Development
 
 ### Prerequisites

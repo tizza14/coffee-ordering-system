@@ -4,7 +4,7 @@
 
 ## 文件維護規則
 
-每次功能、錯誤修正、API 契約、UI 流程、環境變數、部署流程、測試契約或營運假設有變更時，必須在同一次交付中同步更新相關文件。至少需檢查 `README.md`、`DEVELOPMENT_PROGRESS.md`、本規格書、後端 Swagger/JSDoc route comments、`Coffee Ordering AI Agents 開發參考.md`、`AGENTS.md`，以及本機代理指南（如 `CLAUDE.md`）。若確認不需更新文件，交付說明需明確註記。Markdown 文件需依 `.editorconfig` 使用 UTF-8 with BOM，避免 Windows 工具讀取繁體中文時發生亂碼。
+每次功能、錯誤修正、API 契約、UI 流程、環境變數、部署流程、測試契約或營運假設有變更時，必須在同一次交付中同步更新相關文件。至少需檢查 `README.md`、`DEVELOPMENT_PROGRESS.md`、本規格書、後端 Swagger/JSDoc route comments、`AGENTS.md`，以及本機代理指南（如 `CLAUDE.md`）。若歷史分工或長版參考脈絡改變，也需更新 `docs/archive/` 內相關文件。若確認不需更新文件，交付說明需明確註記。Markdown 文件需依 `.editorconfig` 使用 UTF-8 with BOM，避免 Windows 工具讀取繁體中文時發生亂碼。
 
 ---
 
