@@ -12,7 +12,7 @@ Frontend features are implemented through shop/auth/cart, checkout, payment conf
 
 All planned feature specs through `FS-016` now have an implemented and verified path. Backend API E2E and frontend browser smoke E2E are accepted. Frontend RWD baseline has been added and verified on desktop and mobile Playwright projects.
 
-All planned feature specs through `FS-016` are implemented, tested, and deployed. CI Pipeline, containerization, Swagger API documentation, cloud deployment, demo seed, and product imageUrl are all complete. Project is fully shipped.
+All planned feature specs through `FS-016` are implemented, tested, and deployed. CI Pipeline, containerization, Swagger API documentation, cloud deployment, demo seed, and product image upload/removal are all complete. Project is fully shipped.
 
 **Live URLs:**
 - Frontend: https://coffee-ordering-system-delta.vercel.app
@@ -593,7 +593,7 @@ Implemented:
 - **Vercel (Frontend)**: Connects to GitHub `main` branch, root directory `frontend/`. `VITE_API_BASE_URL` and `VITE_SOCKET_URL` set as environment variables. URL: `https://coffee-ordering-system-delta.vercel.app`.
 - **Vercel SPA routing**: `frontend/vercel.json` added with `rewrites` rule (`/(.*) → /index.html`) to prevent 404 on direct Vue route access.
 
-## Product imageUrl
+## Product Images
 
 Status: Accepted
 
@@ -603,7 +603,9 @@ Implemented:
 - `product.validators.ts`: added `imageUrl: z.string().url().optional().or(z.literal(''))`.
 - `frontend/src/api/product.api.ts`: added `imageUrl?: string` to `Product` interface.
 - `ProductListView.vue`: shows 96×96 rounded image when `imageUrl` is present.
-- `AdminProductsView.vue`: added Image URL input field with live preview below input.
+- `AdminProductsView.vue`: supports image file selection, live preview, upload after product save, and explicit image removal.
+- `POST /api/products/:id/image`: admin-only upload to Cloudinary; replaces and deletes the old Cloudinary asset when present.
+- `DELETE /api/products/:id/image`: admin-only image removal; clears `Product.imageUrl` and deletes the Cloudinary asset when present.
 
 ## Demo Seed Script
 

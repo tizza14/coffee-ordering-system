@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/tizza14/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
 
-Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, Cloudinary product image upload, and a sales report dashboard for staff and admin.
+Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, Cloudinary product image upload/removal, and a sales report dashboard for staff and admin.
 
 ## Live Demo
 
@@ -45,6 +45,7 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 ## API Notes
 
 - `GET /api/products` returns available products by default. Use `available=false` to list hidden products and `available=all` for admin product management lists that include both available and unavailable products.
+- Admins can upload product images with `POST /api/products/:id/image` and remove them with `DELETE /api/products/:id/image`.
 
 ## Local Development
 

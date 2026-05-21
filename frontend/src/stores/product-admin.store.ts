@@ -41,6 +41,13 @@ export const useProductAdminStore = defineStore('productAdmin', {
         item.id === product.id ? product : item
       );
       return product;
+    },
+    async removeProductImage(id: string) {
+      const product = await productApi.removeProductImage(id);
+      this.products = this.products.map((item) =>
+        item.id === product.id ? product : item
+      );
+      return product;
     }
   }
 });

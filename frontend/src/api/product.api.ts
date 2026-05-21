@@ -59,3 +59,8 @@ export async function uploadProductImage(id: string, file: File) {
   });
   return response.data;
 }
+
+export async function removeProductImage(id: string) {
+  const response = await http.delete<Product>(`/products/${id}/image`);
+  return response.data;
+}

@@ -78,3 +78,12 @@ export const uploadProductImage = asyncHandler(
     res.json(product);
   }
 );
+
+export const removeProductImage = asyncHandler(
+  async (req: Request, res: Response) => {
+    const product = await productService.removeProductImage(
+      getParam(req.params.id)
+    );
+    res.json(product);
+  }
+);

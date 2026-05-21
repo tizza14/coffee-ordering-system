@@ -68,6 +68,14 @@
           alt="預覽"
           class="h-32 w-32 rounded-lg object-cover"
         />
+        <button
+          v-if="previewUrl || form.imageUrl"
+          class="min-h-9 w-fit cursor-pointer rounded-md border border-red-700 bg-white px-3 text-sm font-bold text-red-700"
+          type="button"
+          @click="removeImage"
+        >
+          移除圖片
+        </button>
       </div>
 
       <label class="flex items-center gap-2 font-semibold">
@@ -203,7 +211,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import type { Product } from '../../api/product.api';
 import { useProductAdminStore } from '../../stores/product-admin.store';
 import { useToastStore } from '../../stores/toast.store';
@@ -236,7 +244,15 @@ function onFileChange(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
   pendingFile.value = file;
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
   previewUrl.value = URL.createObjectURL(file);
+}
+
+function clearSelectedImage() {
+  pendingFile.value = null;
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+  previewUrl.value = '';
+  if (fileInput.value) fileInput.value.value = '';
 }
 
 function resetForm() {
@@ -248,9 +264,7 @@ function resetForm() {
   form.imageUrl = '';
   form.isAvailable = true;
   form.isRedeemable = false;
-  pendingFile.value = null;
-  previewUrl.value = '';
-  if (fileInput.value) fileInput.value.value = '';
+  clearSelectedImage();
 }
 
 function editProduct(product: Product) {
@@ -262,9 +276,35 @@ function editProduct(product: Product) {
   form.imageUrl = product.imageUrl ?? '';
   form.isAvailable = product.isAvailable;
   form.isRedeemable = product.isRedeemable;
-  pendingFile.value = null;
-  previewUrl.value = '';
-  if (fileInput.value) fileInput.value.value = '';
+  clearSelectedImage();
+}
+
+async function removeImage() {
+  if (pendingFile.value) {
+    clearSelectedImage();
+    return;
+  }
+
+  if (!editingId.value || !form.imageUrl) {
+    form.imageUrl = '';
+    return;
+  }
+
+  const confirmed = await confirmStore.confirm({
+    title: '移除圖片',
+    message: '確定要移除此商品圖片嗎？',
+    confirmLabel: '移除',
+    danger: true
+  });
+  if (!confirmed) return;
+
+  try {
+    const product = await productStore.removeProductImage(editingId.value);
+    form.imageUrl = product.imageUrl ?? '';
+    toastStore.success('商品圖片已移除');
+  } catch (err) {
+    toastStore.error(extractApiError(err) || '無法移除商品圖片。');
+  }
 }
 
 async function saveProduct() {
@@ -322,4 +362,7 @@ async function loadProducts() {
 }
 
 onMounted(loadProducts);
+onBeforeUnmount(() => {
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+});
 </script>

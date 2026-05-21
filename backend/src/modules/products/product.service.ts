@@ -86,22 +86,44 @@ function uploadToCloudinary(buffer: Buffer, mimetype: string): Promise<string> {
   });
 }
 
-export async function uploadProductImage(id: string, buffer: Buffer, mimetype: string) {
+async function destroyProductImage(imageUrl?: string) {
+  if (!imageUrl) return;
+
+  const match = imageUrl.match(/\/coffee-products\/([^.]+)/);
+  if (match) {
+    await cloudinary.uploader
+      .destroy(`coffee-products/${match[1]}`)
+      .catch(() => null);
+  }
+}
+
+export async function uploadProductImage(
+  id: string,
+  buffer: Buffer,
+  mimetype: string
+) {
   const product = await ProductModel.findById(id);
   if (!product) {
     throw new ApiError(404, 'RESOURCE_NOT_FOUND', 'Product not found');
   }
 
   // 刪除 Cloudinary 上的舊圖
-  if (product.imageUrl) {
-    const match = product.imageUrl.match(/\/coffee-products\/([^.]+)/);
-    if (match) {
-      await cloudinary.uploader.destroy(`coffee-products/${match[1]}`).catch(() => null);
-    }
-  }
+  await destroyProductImage(product.imageUrl);
 
   const imageUrl = await uploadToCloudinary(buffer, mimetype);
   product.imageUrl = imageUrl;
+  await product.save();
+  return toProductResponse(product);
+}
+
+export async function removeProductImage(id: string) {
+  const product = await ProductModel.findById(id);
+  if (!product) {
+    throw new ApiError(404, 'RESOURCE_NOT_FOUND', 'Product not found');
+  }
+
+  await destroyProductImage(product.imageUrl);
+  product.imageUrl = '';
   await product.save();
   return toProductResponse(product);
 }

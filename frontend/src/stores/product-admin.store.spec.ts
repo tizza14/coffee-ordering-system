@@ -7,7 +7,9 @@ vi.mock('../api/product.api', () => ({
   getProducts: vi.fn(),
   createProduct: vi.fn(),
   updateProduct: vi.fn(),
-  deleteProduct: vi.fn()
+  deleteProduct: vi.fn(),
+  uploadProductImage: vi.fn(),
+  removeProductImage: vi.fn()
 }));
 
 const mockedProductApi = vi.mocked(productApi);
@@ -19,7 +21,8 @@ const product = {
   description: 'Milk coffee',
   isAvailable: true,
   isRedeemable: false,
-  redeemPoints: 3
+  redeemPoints: 3,
+  imageUrl: ''
 };
 
 describe('productAdminStore', () => {
@@ -69,5 +72,24 @@ describe('productAdminStore', () => {
       name: 'Americano'
     });
     expect(mockedProductApi.deleteProduct).toHaveBeenCalledWith('p1');
+  });
+
+  it('updates local product after uploading or removing an image', async () => {
+    mockedProductApi.uploadProductImage.mockResolvedValue({
+      ...product,
+      imageUrl: 'https://example.com/latte.jpg'
+    });
+    mockedProductApi.removeProductImage.mockResolvedValue(product);
+    const store = useProductAdminStore();
+    store.products = [product];
+
+    await store.uploadProductImage('p1', new File(['image'], 'latte.jpg'));
+
+    expect(store.products[0].imageUrl).toBe('https://example.com/latte.jpg');
+
+    await store.removeProductImage('p1');
+
+    expect(store.products[0].imageUrl).toBe('');
+    expect(mockedProductApi.removeProductImage).toHaveBeenCalledWith('p1');
   });
 });

@@ -145,10 +145,63 @@ productRoutes.delete(
   productController.deleteProduct
 );
 
+/**
+ * @openapi
+ * /products/{id}/image:
+ *   post:
+ *     tags: [Products]
+ *     summary: Upload or replace a product image (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [image]
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Product image uploaded
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Product' }
+ *   delete:
+ *     tags: [Products]
+ *     summary: Remove a product image (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Product image removed
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Product' }
+ */
 productRoutes.post(
   '/:id/image',
   authenticate,
   authorize(['admin']),
   uploadImage,
   productController.uploadProductImage
+);
+productRoutes.delete(
+  '/:id/image',
+  authenticate,
+  authorize(['admin']),
+  productController.removeProductImage
 );

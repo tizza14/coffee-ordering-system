@@ -139,6 +139,27 @@ describe('Product API', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
+  it('allows admin to remove a product image', async () => {
+    const token = await loginAs('admin');
+    const product = await ProductModel.create({
+      name: 'Latte',
+      price: 120,
+      category: 'coffee',
+      imageUrl: 'https://example.com/latte.jpg',
+      isAvailable: true
+    });
+
+    const response = await request(app)
+      .delete(`/api/products/${String(product._id)}/image`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.imageUrl).toBe('');
+    await expect(ProductModel.findById(product._id)).resolves.toMatchObject({
+      imageUrl: ''
+    });
+  });
+
   it('rejects non-admin product creation', async () => {
     const token = await loginAs('user');
 

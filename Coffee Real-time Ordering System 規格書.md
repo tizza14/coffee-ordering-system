@@ -580,6 +580,8 @@ GET /api/products
 POST /api/products (admin)
 PUT /api/products/:id (admin)
 DELETE /api/products/:id (admin)
+POST /api/products/:id/image (admin)
+DELETE /api/products/:id/image (admin)
 ```
 
 ### GET /api/products
@@ -638,6 +640,14 @@ Request:
   "isAvailable": true
 }
 ```
+
+### POST /api/products/:id/image
+
+Admin 上傳商品圖片。Request 使用 `multipart/form-data`，欄位名稱為 `image`，支援 JPEG、PNG、WebP，大小上限 5 MB。上傳成功後會將 Cloudinary `secure_url` 寫入 `Product.imageUrl`；若商品原本已有圖片，會同步移除舊的 Cloudinary 圖片。
+
+### DELETE /api/products/:id/image
+
+Admin 移除商品圖片。成功後 `Product.imageUrl` 會被清空；若原圖位於 Cloudinary `coffee-products/` 資料夾，後端會同步刪除該資源。
 
 ---
 
@@ -1358,7 +1368,7 @@ type PaymentStatus =
 
 ## Admin
 
-* 商品管理頁（`/admin/products`）— 商品 CRUD，支援圖片預覽與可兌換設定
+* 商品管理頁（`/admin/products`）— 商品 CRUD，支援圖片預覽、上傳、移除與可兌換設定
 * 使用者管理頁（`/admin/users`）— 查看所有使用者並變更角色
 * Admin 同時擁有 Staff 頁面的完整存取權
 
