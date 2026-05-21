@@ -48,21 +48,27 @@
           class="min-h-24 rounded-md border border-stone-400 px-2.5 py-2"
         />
       </label>
-      <label class="grid gap-1.5 font-semibold">
-        圖片網址
-        <input
-          v-model="form.imageUrl"
-          class="min-h-10 rounded-md border border-stone-400 px-2.5"
-          placeholder="https://..."
-          type="url"
-        />
+      <div class="grid gap-1.5 font-semibold">
+        商品圖片
+        <label
+          class="flex cursor-pointer items-center gap-2 rounded-md border border-stone-400 px-2.5 py-2 text-sm text-stone-600 hover:bg-stone-50"
+        >
+          <input
+            ref="fileInput"
+            accept="image/jpeg,image/png,image/webp"
+            class="hidden"
+            type="file"
+            @change="onFileChange"
+          />
+          {{ pendingFile ? pendingFile.name : '選擇圖片（JPEG / PNG / WebP，最大 5 MB）' }}
+        </label>
         <img
-          v-if="form.imageUrl"
-          :src="form.imageUrl"
+          v-if="previewUrl || form.imageUrl"
+          :src="previewUrl || form.imageUrl"
           alt="預覽"
           class="h-32 w-32 rounded-lg object-cover"
         />
-      </label>
+      </div>
 
       <label class="flex items-center gap-2 font-semibold">
         <input v-model="form.isAvailable" type="checkbox" />
@@ -209,6 +215,9 @@ const toastStore = useToastStore();
 const confirmStore = useConfirmStore();
 const editingId = ref('');
 const loadError = ref('');
+const pendingFile = ref<File | null>(null);
+const previewUrl = ref('');
+const fileInput = ref<HTMLInputElement | null>(null);
 const form = reactive({
   name: '',
   price: 0,
@@ -223,6 +232,13 @@ function categoryLabel(value: Product['category']) {
   return value === 'coffee' ? '咖啡' : '甜點';
 }
 
+function onFileChange(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+  pendingFile.value = file;
+  previewUrl.value = URL.createObjectURL(file);
+}
+
 function resetForm() {
   editingId.value = '';
   form.name = '';
@@ -232,6 +248,9 @@ function resetForm() {
   form.imageUrl = '';
   form.isAvailable = true;
   form.isRedeemable = false;
+  pendingFile.value = null;
+  previewUrl.value = '';
+  if (fileInput.value) fileInput.value.value = '';
 }
 
 function editProduct(product: Product) {
@@ -243,18 +262,34 @@ function editProduct(product: Product) {
   form.imageUrl = product.imageUrl ?? '';
   form.isAvailable = product.isAvailable;
   form.isRedeemable = product.isRedeemable;
+  pendingFile.value = null;
+  previewUrl.value = '';
+  if (fileInput.value) fileInput.value.value = '';
 }
 
 async function saveProduct() {
-  const payload = { ...form, redeemPoints: 3 as const };
+  const payload = {
+    name: form.name,
+    price: form.price,
+    category: form.category,
+    description: form.description,
+    isAvailable: form.isAvailable,
+    isRedeemable: form.isRedeemable,
+    redeemPoints: 3 as const
+  };
   try {
+    let saved: Product;
     if (editingId.value) {
-      await productStore.updateProduct(editingId.value, payload);
-      toastStore.success('商品已更新');
+      saved = await productStore.updateProduct(editingId.value, payload);
     } else {
-      await productStore.createProduct(payload);
-      toastStore.success('商品已新增');
+      saved = await productStore.createProduct(payload);
     }
+
+    if (pendingFile.value) {
+      await productStore.uploadProductImage(saved.id, pendingFile.value);
+    }
+
+    toastStore.success(editingId.value ? '商品已更新' : '商品已新增');
     resetForm();
   } catch (err) {
     toastStore.error(extractApiError(err) || '無法儲存商品。');

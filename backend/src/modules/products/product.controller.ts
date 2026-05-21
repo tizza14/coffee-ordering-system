@@ -62,3 +62,18 @@ export const deleteProduct = asyncHandler(
     res.status(204).send();
   }
 );
+
+export const uploadProductImage = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      res.status(400).json({ code: 'VALIDATION_ERROR', message: '請上傳圖片檔案' });
+      return;
+    }
+    const product = await productService.uploadProductImage(
+      getParam(req.params.id),
+      req.file.buffer,
+      req.file.mimetype
+    );
+    res.json(product);
+  }
+);

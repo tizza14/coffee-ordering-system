@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../middlewares/auth.middleware';
 import { authorize } from '../../middlewares/rbac.middleware';
 import { validateBody } from '../../middlewares/validate.middleware';
+import { uploadImage } from '../../middlewares/upload.middleware';
 import * as productController from './product.controller';
 import { createProductSchema, updateProductSchema } from './product.validators';
 
@@ -141,4 +142,12 @@ productRoutes.delete(
   authenticate,
   authorize(['admin']),
   productController.deleteProduct
+);
+
+productRoutes.post(
+  '/:id/image',
+  authenticate,
+  authorize(['admin']),
+  uploadImage,
+  productController.uploadProductImage
 );

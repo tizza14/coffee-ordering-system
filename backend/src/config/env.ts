@@ -94,5 +94,8 @@ export const env = {
   vapidPublicKey:  process.env.VAPID_PUBLIC_KEY  ?? '',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? '',
   vapidEmail:      process.env.VAPID_EMAIL        ?? 'admin@example.com',
-  refreshTokenExpiresDays: Number(process.env.REFRESH_TOKEN_EXPIRES_DAYS ?? 30)
+  refreshTokenExpiresDays: Number(process.env.REFRESH_TOKEN_EXPIRES_DAYS ?? 30),
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+  cloudinaryApiKey:    process.env.CLOUDINARY_API_KEY    ?? '',
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET ?? ''
 };

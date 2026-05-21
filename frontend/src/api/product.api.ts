@@ -50,3 +50,12 @@ export async function updateProduct(
 export async function deleteProduct(id: string) {
   await http.delete(`/products/${id}`);
 }
+
+export async function uploadProductImage(id: string, file: File) {
+  const form = new FormData();
+  form.append('image', file);
+  const response = await http.post<Product>(`/products/${id}/image`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+}

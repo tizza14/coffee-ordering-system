@@ -68,7 +68,7 @@
 
   <h1>☕ Implementation Notes</h1>
   <p class="subtitle">Coffee Real-time Ordering System — 規格實作對照紀錄<br>
-  最後更新：2026-05-19</p>
+  最後更新：2026-05-21</p>
 
   <div class="toc">
     <h3>目錄</h3>
@@ -104,7 +104,8 @@
     <tr><td>WebSocket rooms</td><td><span class="badge badge-ok">✓ 完成</span></td><td>room:user / room:order / room:staff</td></tr>
     <tr><td>RWD（桌機 + 手機）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Tailwind 響應式 utilities，Playwright 雙裝置 E2E</td></tr>
     <tr><td>容器化（Docker）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Dockerfile × 2, Nginx, docker-compose, .dockerignore</td></tr>
-    <tr><td>CI（GitHub Actions）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend + frontend 平行 job；AWS deploy 已暫時註解（見 D-04）</td></tr>
+    <tr><td>CI（GitHub Actions）</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend + frontend 平行 job；deploy.yml 以 CI 為 gate 觸發 Render + Vercel（見 D-05）</td></tr>
+    <tr><td>Cloudinary 圖片上傳</td><td><span class="badge badge-ok">✓ 完成</span></td><td>Admin 可上傳商品圖片至 Cloudinary；multer memory storage + upload_stream；POST /api/products/:id/image</td></tr>
     <tr><td>Swagger API 文件</td><td><span class="badge badge-ok">✓ 完成</span></td><td>/api-docs（swagger-jsdoc + swagger-ui-express）</td></tr>
     <tr><td>Seed 腳本</td><td><span class="badge badge-ok">✓ 完成</span></td><td>backend/src/scripts/seed.ts，60 天歷史訂單</td></tr>
   </table>
@@ -176,6 +177,29 @@
     <p><strong>規格：</strong> <code>.github/workflows/deploy.yml</code> 含 ECR + EC2 + S3 + CloudFront 部署步驟。</p>
     <p><strong>現狀：</strong> <code>deploy-backend</code> 與 <code>deploy-frontend</code> 兩個 job 已全數以 <code>#</code> 註解，保留 <code>ci</code> check job 確保 CI 仍執行。</p>
     <p><strong>原因：</strong> AWS Secrets 尚未在 GitHub 倉庫設定；保留程式碼只需取消註解即可重新啟用。詳見 Q-04。</p>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-05：CI 改為 Render + Vercel 部署的 gate（2026-05-21）
+    </h3>
+    <p><strong>問題：</strong> Render 與 Vercel 原本監聽 GitHub push 直接部署，完全不等待 GitHub Actions CI 結果。CI 失敗仍會部署壞掉的程式碼。</p>
+    <p><strong>修正：</strong></p>
+    <ul>
+      <li><code>deploy.yml</code> 改為先呼叫 <code>ci.yml</code>（reusable workflow），CI 通過後才以 curl 觸發各平台的 Deploy Hook</li>
+      <li>新增 <code>deploy-backend</code> job（觸發 <code>RENDER_DEPLOY_HOOK_URL</code>）與 <code>deploy-frontend</code> job（觸發 <code>VERCEL_DEPLOY_HOOK_URL</code>），兩者皆 <code>needs: ci</code></li>
+      <li>Render 與 Vercel 的 Auto-Deploy on push 須關閉，確保部署只由 GitHub Actions 觸發</li>
+    </ul>
+  </div>
+
+  <div class="card resolved-card">
+    <h3>
+      <span class="badge badge-resolved">✓ RESOLVED</span>
+      D-06：product.service.ts 漏回傳 imageUrl（2026-05-21）
+    </h3>
+    <p><strong>問題：</strong> <code>ProductModel</code> 與 validator 都已有 <code>imageUrl</code> 欄位，但 <code>listProducts()</code> 的 map 與 <code>toProductResponse()</code> 皆未包含此欄位，導致 API 從不回傳圖片網址。</p>
+    <p><strong>修正：</strong> 兩處皆補上 <code>imageUrl: product.imageUrl ?? ''</code>。</p>
   </div>
 
   <!-- ─── 3. Decisions ─── -->
@@ -488,6 +512,21 @@
       <td><code>.github/workflows/deploy.yml</code> 的 AWS deploy job 全數以 <code>#</code> 註解，保留 CI check job。待 AWS secrets 設定完成後取消註解即可重新啟用。</td>
     </tr>
     <tr>
+      <td>2026-05-21</td>
+      <td>D-05 / CI Gate</td>
+      <td><code>deploy.yml</code> 新增 <code>deploy-backend</code>（Render Deploy Hook）與 <code>deploy-frontend</code>（Vercel Deploy Hook）job，兩者皆 <code>needs: ci</code>。CI 失敗時不觸發任何部署。須在 GitHub Secrets 設定 <code>RENDER_DEPLOY_HOOK_URL</code> 與 <code>VERCEL_DEPLOY_HOOK_URL</code>。</td>
+    </tr>
+    <tr>
+      <td>2026-05-21</td>
+      <td>D-06 / Bug Fix</td>
+      <td><code>product.service.ts</code> 的 <code>listProducts()</code> 與 <code>toProductResponse()</code> 補回 <code>imageUrl</code> 欄位，修正 API 從不回傳圖片網址的 bug。</td>
+    </tr>
+    <tr>
+      <td>2026-05-21</td>
+      <td>Cloudinary 圖片上傳</td>
+      <td>新增 <code>POST /api/products/:id/image</code>（admin only）。後端：安裝 <code>cloudinary</code> + <code>multer</code>；新增 <code>config/cloudinary.ts</code>、<code>middlewares/upload.middleware.ts</code>；<code>product.service.uploadProductImage()</code> 上傳至 Cloudinary <code>coffee-products/</code> 資料夾，更新 DB imageUrl，刪除舊圖。前端：Admin 商品表單圖片欄位改為檔案選取（支援即時預覽）；新增 <code>productApi.uploadProductImage()</code> 與 store action。新增環境變數 <code>CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET</code>。</td>
+    </tr>
+    <tr>
       <td>2026-05-19</td>
       <td>E2E 修正</td>
       <td>修正多個 CI E2E 失敗：checkout heading 期望值、sales-report admin 測試 beforeEach 隔離、guest-order-tracking 手機版 race condition；以及 D-01 / D-02 格式修正後所有對應 mock fixture 的同步更新。</td>
@@ -500,7 +539,7 @@
   </table>
 
   <hr />
-  <p class="updated">此文件隨實作持續更新。最後更新：2026-05-19</p>
+  <p class="updated">此文件隨實作持續更新。最後更新：2026-05-21（Cloudinary 圖片上傳、CI Gate 部署、imageUrl bug 修正）</p>
 
 </div>
 </body>

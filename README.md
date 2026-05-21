@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/tizza14/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
 
-Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, and a sales report dashboard for staff and admin.
+Real-time coffee ordering demo with a Vue 3 frontend, Express/TypeScript backend, MongoDB Atlas, JWT role-based access, guest checkout, staff order handling, admin management, Socket.io notifications, points redemption, Line Pay-compatible payment flow, Cloudinary product image upload, and a sales report dashboard for staff and admin.
 
 ## Live Demo
 
@@ -105,6 +105,11 @@ LINE_PAY_API_BASE_URL=https://sandbox-api-pay.line.me
 LINE_PAY_MOCK=true
 LINE_PAY_CONFIRM_URL=http://localhost:5173/payments/line-pay/confirm
 LINE_PAY_CANCEL_URL=http://localhost:5173/payments/line-pay/cancel
+
+# Cloudinary (product image upload)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 ### Frontend (`frontend/.env`)

@@ -51,6 +51,9 @@ DB    MongoDB Atlas  (免費 M0，512 MB)
 | `FRONTEND_URL` | `https://<your-vercel-domain>.vercel.app` | 付款回導與系統產生前端連結的基準 URL |
 | `LINE_PAY_CONFIRM_URL` | `https://<your-vercel-domain>.vercel.app/payments/line-pay/confirm` | |
 | `LINE_PAY_CANCEL_URL` | `https://<your-vercel-domain>.vercel.app/payments/line-pay/cancel` | |
+| `CLOUDINARY_CLOUD_NAME` | *(Cloudinary Dashboard → API Keys)* | 商品圖片上傳 |
+| `CLOUDINARY_API_KEY` | *(Cloudinary Dashboard → API Keys)* | |
+| `CLOUDINARY_API_SECRET` | *(Cloudinary Dashboard → API Keys)* | |
 
 > **注意**：`CLIENT_ORIGIN` 即 CORS 允許來源，必須與前端實際 URL 完全一致（含 https://，不含結尾 /）。`FRONTEND_URL` 也需使用正式前端網址，不可使用 `localhost`。
 
@@ -138,7 +141,24 @@ repo 中已有 `frontend/vercel.json`，確保 SPA routing 正常：
 
 ---
 
-## 七、Web Push（可選）
+## 七、CI Gate 部署（重要）
+
+`.github/workflows/deploy.yml` 已設定 **CI 通過後才觸發部署**。
+
+- Render 與 Vercel 的 **Auto-Deploy on push 必須關閉**，否則每次 push 都會繞過 CI 直接部署。
+- 部署由 GitHub Actions 透過 Deploy Hook 觸發：
+  - `RENDER_DEPLOY_HOOK_URL` — Render Dashboard → 服務 → Settings → Deploy Hooks
+  - `VERCEL_DEPLOY_HOOK_URL` — Vercel Dashboard → 專案 → Settings → Git → Deploy Hooks
+- 將上述兩個 URL 加入 GitHub repo → Settings → Secrets → Actions。
+
+| GitHub Secret | 取得位置 |
+|---|---|
+| `RENDER_DEPLOY_HOOK_URL` | Render → Service → Settings → Deploy Hooks |
+| `VERCEL_DEPLOY_HOOK_URL` | Vercel → Project → Settings → Git → Deploy Hooks |
+
+---
+
+## 八、Web Push（可選）
 
 若需啟用 Web Push 通知，先產生 VAPID 金鑰：
 ```bash
