@@ -1,8 +1,12 @@
-# Development Progress
+﻿# Development Progress
 
-Last updated: 2026-05-18 +08:00 (rev 6)
+Last updated: 2026-05-21 +08:00 (rev 7)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
+
+Documentation maintenance rule: every feature, bug fix, API change, UI behavior change, environment/deployment change, or test-contract change must update all affected documentation in the same handoff. At minimum, check `README.md`, this progress file, `Coffee Real-time Ordering System 規格書.md`, Swagger/JSDoc route comments, `Coffee Ordering AI Agents 開發參考.md`, and `AGENTS.md`. If no document needs changes, explicitly note that in the handoff.
+
+Encoding rule: Markdown files use UTF-8 with BOM and are pinned in `.editorconfig` to prevent Traditional Chinese mojibake in Windows tools.
 
 ## Overall Status
 

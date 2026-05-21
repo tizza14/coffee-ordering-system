@@ -1,4 +1,4 @@
-# Coffee Ordering System
+﻿# Coffee Ordering System
 
 ![CI](https://github.com/tizza14/coffee-ordering-system/actions/workflows/ci.yml/badge.svg)
 
@@ -46,6 +46,12 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 
 - `GET /api/products` returns available products by default. Use `available=false` to list hidden products and `available=all` for admin product management lists that include both available and unavailable products.
 - Admins can upload product images with `POST /api/products/:id/image` and remove them with `DELETE /api/products/:id/image`.
+
+## Documentation Maintenance
+
+Every code change must include matching documentation updates before handoff. Check `README.md`, `DEVELOPMENT_PROGRESS.md`, `Coffee Real-time Ordering System 規格書.md`, route Swagger/JSDoc comments, and the AI agent reference when behavior, APIs, UI flows, environment variables, deployment steps, tests, or operational assumptions change.
+
+Markdown files are encoded as UTF-8 with BOM in `.editorconfig` so Windows tools do not misread Traditional Chinese as ANSI/Big5. Agent-facing rules are tracked in `AGENTS.md`; local-only guidance may also exist in `CLAUDE.md`.
 
 ## Local Development
 

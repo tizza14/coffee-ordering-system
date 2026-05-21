@@ -1,6 +1,8 @@
-# Coffee Ordering AI Agents 開發參考
+﻿# Coffee Ordering AI Agents 開發參考
 
 本文件用於搭配 `Coffee Real-time Ordering System 規格書.md`，作為 AI agents 分工開發的參考。
+
+Encoding: Markdown files are saved as UTF-8 with BOM and pinned in `.editorconfig` to avoid Traditional Chinese mojibake in Windows tools.
 
 ---
 
@@ -15,6 +17,22 @@
 * 每個 agent 只處理明確範圍
 * 每次完成後更新 Traceability Matrix Status
 * 每個階段都需通過 lint、test、build
+
+---
+
+## Documentation handoff rule
+
+Every agent must update documentation in the same change set as code changes. Before handoff, check all affected docs:
+
+* `README.md`
+* `DEVELOPMENT_PROGRESS.md`
+* `Coffee Real-time Ordering System 規格書.md`
+* Backend Swagger/JSDoc route comments
+* This AI agent reference
+* `AGENTS.md`
+* Local agent guidance such as `CLAUDE.md` when present
+
+Update these files whenever behavior, API contracts, UI flows, environment variables, deployment steps, tests, or operational assumptions change. If a change does not require documentation edits, state that explicitly in the handoff notes.
 
 ---
 
