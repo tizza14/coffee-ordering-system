@@ -129,12 +129,15 @@
           :key="i"
           class="animate-pulse grid gap-3 rounded-lg border border-stone-200 bg-white p-4"
         >
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1 space-y-2">
-              <div class="h-5 w-40 rounded bg-stone-200"></div>
-              <div class="h-3 w-56 rounded bg-stone-200"></div>
+          <div class="flex items-start gap-4">
+            <div class="h-20 w-20 shrink-0 rounded-lg bg-stone-200"></div>
+            <div class="flex flex-1 items-start justify-between gap-4">
+              <div class="flex-1 space-y-2">
+                <div class="h-5 w-40 rounded bg-stone-200"></div>
+                <div class="h-3 w-56 rounded bg-stone-200"></div>
+              </div>
+              <div class="h-5 w-16 rounded bg-stone-200"></div>
             </div>
-            <div class="h-5 w-16 rounded bg-stone-200"></div>
           </div>
           <div class="flex gap-2">
             <div class="h-5 w-12 rounded-full bg-stone-200"></div>
@@ -153,17 +156,34 @@
           class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4"
         >
           <div
-            class="flex items-start justify-between gap-4 max-[760px]:flex-col"
+            class="flex items-start gap-4 max-[760px]:flex-col"
           >
-            <div>
-              <h3 class="m-0 text-lg font-bold text-amber-950">
-                {{ product.name }}
-              </h3>
-              <p class="m-0 text-stone-600">
-                {{ product.description || '尚無說明' }}
-              </p>
+            <img
+              v-if="product.imageUrl"
+              :src="product.imageUrl"
+              :alt="product.name"
+              class="h-20 w-20 shrink-0 rounded-lg object-cover"
+            />
+            <div
+              v-else
+              class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-400"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2" />
+              </svg>
             </div>
-            <strong>NT$ {{ product.price }}</strong>
+            <div class="flex min-w-0 flex-1 items-start justify-between gap-4 max-[760px]:flex-col">
+              <div class="min-w-0">
+                <h3 class="m-0 text-lg font-bold text-amber-950">
+                  {{ product.name }}
+                </h3>
+                <p class="m-0 text-stone-600">
+                  {{ product.description || '尚無說明' }}
+                </p>
+              </div>
+              <strong class="shrink-0">NT$ {{ product.price }}</strong>
+            </div>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
