@@ -158,11 +158,11 @@ test.describe('員工與管理者流程', () => {
     await expect(page.getByText('今日營收')).toBeVisible();
     await expect(page.getByText('NT$ 360')).toBeVisible();
     await expect(page.getByRole('heading', { name: '訂單 ABC123' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '製作中' })).toHaveCount(0);
-    await page.getByRole('button', { name: '接單' }).click();
+    await expect(page.getByRole('button', { name: '開始製作' })).toHaveCount(0);
+    await page.getByRole('button', { name: '接單', exact: true }).click();
     await expect(page.locator('span').filter({ hasText: /^已接單$/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: '製作中' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '可取餐' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: '開始製作' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '標記可取餐' })).toHaveCount(0);
   });
 
   test('管理者可新增、編輯與刪除商品', async ({ page }) => {
@@ -433,7 +433,7 @@ test.describe('Toast 通知與確認對話框', () => {
     });
     await loginAs(page, 'staff@example.com');
     await clickNavigationLink(page, '員工訂單');
-    await page.getByRole('button', { name: '接單' }).click();
+    await page.getByRole('button', { name: '接單', exact: true }).click();
     await expect(page.getByText('訂單狀態已更新')).toBeVisible();
   });
 });
