@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { clickNavigationLink, mockAuth, mockProducts, openNavigation } from './helpers';
+import { clickNavigationLink, mockAuth, mockProducts, mockStaffOrders, openNavigation } from './helpers';
 
 const staffUser = {
   id: 'staff-1',
@@ -25,12 +25,12 @@ const normalUser = {
   role: 'user' as const
 };
 
-async function loginAs(page: Page, email: string) {
+async function loginAs(page: Page, email: string, expectedUrl = '/products') {
   await page.goto('/login');
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL('/products');
+  await expect(page).toHaveURL(expectedUrl);
 }
 
 function mockSalesReport(page: Page, overrides: Record<string, unknown> = {}) {
@@ -71,7 +71,8 @@ test.describe('銷售報表路由保護', () => {
   test('員工導覽列看得到銷售報表連結', async ({ page }) => {
     await mockAuth(page, [staffUser]);
     await mockProducts(page);
-    await loginAs(page, 'staff@example.com');
+    await mockStaffOrders(page);
+    await loginAs(page, 'staff@example.com', '/staff/orders');
     await openNavigation(page);
     await expect(
       page.getByRole('navigation').getByRole('link', { name: '銷售報表' })
@@ -83,8 +84,9 @@ test.describe('銷售報表頁面', () => {
   test.beforeEach(async ({ page }) => {
     await mockAuth(page, [staffUser]);
     await mockProducts(page);
+    await mockStaffOrders(page);
     await mockSalesReport(page);
-    await loginAs(page, 'staff@example.com');
+    await loginAs(page, 'staff@example.com', '/staff/orders');
     await clickNavigationLink(page, '銷售報表');
     await expect(page).toHaveURL('/staff/sales');
     await expect(page.getByText('銷售品項明細')).toBeVisible();
@@ -138,8 +140,9 @@ test.describe('銷售報表管理者存取', () => {
   test('管理者也可進入銷售報表', async ({ page }) => {
     await mockAuth(page, [adminUser]);
     await mockProducts(page);
+    await mockStaffOrders(page);
     await mockSalesReport(page);
-    await loginAs(page, 'admin@example.com');
+    await loginAs(page, 'admin@example.com', '/staff/orders');
     await clickNavigationLink(page, '銷售報表');
     await expect(page).toHaveURL('/staff/sales');
     await expect(page.getByRole('heading', { name: '銷售報表' })).toBeVisible();

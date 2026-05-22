@@ -94,18 +94,20 @@ test.describe('角色導覽入口', () => {
     await expect(page).toHaveURL('/staff/orders');
   });
 
-  test('admin 保留顧客入口，也可進入員工與管理功能', async ({ page }) => {
+  test('admin 登入後進入員工訂單，導覽列只顯示管理功能', async ({ page }) => {
     await mockAuth(page, [adminUser]);
     await mockProducts(page);
+    await mockStaffOrders(page);
 
     await login(page, adminUser.email);
 
-    await expect(page).toHaveURL('/products');
-    await expect(page.getByText('Latte')).toBeVisible();
+    await expect(page).toHaveURL('/staff/orders');
     await openNavigation(page);
-    await expect(page.getByRole('navigation').getByRole('link', { name: '商品', exact: true })).toBeVisible();
-    await expect(page.getByRole('navigation').getByRole('link', { name: '點餐紀錄' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: '商品', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('navigation').getByRole('link', { name: '點餐紀錄' })).toHaveCount(0);
     await expect(page.getByRole('navigation').getByRole('link', { name: '員工訂單' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: '銷售報表' })).toBeVisible();
     await expect(page.getByRole('navigation').getByRole('link', { name: '商品管理' })).toBeVisible();
+    await expect(page.getByRole('navigation').getByRole('link', { name: '使用者管理' })).toBeVisible();
   });
 });

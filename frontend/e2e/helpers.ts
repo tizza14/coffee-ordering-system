@@ -152,6 +152,28 @@ export async function clickNavigationLink(page: Page, name: string | RegExp) {
   await page.getByRole('navigation').getByRole('link', { name }).click();
 }
 
+export async function mockStaffOrders(page: Page) {
+  await page.route(`${API}/orders/summary/today`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        date: new Date().toISOString().slice(0, 10),
+        timezone: 'Asia/Taipei',
+        totalOrders: 0, paidOrders: 0, paidRevenue: 0,
+        averagePaidOrderValue: 0, itemQuantity: 0, soldItems: [],
+        guestOrders: 0, memberOrders: 0,
+        statusCounts: { pending: 0, accepted: 0, preparing: 0, ready: 0, completed: 0, cancelled: 0 },
+        paymentStatusCounts: { unpaid: 0, payment_pending: 0, paid: 0, payment_failed: 0, refunded: 0 }
+      })
+    });
+  });
+  await page.route(`${API}/orders`, async (route) => {
+    if (route.request().method() !== 'GET') { await route.fallback(); return; }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [] }) });
+  });
+}
+
 export async function clickLogout(page: Page) {
   await openNavigation(page);
   await page.getByRole('button', { name: '登出' }).click();

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { clickNavigationLink, mockAuth, mockProducts } from './helpers';
+import { clickNavigationLink, mockAuth, mockProducts, mockStaffOrders } from './helpers';
 
 const staffUser = {
   id: 'staff-1',
@@ -22,7 +22,7 @@ async function loginAs(page: Page, email: string) {
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL('/products');
+  await expect(page).toHaveURL('/staff/orders');
 }
 
 test.describe('未登入路由保護', () => {
@@ -224,6 +224,7 @@ test.describe('員工與管理者流程', () => {
       await route.fulfill({ status: 204 });
     });
 
+    await mockStaffOrders(page);
     await loginAs(page, 'admin@example.com');
     await clickNavigationLink(page, '商品管理');
 
@@ -288,6 +289,7 @@ test.describe('員工與管理者流程', () => {
       });
     });
 
+    await mockStaffOrders(page);
     await loginAs(page, 'admin@example.com');
     await clickNavigationLink(page, '使用者管理');
 
@@ -381,6 +383,7 @@ test.describe('Toast 通知與確認對話框', () => {
         await route.fallback();
       }
     });
+    await mockStaffOrders(page);
     await loginAs(page, 'admin@example.com');
     await clickNavigationLink(page, '商品管理');
     await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();

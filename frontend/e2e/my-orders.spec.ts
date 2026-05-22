@@ -19,12 +19,12 @@ const adminUser = {
   role: 'admin' as const
 };
 
-async function loginAs(page: Page, email: string) {
+async function loginAs(page: Page, email: string, expectedUrl = '/products') {
   await page.goto('/login');
   await page.fill('input[type="email"]', email);
   await page.fill('input[type="password"]', 'password123');
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL('/products');
+  await expect(page).toHaveURL(expectedUrl);
 }
 
 function orderPayload(overrides: Record<string, unknown> = {}) {
@@ -236,7 +236,7 @@ test.describe('點餐紀錄', () => {
       });
     });
 
-    await loginAs(page, adminUser.email);
+    await loginAs(page, adminUser.email, '/staff/orders');
     await page.goto('/orders/my');
 
     await expect.poll(() => requestedAllOrders).toBe(true);
