@@ -12,7 +12,13 @@ import StaffOrdersView from '../views/staff/StaffOrdersView.vue';
 import SalesReportView from '../views/staff/SalesReportView.vue';
 import CheckoutView from '../views/shop/CheckoutView.vue';
 import ProductListView from '../views/shop/ProductListView.vue';
-import { canAccessRoute, getCurrentRouteRole, type RouteRole } from './guards';
+import {
+  canAccessRoute,
+  getCurrentRouteRole,
+  getDefaultRouteForRole,
+  isStaffOnlyRole,
+  type RouteRole
+} from './guards';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -32,7 +38,7 @@ export const router = createRouter({
     {
       path: '/orders/my',
       component: MyOrdersView,
-      meta: { roles: ['user', 'staff', 'admin'] }
+      meta: { roles: ['user', 'admin'] }
     },
     {
       path: '/points',
@@ -78,17 +84,28 @@ export const router = createRouter({
   ]
 });
 
+const STAFF_ALLOWED_PREFIXES = ['/staff/', '/admin/'];
+
 router.beforeEach((to) => {
   const authStore = useAuthStore();
+  const role = authStore.user?.role;
+
   if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-    return '/products';
+    return getDefaultRouteForRole(role);
+  }
+
+  if (
+    isStaffOnlyRole(role) &&
+    !STAFF_ALLOWED_PREFIXES.some((p) => to.path.startsWith(p))
+  ) {
+    return getDefaultRouteForRole(role);
   }
 
   const allowedRoles = to.meta.roles as RouteRole[] | undefined;
   if (!allowedRoles) return true;
 
-  const currentRole = getCurrentRouteRole(authStore.user?.role);
+  const currentRole = getCurrentRouteRole(role as RouteRole | undefined);
   if (canAccessRoute(allowedRoles, currentRole)) return true;
 
-  return authStore.isAuthenticated ? '/products' : '/login';
+  return authStore.isAuthenticated ? getDefaultRouteForRole(role) : '/login';
 });

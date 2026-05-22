@@ -98,6 +98,13 @@
       <p v-if="cartStore.items.length === 0" class="m-0 text-stone-600">
         購物車沒有商品。
       </p>
+      <RouterLink
+        v-if="cartStore.items.length === 0"
+        class="grid h-11 w-full place-items-center rounded-md border border-amber-900 px-4 font-bold text-amber-950 no-underline"
+        to="/products"
+      >
+        回商品列表
+      </RouterLink>
       <ul class="grid list-none gap-3 p-0">
         <li
           v-for="item in cartStore.items"
@@ -118,6 +125,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCartStore } from '../../stores/cart.store';
 import { useOrderStore } from '../../stores/order.store';

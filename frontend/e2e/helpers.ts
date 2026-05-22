@@ -57,7 +57,10 @@ export async function mockProducts(page: Page) {
 
 export async function mockAuth(page: Page, users: MockUser[] = defaultUsers) {
   await page.route(`${API}/auth/login`, async (route) => {
-    const body = route.request().postDataJSON() as { email?: string; password?: string };
+    const body = route.request().postDataJSON() as {
+      email?: string;
+      password?: string;
+    };
     const user = users.find(
       (item) => item.email === body.email && item.password === body.password
     );
@@ -83,12 +86,18 @@ export async function mockAuth(page: Page, users: MockUser[] = defaultUsers) {
     await route.fulfill({
       status: 401,
       contentType: 'application/json',
-      body: JSON.stringify({ code: 'AUTH_INVALID_CREDENTIALS', message: 'Invalid credentials' })
+      body: JSON.stringify({
+        code: 'AUTH_INVALID_CREDENTIALS',
+        message: 'Invalid credentials'
+      })
     });
   });
 
   await page.route(`${API}/auth/register`, async (route) => {
-    const body = route.request().postDataJSON() as { name?: string; email?: string };
+    const body = route.request().postDataJSON() as {
+      name?: string;
+      email?: string;
+    };
     await route.fulfill({
       status: 201,
       contentType: 'application/json',

@@ -1,19 +1,21 @@
 <template>
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
-    <header>
+    <header class="grid gap-1">
+      <p class="m-0 text-sm font-extrabold uppercase text-amber-700">Rewards</p>
       <h1 class="m-0 text-2xl font-bold text-amber-950">我的點數</h1>
-      <p class="m-0 text-stone-600">消費每滿 NT$100 獲得 1 點，累積 3 點可免費兌換指定商品。</p>
+      <p class="m-0 max-w-3xl text-stone-600">
+        消費每滿 NT$100 獲得 1 點，累積 3 點可兌換指定商品。
+      </p>
     </header>
 
-    <!-- 點數餘額卡 -->
     <article class="rounded-lg border border-amber-300 bg-amber-900 p-6 text-white">
       <p class="m-0 text-sm font-bold uppercase tracking-widest opacity-70">目前點數</p>
       <div class="mt-2 flex items-end gap-3">
         <span class="text-6xl font-extrabold leading-none">{{ points }}</span>
         <span class="mb-1 text-lg opacity-80">點</span>
       </div>
-      <p class="m-0 mt-3 text-sm opacity-70">
-        {{ points >= REDEEM_COST ? `還差 0 點即可兌換` : `還差 ${REDEEM_COST - points} 點可兌換` }}
+      <p class="m-0 mt-3 text-sm opacity-80">
+        {{ points >= REDEEM_COST ? '已可兌換指定商品' : `還差 ${REDEEM_COST - points} 點可兌換` }}
       </p>
       <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-amber-800">
         <div
@@ -44,21 +46,28 @@
         </p>
         <p class="m-0 rounded-md bg-white p-3">
           <span class="block text-xs font-bold text-stone-500">後續流程</span>
-          <strong class="text-amber-950">等待店員接單製作</strong>
+          <strong class="text-amber-950">店員會接單並製作兌換商品</strong>
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <RouterLink
           class="inline-flex min-h-10 items-center rounded-md bg-amber-900 px-4 text-sm font-bold text-white no-underline"
-          to="/orders/my"
+          to="/orders/guest"
         >
           查看兌換訂單狀態
         </RouterLink>
-        <span class="text-sm text-stone-600">兌換品項會出現在點餐紀錄，可追蹤待處理、製作中與可取餐狀態。</span>
+        <RouterLink
+          class="inline-flex min-h-10 items-center rounded-md border border-amber-900 bg-white px-4 text-sm font-bold text-amber-950 no-underline"
+          to="/orders/my"
+        >
+          查看點餐紀錄
+        </RouterLink>
+        <span class="text-sm text-stone-600">
+          訂單追蹤會自動顯示最近進行中的會員訂單。
+        </span>
       </div>
     </section>
 
-    <!-- 兌換商品 -->
     <section>
       <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">可兌換商品</h2>
 
@@ -110,7 +119,6 @@
       </ul>
     </section>
 
-    <!-- 點數紀錄 -->
     <section v-if="pointHistory.length > 0">
       <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">點數紀錄</h2>
       <ul class="grid list-none gap-2 p-0">

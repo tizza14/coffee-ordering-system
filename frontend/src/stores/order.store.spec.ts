@@ -49,6 +49,28 @@ describe('orderStore', () => {
     expect(orderStore.currentOrder?.id).toBe('o1');
   });
 
+  it('stores member checkout tracking details when available', async () => {
+    mockedOrderApi.createMemberOrder.mockResolvedValue({
+      ...order,
+      orderLookupCode: 'MEM123'
+    });
+    const orderStore = useOrderStore();
+
+    await orderStore.createMemberOrder(cartItems, {
+      phone: '0912345678'
+    });
+
+    expect(orderStore.guestLookupCode).toBe('MEM123');
+    expect(orderStore.guestToken).toBe('');
+    expect(orderStore.guestPhone).toBe('0912345678');
+    expect(
+      JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}')
+    ).toEqual({
+      lookupCode: 'MEM123',
+      phone: '0912345678'
+    });
+  });
+
   it('stores guest token after guest order', async () => {
     mockedOrderApi.createGuestOrder.mockResolvedValue({
       ...order,
@@ -134,6 +156,20 @@ describe('orderStore', () => {
 
     const stored = JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}');
     expect(stored).toEqual({ lookupCode: 'TRK999', guestToken: 'tok-abc', phone: '0911222333' });
+  });
+
+  it('restores tracking session with lookup code and phone only', () => {
+    localStorage.setItem(
+      'coffee-ordering-guest-tracking',
+      JSON.stringify({ lookupCode: 'MEM999', phone: '0987654321' })
+    );
+    setActivePinia(createPinia());
+
+    const orderStore = useOrderStore();
+
+    expect(orderStore.guestLookupCode).toBe('MEM999');
+    expect(orderStore.guestToken).toBe('');
+    expect(orderStore.guestPhone).toBe('0987654321');
   });
 
   it('loads today staff summary', async () => {

@@ -5,10 +5,10 @@
     <article
       class="grid w-full max-w-lg gap-3 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
     >
-      <h1 class="m-0 text-2xl font-bold">
-        {{ isError ? '付款失敗' : '付款完成' }}
+      <h1 class="m-0 text-2xl font-bold text-amber-950">
+        {{ isError ? '付款失敗' : '付款確認' }}
       </h1>
-      <p class="m-0">{{ message }}</p>
+      <p class="m-0 text-stone-700">{{ message }}</p>
       <p v-if="errorCode" class="m-0 text-sm text-red-600">
         錯誤代碼：{{ errorCode }}
       </p>
@@ -16,29 +16,38 @@
         訂單查詢碼：{{ lookupCode }}
       </p>
       <div class="flex flex-wrap gap-3 pt-2">
-        <RouterLink
-          class="rounded-md bg-amber-900 px-4 py-2 font-bold text-white no-underline"
-          to="/products"
+        <button
+          v-if="isError && orderId"
+          class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 py-2 font-bold text-white disabled:opacity-60"
+          type="button"
+          :disabled="paymentStore.isLoading"
+          @click="retryPayment"
         >
-          回到商品頁
-        </RouterLink>
+          {{ paymentStore.isLoading ? '建立付款中...' : '重新付款' }}
+        </button>
         <RouterLink
           v-if="trackingQuery.lookupCode"
           class="rounded-md border border-amber-900 px-4 py-2 font-bold text-amber-950 no-underline"
           :to="{ path: '/orders/guest', query: trackingQuery }"
         >
-          前往訂單追蹤
+          查看訂單追蹤
         </RouterLink>
         <RouterLink
-          v-if="isError && orderId"
+          class="rounded-md border border-stone-400 px-4 py-2 font-bold text-stone-700 no-underline"
+          to="/products"
+        >
+          回商品列表
+        </RouterLink>
+        <RouterLink
+          v-if="isError && authStore.isAuthenticated"
           class="rounded-md border border-stone-400 px-4 py-2 font-bold text-stone-700 no-underline"
           to="/orders/my"
         >
-          查看我的訂單
+          查看點餐紀錄
         </RouterLink>
       </div>
       <p v-if="isError" class="m-0 text-xs text-stone-500">
-        如問題持續發生，請聯繫店家並提供訂單查詢碼。
+        訂單仍會保留。若付款已扣款但畫面顯示失敗，請保留訂單查詢碼並聯絡店員確認。
       </p>
     </article>
   </section>
@@ -46,16 +55,17 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { useRoute, RouterLink } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import { useAuthStore } from '../../stores/auth.store';
 import { useOrderStore } from '../../stores/order.store';
 import { usePaymentStore } from '../../stores/payment.store';
-import { useAuthStore } from '../../stores/auth.store';
 
 const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 const orderStore = useOrderStore();
 const paymentStore = usePaymentStore();
-const authStore = useAuthStore();
 
 const message = ref('正在確認付款...');
 const errorCode = ref('');
@@ -71,12 +81,36 @@ const trackingQuery = computed(() => ({
 }));
 
 const ERROR_MESSAGES: Record<string, string> = {
-  PAYMENT_AMOUNT_MISMATCH: '付款金額不符，請聯繫店家。',
-  ORDER_ACCESS_DENIED: '無法驗證訂單身份，請重新嘗試。',
-  ORDER_NOT_FOUND: '找不到此訂單。',
-  PAYMENT_REQUEST_NOT_ALLOWED: '此訂單無法進行付款。',
-  RESOURCE_NOT_FOUND: '找不到付款記錄。'
+  PAYMENT_AMOUNT_MISMATCH: '付款金額不一致，請聯絡店員確認。',
+  ORDER_ACCESS_DENIED: '無法確認這筆訂單，請重新查詢訂單。',
+  ORDER_NOT_FOUND: '找不到訂單。',
+  PAYMENT_REQUEST_NOT_ALLOWED: '此訂單目前不能付款，請查看訂單狀態。',
+  RESOURCE_NOT_FOUND: '找不到付款紀錄。'
 };
+
+async function retryPayment() {
+  if (!orderId.value) return;
+
+  errorCode.value = '';
+  try {
+    const payment = await paymentStore.requestLinePay(
+      orderId.value,
+      guestToken.value || undefined
+    );
+    window.location.assign(payment.paymentUrl);
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      const code = err.response?.data?.code as string | undefined;
+      if (code) errorCode.value = code;
+      message.value =
+        (code ? ERROR_MESSAGES[code] : undefined) ??
+        err.response?.data?.message ??
+        '無法重新建立付款，請稍後再試或查看訂單追蹤。';
+      return;
+    }
+    message.value = '無法重新建立付款，請稍後再試或查看訂單追蹤。';
+  }
+}
 
 onMounted(async () => {
   orderId.value = String(route.query.orderId ?? '');
@@ -86,17 +120,17 @@ onMounted(async () => {
     route.query.lookupCode ?? orderStore.guestLookupCode ?? ''
   );
 
-  if (lookupCode.value && guestToken.value) {
+  if (lookupCode.value && (guestToken.value || orderStore.guestPhone)) {
     orderStore.setGuestTrackingSession({
       lookupCode: lookupCode.value,
-      guestToken: guestToken.value,
+      guestToken: guestToken.value || undefined,
       phone: orderStore.guestPhone || undefined
     });
   }
 
   if (!orderId.value || !transactionId) {
     isError.value = true;
-    message.value = '缺少付款確認參數，請回到商品頁重新下單。';
+    message.value = '缺少付款確認資訊，請回商品列表重新操作。';
     return;
   }
 
@@ -106,20 +140,31 @@ onMounted(async () => {
       transactionId,
       guestToken.value || undefined
     );
-    message.value = '付款成功，感謝您的消費！';
+    message.value = '付款成功，正在前往訂單追蹤。';
     void authStore.refreshUser();
+
+    if (trackingQuery.value.lookupCode) {
+      await router.replace({
+        path: '/orders/guest',
+        query: trackingQuery.value
+      });
+    }
   } catch (err) {
     isError.value = true;
     if (axios.isAxiosError(err)) {
       const code = err.response?.data?.code as string | undefined;
       if (code) {
         errorCode.value = code;
-        message.value = ERROR_MESSAGES[code] ?? err.response?.data?.message ?? '付款確認失敗，請稍後再試。';
+        message.value =
+          ERROR_MESSAGES[code] ??
+          err.response?.data?.message ??
+          '付款確認失敗，請重新付款或查看訂單追蹤。';
       } else {
-        message.value = err.response?.data?.message ?? '付款確認失敗，請稍後再試。';
+        message.value =
+          err.response?.data?.message ?? '付款確認失敗，請重新付款或查看訂單追蹤。';
       }
     } else {
-      message.value = '付款確認失敗，請稍後再試。';
+      message.value = '付款確認失敗，請重新付款或查看訂單追蹤。';
     }
   }
 });

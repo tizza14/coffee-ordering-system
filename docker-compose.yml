@@ -1,12 +1,4 @@
 services:
-  mongodb:
-    image: mongo:7
-    restart: unless-stopped
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
-
   backend:
     build:
       context: ./backend
@@ -16,7 +8,7 @@ services:
       - "3000:3000"
     environment:
       PORT: 3000
-      MONGODB_URI: mongodb://mongodb:27017/coffee_ordering
+      MONGODB_URI: ${MONGODB_URI:?MONGODB_URI is required}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
@@ -34,8 +26,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    depends_on:
-      - mongodb
 
   frontend:
     build:
@@ -51,5 +41,3 @@ services:
       backend:
         condition: service_healthy
 
-volumes:
-  mongo_data:

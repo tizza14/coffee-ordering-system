@@ -845,6 +845,160 @@ Verified:
 
 ---
 
+## Checkout Tracking Integration (2026-05-22)
+
+- Member checkout now stores the newly created order lookup code and pickup phone in the existing local tracking session, matching the guest checkout handoff behavior.
+- Line Pay confirmation now redirects successful payments directly to `/orders/guest` with the saved lookup details when available, so customers land on the live tracking workspace without manually re-entering the order code.
+- The confirmation page keeps its manual links and error display for missing redirect data or failed confirmation.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/order.store.spec.ts src/stores/payment.store.spec.ts`
+- `frontend`: `npm.cmd run build`
+- `frontend`: `npm.cmd run e2e -- checkout.spec.ts guest-order-tracking.spec.ts`
+
+---
+
+## Customer Flow UX Step 1 (2026-05-22)
+
+- Product page customer-facing copy was restored to readable Traditional Chinese for product heading, filters, cart controls, redemption labels, and error/empty states.
+- Mobile Products bottom bar now separates cart expansion from a direct **結帳** action once items are in the cart.
+- Checkout empty cart state now includes a **回商品列表** action.
+- Product and checkout e2e/unit tests were updated to assert readable customer-facing labels.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/views/shop/ProductListView.spec.ts src/stores/order.store.spec.ts src/stores/payment.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- product-shop.spec.ts checkout.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Payment Recovery UX Step 2 (2026-05-22)
+
+- Line Pay confirmation failure state now keeps the order context visible and offers direct recovery actions:
+  - **重新付款** creates a new Line Pay request for the same order.
+  - **查看訂單追蹤** opens the tracking workspace when lookup details are available.
+  - **回商品列表** remains available as a safe fallback.
+- The confirmation page customer-facing copy was restored to readable Traditional Chinese.
+- Payment confirmation e2e coverage verifies failed confirm recovery and retry redirect behavior.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/payment.store.spec.ts src/stores/order.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- payment-confirm.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Member Tracking UX Step 3 (2026-05-22)
+
+- `GuestOrderTrackingView` customer-facing copy was restored to readable Traditional Chinese.
+- Logged-in members now automatically load the most recent active order in the tracking workspace when no query is already present.
+- The tracking page still supports manual lookup, guest phone/token lookup, notification history, item details, and member recent-order selection.
+- Guest tracking e2e coverage was rewritten with readable labels and now verifies member auto-load behavior.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/order.store.spec.ts src/stores/socket.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- guest-order-tracking.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Order History UX Step 4 (2026-05-22)
+
+- `MyOrdersView` customer-facing copy was restored to readable Traditional Chinese.
+- **點餐紀錄** is now positioned as a historical order list, while active order progress is routed back to **訂單追蹤** through a **追蹤狀態** shortcut.
+- The history list keeps status filters, date grouping, incremental loading, collapsible details, payment/status badges, item details, and point badges.
+- Admin order history still loads the complete order list through `GET /api/orders?all=true`.
+- My orders e2e coverage was rewritten with readable labels for empty state, expandable history details, loading more, filtering, and admin complete history.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/order.store.spec.ts src/stores/socket.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- my-orders.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Points Redemption UX Step 5 (2026-05-22)
+
+- `PointsView` customer-facing copy was restored to readable Traditional Chinese.
+- Redemption success now shows points spent, remaining points, next handling step, and a primary **查看兌換訂單狀態** link to the tracking workspace.
+- A secondary **查看點餐紀錄** link remains available for history review.
+- Points e2e coverage verifies redemption, point history update, and direct tracking of the created redeem order.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/order.store.spec.ts src/stores/payment.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- points.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Staff Order Queue UX Step 6 (2026-05-22)
+
+- `StaffOrdersView` now works as an order queue rather than a plain paid-order list.
+- The queue keeps today's revenue and sales summary, then highlights active orders with counts for `待接單`, `已接單`, `製作中`, and `可取餐`.
+- Staff can filter `進行中`, `待接單`, `製作中`, `可取餐`, and `已結束`, with active orders sorted by workflow priority and creation time.
+- Each order card now shows the next recommended action, a primary status button, and a cancellation button only while the order is still pending.
+- Added focused Playwright coverage for desktop and mobile staff queue filtering and status progression.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/stores/order.store.spec.ts src/stores/socket.store.spec.ts`
+- `frontend`: `npm.cmd run e2e -- staff-orders.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Navigation Role UX Step 7 (2026-05-22)
+
+- Added shared route helper functions in `router/guards.ts` so the router guard, header brand link, login success, and register success use the same role default.
+- Staff login now explicitly lands on **員工訂單** through the shared helper, and Staff is still kept inside staff/admin routes.
+- User and Admin login continue to land on **商品**; Admin keeps both customer/history links and staff/admin links.
+- Added focused unit coverage for default role routes and staff-only restriction behavior.
+- Added Playwright coverage for Staff and Admin navigation entry behavior on desktop and mobile.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/router/guards.spec.ts`
+- `frontend`: `npm.cmd run e2e -- navigation-role.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Product Cart Build Warning Cleanup Step 8 (2026-05-22)
+
+- Removed the recurring Vite CSS minify warning caused by a literal Playwright selector string using `[data-testid="cart-panel"]:visible`.
+- Updated product cart E2E coverage to use `getByTestId('cart-panel').filter({ visible: true })`, keeping the same desktop/mobile behavior without producing invalid Tailwind CSS.
+- Restored `ProductListView` and its focused tests to readable Traditional Chinese copy for product category filters, cart labels, empty cart text, and checkout actions.
+- Build now completes without the previous `Unexpected ")"` warning.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/views/shop/ProductListView.spec.ts`
+- `frontend`: `npm.cmd run e2e -- product-shop.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Auth Entry UX Step 9 (2026-05-22)
+
+- `LoginView` and `RegisterView` were rewritten as UTF-8 so Traditional Chinese copy renders correctly in Vite and Playwright.
+- Login now offers **建立會員帳號** and **先以訪客身分瀏覽商品** links.
+- Register now offers **前往登入** and **先以訪客身分瀏覽商品** links.
+- Auth E2E coverage was restored to readable Traditional Chinese and verifies the reciprocal auth links, guest shopping entry, login failure, login success, logout, and authenticated login guard.
+- During verification, stale Vite listeners on port `5173` were stopped because Playwright's `reuseExistingServer` setting was serving an older frontend bundle.
+
+Verified:
+
+- `frontend`: `npm.cmd run e2e -- auth.spec.ts`
+- `frontend`: `npm.cmd run build`
+
+---
+
 ## Post-Ship Enhancements (2026-05-18 rev 4)
 
 ### CI/CD Gate + README Security Hardening

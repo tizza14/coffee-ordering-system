@@ -1,19 +1,30 @@
 <template>
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
     <header class="flex flex-wrap items-start justify-between gap-3">
-      <div>
+      <div class="grid gap-1">
+        <p class="m-0 text-sm font-extrabold uppercase text-amber-700">
+          Order History
+        </p>
         <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
-        <p class="m-0 text-stone-600">{{ pageDescription }}</p>
+        <p class="m-0 max-w-3xl text-stone-600">{{ pageDescription }}</p>
       </div>
-      <PushNotificationToggle />
+      <div class="flex flex-wrap items-center gap-2">
+        <RouterLink
+          v-if="authStore.user?.role === 'user'"
+          class="rounded-md border border-amber-900 px-4 py-2 text-sm font-bold text-amber-950 no-underline"
+          to="/orders/guest"
+        >
+          查看目前訂單
+        </RouterLink>
+        <PushNotificationToggle v-if="authStore.user?.role === 'user'" />
+      </div>
     </header>
 
-    <!-- 骨架屏 -->
     <ul v-if="isLoading" class="grid list-none gap-3 p-0">
       <li
         v-for="i in 3"
         :key="i"
-        class="animate-pulse grid gap-3 rounded-lg border border-stone-200 bg-white p-4"
+        class="grid animate-pulse gap-3 rounded-lg border border-stone-200 bg-white p-4"
       >
         <div class="flex items-start justify-between gap-3">
           <div class="grid gap-2">
@@ -29,7 +40,6 @@
       </li>
     </ul>
 
-    <!-- 錯誤 -->
     <p
       v-else-if="errorMessage"
       class="m-0 rounded-lg border border-red-200 bg-red-50 p-4 font-bold text-red-700"
@@ -37,16 +47,17 @@
       {{ errorMessage }}
     </p>
 
-    <!-- 空狀態 -->
     <div
       v-else-if="orderStore.myOrders.length === 0"
       class="grid min-h-40 place-items-center rounded-lg border border-dashed border-stone-300 bg-white p-6 text-center"
     >
       <div>
-        <p class="m-0 text-2xl">🛒</p>
         <p class="m-0 mt-2 font-semibold text-amber-950">尚無點餐紀錄</p>
+        <p class="m-0 mt-1 text-sm text-stone-600">
+          會員訂單完成後會保留在這裡，方便日後查詢。
+        </p>
         <RouterLink
-          class="mt-2 inline-block rounded-md bg-amber-900 px-4 py-2 text-sm font-bold text-white no-underline"
+          class="mt-3 inline-block rounded-md bg-amber-900 px-4 py-2 text-sm font-bold text-white no-underline"
           to="/products"
         >
           前往點餐
@@ -54,18 +65,15 @@
       </div>
     </div>
 
-    <!-- 訂單列表 -->
     <div v-else class="grid gap-3">
-      <div
-        class="grid gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3"
-      >
+      <div class="grid gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="m-0 text-sm font-bold text-amber-950">
               顯示 {{ visibleOrders.length }} / {{ filteredOrders.length }} 筆
             </p>
             <p class="m-0 text-xs text-stone-500">
-              點選訂單可展開進度與明細。
+              點餐紀錄保留完整歷史；目前製作進度請使用訂單追蹤。
             </p>
           </div>
           <button
@@ -99,175 +107,135 @@
         目前沒有符合條件的訂單。
       </p>
 
-      <div
-        v-else
-        class="grid max-h-[68vh] gap-1 overflow-y-auto pr-1"
-      >
-      <template v-for="group in groupedOrders" :key="group.key">
-        <!-- 日期分隔線 -->
-        <div class="flex items-center gap-3 px-1 py-2">
-          <div class="h-px flex-1 bg-stone-300"></div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-stone-500 whitespace-nowrap">{{ group.label }}</span>
-            <span class="rounded-full bg-stone-200 px-1.5 py-0.5 text-xs text-stone-500">{{ group.orders.length }} 筆</span>
-          </div>
-          <div class="h-px flex-1 bg-stone-300"></div>
-        </div>
-
-        <ul class="grid list-none gap-3 p-0">
-      <li
-        v-for="order in group.orders"
-        :key="order.id"
-        class="grid gap-0 overflow-hidden rounded-lg border border-stone-300 bg-white"
-      >
-        <!-- 訂單標頭 -->
-        <button
-          class="grid w-full gap-2 p-3 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-          type="button"
-          :aria-expanded="openOrders.has(order.id)"
-          @click="toggleOrder(order.id)"
-        >
-          <div class="grid min-w-0 gap-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <strong class="text-base text-amber-950">
-                訂單 {{ displayOrderCode(order) }}
-              </strong>
-              <span
-                v-if="order.orderType === 'redeem'"
-                class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
-              >
-                點數兌換
+      <div v-else class="grid max-h-[68vh] gap-1 overflow-y-auto pr-1">
+        <template v-for="group in groupedOrders" :key="group.key">
+          <div class="flex items-center gap-3 px-1 py-2">
+            <div class="h-px flex-1 bg-stone-300"></div>
+            <div class="flex items-center gap-2">
+              <span class="whitespace-nowrap text-xs font-bold text-stone-500">
+                {{ group.label }}
+              </span>
+              <span class="rounded-full bg-stone-200 px-1.5 py-0.5 text-xs text-stone-500">
+                {{ group.orders.length }} 筆
               </span>
             </div>
-            <span class="truncate text-xs text-stone-500">
-              {{ formatDate(order.createdAt) }} · {{ compactItems(order) }}
-            </span>
+            <div class="h-px flex-1 bg-stone-300"></div>
           </div>
 
-          <div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
-            <strong class="text-sm text-amber-950">NT$ {{ order.totalAmount }}</strong>
-            <span :class="paymentBadgeClass(order.paymentStatus)">
-              {{ paymentLabel(order.paymentStatus) }}
-            </span>
-            <span :class="statusBadgeClass(liveStatus(order))">
-              {{ statusLabel(liveStatus(order)) }}
-            </span>
-            <span class="text-xs text-stone-400">{{ openOrders.has(order.id) ? '▲' : '▼' }}</span>
-          </div>
-        </button>
-
-        <!-- 展開詳情 -->
-        <div v-if="openOrders.has(order.id)" class="border-t border-stone-200">
-          <div class="grid gap-3 border-b border-stone-100 bg-stone-50 p-4 sm:grid-cols-3">
-            <div>
-              <p class="m-0 text-xs font-bold text-stone-500">訂單查詢碼</p>
-              <p class="m-0 mt-1 font-bold text-amber-950">
-                {{ displayOrderCode(order) }}
-              </p>
-            </div>
-            <div>
-              <p class="m-0 text-xs font-bold text-stone-500">手機號碼</p>
-              <p class="m-0 mt-1 font-bold text-amber-950">
-                {{ displayPhone(order) }}
-              </p>
-            </div>
-            <div>
-              <p class="m-0 text-xs font-bold text-stone-500">目前狀態</p>
-              <p class="m-0 mt-1 font-bold text-amber-950">
-                {{ statusLabel(liveStatus(order)) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- 狀態步驟條 -->
-          <div class="p-4" :class="stepperBgClass(liveStatus(order))">
-            <div v-if="liveStatus(order) === 'cancelled'" class="rounded-md border border-red-200 bg-red-50 p-3 text-center">
-              <p class="m-0 font-bold text-red-700">訂單已取消</p>
-            </div>
-            <template v-else>
-              <ol class="flex w-full items-start">
-                <li
-                  v-for="(step, i) in steps"
-                  :key="step.status"
-                  class="relative flex flex-1 flex-col items-center"
-                >
-                  <div
-                    v-if="i > 0"
-                    class="absolute top-4 h-0.5 transition-colors"
-                    style="left: calc(-50% + 16px); right: calc(50% + 16px)"
-                    :class="stepIndex(step.status) <= currentStepIndex(liveStatus(order)) ? activeLineClass(liveStatus(order)) : 'bg-stone-200'"
-                  ></div>
-                  <div
-                    class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-extrabold transition-colors"
-                    :class="circleClass(step.status, liveStatus(order))"
-                  >
-                    <span v-if="stepIndex(step.status) < currentStepIndex(liveStatus(order))">✓</span>
-                    <span
-                      v-else-if="step.status === liveStatus(order)"
-                      class="h-2.5 w-2.5 rounded-full bg-current"
-                      :class="liveStatus(order) === 'ready' ? 'animate-ping' : ''"
-                    ></span>
-                  </div>
-                  <span
-                    class="mt-2 text-center text-xs font-bold leading-tight"
-                    :class="stepLabelClass(step.status, liveStatus(order))"
-                  >
-                    {{ step.label }}
-                  </span>
-                </li>
-              </ol>
-              <p class="m-0 mt-4 text-center text-sm font-semibold" :class="statusMsgClass(liveStatus(order))">
-                {{ statusMessage(liveStatus(order)) }}
-              </p>
-            </template>
-          </div>
-
-          <!-- 點餐明細 -->
-          <div class="border-t border-stone-100 p-4">
-            <ul class="grid list-none gap-2 p-0">
-              <li
-                v-for="item in order.items"
-                :key="item.productId"
-                class="flex justify-between gap-3 border-b border-stone-100 pb-2 text-sm last:border-0 last:pb-0 text-amber-950"
+          <ul class="grid list-none gap-3 p-0">
+            <li
+              v-for="order in group.orders"
+              :key="order.id"
+              class="grid gap-0 overflow-hidden rounded-lg border border-stone-300 bg-white"
+            >
+              <button
+                class="grid w-full gap-2 p-3 text-left sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                type="button"
+                :aria-expanded="openOrders.has(order.id)"
+                @click="toggleOrder(order.id)"
               >
-                <span>{{ item.name }} x {{ item.quantity }}</span>
-                <strong>NT$ {{ item.price * item.quantity }}</strong>
-              </li>
-            </ul>
-            <div class="mt-3 flex items-center justify-between border-t border-stone-100 pt-3">
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-if="order.pointsEarned > 0"
-                  class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
-                >
-                  獲得 {{ order.pointsEarned }} 點
-                </span>
-                <span
-                  v-if="order.orderType === 'redeem'"
-                  class="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-bold text-stone-600"
-                >
-                  點數兌換
-                </span>
-                <span
-                  v-if="order.pointsRedeemed > 0"
-                  class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700"
-                >
-                  消耗 {{ order.pointsRedeemed }} 點
-                </span>
+                <div class="grid min-w-0 gap-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <strong class="text-base text-amber-950">
+                      訂單 {{ displayOrderCode(order) }}
+                    </strong>
+                    <span
+                      v-if="order.orderType === 'redeem'"
+                      class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
+                    >
+                      點數兌換
+                    </span>
+                  </div>
+                  <span class="truncate text-xs text-stone-500">
+                    {{ formatDate(order.createdAt) }} ・ {{ compactItems(order) }}
+                  </span>
+                </div>
+
+                <div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                  <strong class="text-sm text-amber-950">NT$ {{ order.totalAmount }}</strong>
+                  <span :class="paymentBadgeClass(order.paymentStatus)">
+                    {{ paymentLabel(order.paymentStatus) }}
+                  </span>
+                  <span :class="statusBadgeClass(liveStatus(order))">
+                    {{ statusLabel(liveStatus(order)) }}
+                  </span>
+                  <span class="text-xs text-stone-400">
+                    {{ openOrders.has(order.id) ? '收合' : '展開' }}
+                  </span>
+                </div>
+              </button>
+
+              <div v-if="openOrders.has(order.id)" class="border-t border-stone-200">
+                <div class="grid gap-3 border-b border-stone-100 bg-stone-50 p-4 sm:grid-cols-3">
+                  <div>
+                    <p class="m-0 text-xs font-bold text-stone-500">訂單查詢碼</p>
+                    <p class="m-0 mt-1 font-bold text-amber-950">
+                      {{ displayOrderCode(order) }}
+                    </p>
+                  </div>
+                  <div>
+                    <p class="m-0 text-xs font-bold text-stone-500">取餐手機</p>
+                    <p class="m-0 mt-1 font-bold text-amber-950">
+                      {{ displayPhone(order) }}
+                    </p>
+                  </div>
+                  <div>
+                    <p class="m-0 text-xs font-bold text-stone-500">目前狀態</p>
+                    <p class="m-0 mt-1 font-bold text-amber-950">
+                      {{ statusLabel(liveStatus(order)) }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid gap-3 p-4">
+                  <div class="flex flex-wrap items-center justify-between gap-3 rounded-md bg-amber-50 p-3">
+                    <p class="m-0 text-sm font-semibold text-amber-950">
+                      {{ statusMessage(liveStatus(order)) }}
+                    </p>
+                    <RouterLink
+                      v-if="canTrackOrder(order)"
+                      class="rounded-md border border-amber-900 bg-white px-3 py-2 text-sm font-bold text-amber-950 no-underline"
+                      :to="{ path: '/orders/guest', query: trackingQuery(order) }"
+                    >
+                      追蹤狀態
+                    </RouterLink>
+                  </div>
+
+                  <ul class="grid list-none gap-2 p-0">
+                    <li
+                      v-for="item in order.items"
+                      :key="item.productId"
+                      class="flex justify-between gap-3 border-b border-stone-100 pb-2 text-sm text-amber-950 last:border-0 last:pb-0"
+                    >
+                      <span>{{ item.name }} x {{ item.quantity }}</span>
+                      <strong>NT$ {{ item.price * item.quantity }}</strong>
+                    </li>
+                  </ul>
+                  <div class="flex items-center justify-between border-t border-stone-100 pt-3">
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        v-if="order.pointsEarned > 0"
+                        class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
+                      >
+                        獲得 {{ order.pointsEarned }} 點
+                      </span>
+                      <span
+                        v-if="order.pointsRedeemed > 0"
+                        class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700"
+                      >
+                        使用 {{ order.pointsRedeemed }} 點
+                      </span>
+                    </div>
+                    <strong class="text-amber-950">NT$ {{ order.totalAmount }}</strong>
+                  </div>
+                </div>
               </div>
-              <strong class="text-amber-950">NT$ {{ order.totalAmount }}</strong>
-            </div>
-          </div>
-        </div>
-      </li>
-        </ul>
-      </template>
+            </li>
+          </ul>
+        </template>
       </div>
 
-      <div
-        v-if="hasHiddenOrders || isShowingAll"
-        class="flex justify-center"
-      >
+      <div v-if="hasHiddenOrders || isShowingAll" class="flex justify-center">
         <button
           v-if="hasHiddenOrders"
           class="min-h-10 rounded-md bg-amber-900 px-4 text-sm font-bold text-white"
@@ -282,7 +250,7 @@
           type="button"
           @click="collapseOrders"
         >
-          收合為最近 {{ INITIAL_VISIBLE_COUNT }} 筆
+          收合為前 {{ INITIAL_VISIBLE_COUNT }} 筆
         </button>
       </div>
     </div>
@@ -312,26 +280,25 @@ type OrderFilter = 'all' | 'active' | 'completed' | 'cancelled';
 const activeFilter = ref<OrderFilter>('all');
 const filterOptions: Array<{ value: OrderFilter; label: string }> = [
   { value: 'all', label: '全部' },
-  { value: 'active', label: '處理中' },
+  { value: 'active', label: '進行中' },
   { value: 'completed', label: '已完成' },
   { value: 'cancelled', label: '已取消' }
 ];
-const canViewAllOrders = computed(() =>
-  authStore.user?.role === 'staff' || authStore.user?.role === 'admin'
-);
+
+const canViewAllOrders = computed(() => authStore.user?.role === 'admin');
 const pageDescription = computed(() =>
   canViewAllOrders.value
-    ? '查看所有顧客的訂單狀態、付款結果與點餐明細。'
-    : '查看你最近的訂單狀態、付款結果與點餐明細。'
+    ? '完整訂單歷史列表，可依狀態檢視所有會員與訪客訂單。'
+    : '這裡保存完整會員點餐紀錄；即時製作進度請前往訂單追蹤。'
 );
-
-// ── Date grouping ─────────────────────────────────────────────────────────────
 
 function toTaipeiDateKey(dateStr: string): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Taipei',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).format(new Date(dateStr)); // → "YYYY-MM-DD"
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date(dateStr));
 }
 
 function dateGroupLabel(key: string): string {
@@ -344,7 +311,9 @@ function dateGroupLabel(key: string): string {
   if (key === yesterdayKey) return '昨天';
 
   const [year, month, day] = key.split('-').map(Number);
-  const dow = ['日', '一', '二', '三', '四', '五', '六'][new Date(year, month - 1, day).getDay()];
+  const dow = ['日', '一', '二', '三', '四', '五', '六'][
+    new Date(year, month - 1, day).getDay()
+  ];
   const currentYear = new Date().getFullYear();
   return currentYear === year
     ? `${month}/${day}（週${dow}）`
@@ -357,20 +326,20 @@ const sortedOrders = computed(() =>
   )
 );
 
+function isActiveStatus(status: Order['status']) {
+  return ['pending', 'accepted', 'preparing', 'ready'].includes(status);
+}
+
 const filterCounts = computed<Record<OrderFilter, number>>(() => ({
   all: sortedOrders.value.length,
-  active: sortedOrders.value.filter((order) =>
-    ['pending', 'accepted', 'preparing', 'ready'].includes(liveStatus(order))
-  ).length,
+  active: sortedOrders.value.filter((order) => isActiveStatus(liveStatus(order))).length,
   completed: sortedOrders.value.filter((order) => liveStatus(order) === 'completed').length,
   cancelled: sortedOrders.value.filter((order) => liveStatus(order) === 'cancelled').length
 }));
 
 const filteredOrders = computed(() => {
   if (activeFilter.value === 'active') {
-    return sortedOrders.value.filter((order) =>
-      ['pending', 'accepted', 'preparing', 'ready'].includes(liveStatus(order))
-    );
+    return sortedOrders.value.filter((order) => isActiveStatus(liveStatus(order)));
   }
   if (activeFilter.value === 'completed') {
     return sortedOrders.value.filter((order) => liveStatus(order) === 'completed');
@@ -382,13 +351,10 @@ const filteredOrders = computed(() => {
 });
 
 const visibleOrders = computed(() => filteredOrders.value.slice(0, visibleCount.value));
-
 const hasHiddenOrders = computed(() => visibleCount.value < filteredOrders.value.length);
-
 const isShowingAll = computed(
   () => filteredOrders.value.length > INITIAL_VISIBLE_COUNT && !hasHiddenOrders.value
 );
-
 const nextVisibleCount = computed(() =>
   Math.min(LOAD_MORE_COUNT, filteredOrders.value.length - visibleCount.value)
 );
@@ -407,22 +373,6 @@ const groupedOrders = computed(() => {
   }));
 });
 
-const steps = [
-  { status: 'pending',   label: '待處理' },
-  { status: 'accepted',  label: '已接單' },
-  { status: 'preparing', label: '製作中' },
-  { status: 'ready',     label: '可取餐' },
-  { status: 'completed', label: '已完成' },
-] as const;
-
-const statusOrderMap: Record<string, number> = {
-  pending: 0, accepted: 1, preparing: 2, ready: 3, completed: 4
-};
-
-function stepIndex(status: string) {
-  return statusOrderMap[status] ?? 0;
-}
-
 function liveStatus(order: Order): Order['status'] {
   if (socketStore.latestOrderUpdate?.status && socketStore.latestOrderUpdate.id === order.id) {
     return socketStore.latestOrderUpdate.status as Order['status'];
@@ -430,56 +380,16 @@ function liveStatus(order: Order): Order['status'] {
   return order.status;
 }
 
-function currentStepIndex(status: Order['status']) {
-  return stepIndex(status);
-}
-
-function activeLineClass(status: Order['status']) {
-  if (status === 'ready' || status === 'completed') return 'bg-emerald-500';
-  return 'bg-amber-900';
-}
-
-function circleClass(stepStatus: string, currentStatus: Order['status']) {
-  const idx = stepIndex(stepStatus);
-  const cur = currentStepIndex(currentStatus);
-  const isGreen = currentStatus === 'ready' || currentStatus === 'completed';
-  if (idx < cur) return isGreen ? 'bg-emerald-600 text-white' : 'bg-amber-900 text-white';
-  if (stepStatus === currentStatus)
-    return isGreen
-      ? 'bg-emerald-600 text-white ring-4 ring-emerald-200'
-      : 'bg-amber-900 text-white ring-4 ring-amber-200';
-  return 'bg-stone-100 text-stone-300 ring-1 ring-stone-200';
-}
-
-function stepLabelClass(stepStatus: string, currentStatus: Order['status']) {
-  const isGreen = currentStatus === 'ready' || currentStatus === 'completed';
-  if (stepIndex(stepStatus) <= stepIndex(currentStatus))
-    return isGreen ? 'text-emerald-700' : 'text-amber-950';
-  return 'text-stone-400';
-}
-
-function stepperBgClass(status: Order['status']) {
-  if (status === 'ready') return 'bg-emerald-50';
-  if (status === 'completed') return 'bg-amber-50';
-  return 'bg-white';
-}
-
 function statusMessage(status: Order['status']) {
   const map: Record<Order['status'], string> = {
-    pending:   '訂單已送出，等待店家確認中。',
-    accepted:  '店家已收到訂單，即將開始製作。',
-    preparing: '店員正在準備您的餐點，請稍候。',
-    ready:     '您的餐點已完成，請到櫃檯取餐。',
-    completed: '謝謝您，這筆訂單已完成。',
+    pending: '訂單等待店員確認，請至訂單追蹤查看最新進度。',
+    accepted: '店員已接單，請至訂單追蹤查看製作進度。',
+    preparing: '餐點製作中，請至訂單追蹤查看即時狀態。',
+    ready: '餐點已可取餐，請至櫃台核對取餐。',
+    completed: '這筆訂單已完成。',
     cancelled: '這筆訂單已取消。'
   };
   return map[status];
-}
-
-function statusMsgClass(status: Order['status']) {
-  if (status === 'ready') return 'text-emerald-800';
-  if (status === 'completed') return 'text-emerald-700';
-  return 'text-stone-600';
 }
 
 function paymentLabel(status: Order['paymentStatus']) {
@@ -502,8 +412,12 @@ function paymentBadgeClass(status: Order['paymentStatus']) {
 
 function statusLabel(status: Order['status']) {
   const labels: Record<Order['status'], string> = {
-    pending: '待處理', accepted: '已接單', preparing: '製作中',
-    ready: '可取餐', completed: '已完成', cancelled: '已取消'
+    pending: '待確認',
+    accepted: '已接單',
+    preparing: '製作中',
+    ready: '可取餐',
+    completed: '已完成',
+    cancelled: '已取消'
   };
   return labels[status];
 }
@@ -518,8 +432,10 @@ function statusBadgeClass(status: Order['status']) {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('zh-TW', {
-    month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit'
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
   }).format(new Date(value));
 }
 
@@ -538,7 +454,18 @@ function displayOrderCode(order: Order) {
 }
 
 function displayPhone(order: Order) {
-  return order.guestInfo?.phone || '會員訂單未留手機';
+  return order.guestInfo?.phone || '未提供手機';
+}
+
+function canTrackOrder(order: Order) {
+  return Boolean(order.orderLookupCode && order.guestInfo?.phone);
+}
+
+function trackingQuery(order: Order) {
+  return {
+    lookupCode: order.orderLookupCode,
+    phone: order.guestInfo?.phone
+  };
 }
 
 function setFilter(filter: OrderFilter) {
@@ -552,12 +479,8 @@ function toggleOrder(id: string) {
     openOrders.value.delete(id);
   } else {
     openOrders.value.add(id);
-    // 加入 socket room 接收即時更新
-    const order = orderStore.myOrders.find(o => o.id === id);
-    if (order) {
-      socketStore.connect();
-      socketStore.joinOrderRoom(id);
-    }
+    socketStore.connect();
+    socketStore.joinOrderRoom(id);
   }
 }
 

@@ -241,6 +241,12 @@ export async function createMemberOrder(
     orderType: 'purchase'
   });
 
+  socketServer.emitNotification('room:staff', {
+    type: 'new_order',
+    orderId: String(order._id),
+    orderLookupCode: order.orderLookupCode
+  });
+
   return toOrderResponse(order);
 }
 
@@ -254,6 +260,12 @@ export async function createGuestOrder(input: CreateGuestOrderInput) {
     guestTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     items: orderItems,
     totalAmount
+  });
+
+  socketServer.emitNotification('room:staff', {
+    type: 'new_order',
+    orderId: String(order._id),
+    orderLookupCode: order.orderLookupCode
   });
 
   return {

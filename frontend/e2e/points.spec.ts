@@ -21,11 +21,12 @@ async function loginAsBuyer(page: Page) {
 }
 
 test.describe('點數兌換', () => {
-  test('兌換後顯示點數去向與後續訂單追蹤入口', async ({ page }) => {
+  test('兌換後顯示點數去向並可直接追蹤兌換訂單', async ({ page }) => {
     let currentPoints = 3;
     const redeemedOrder = {
       id: 'redeem-order-1',
       orderLookupCode: 'RDM001',
+      guestInfo: { phone: '0912345678' },
       status: 'pending',
       paymentStatus: 'paid',
       orderType: 'redeem',
@@ -52,13 +53,18 @@ test.describe('點數兌換', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: currentPoints === 0 ? [{
-            orderId: redeemedOrder.id,
-            orderLookupCode: redeemedOrder.orderLookupCode,
-            orderType: 'redeem',
-            delta: -3,
-            createdAt: redeemedOrder.createdAt
-          }] : []
+          data:
+            currentPoints === 0
+              ? [
+                  {
+                    orderId: redeemedOrder.id,
+                    orderLookupCode: redeemedOrder.orderLookupCode,
+                    orderType: 'redeem',
+                    delta: -3,
+                    createdAt: redeemedOrder.createdAt
+                  }
+                ]
+              : []
         })
       });
     });
@@ -70,6 +76,20 @@ test.describe('點數兌換', () => {
           data: currentPoints === 0 ? [redeemedOrder] : [],
           pagination: { page: 1, limit: 20, total: currentPoints === 0 ? 1 : 0 }
         })
+      });
+    });
+    await page.route(`${API}/orders/guest/RDM001**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(redeemedOrder)
+      });
+    });
+    await page.route(`${API}/notifications/guest/RDM001**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ orderId: redeemedOrder.id, notifications: [] })
       });
     });
     await page.route(`${API}/orders/redeem`, async (route) => {
@@ -94,10 +114,10 @@ test.describe('點數兌換', () => {
     await expect(page.getByRole('link', { name: '查看兌換訂單狀態' })).toBeVisible();
 
     await page.getByRole('link', { name: '查看兌換訂單狀態' }).click();
-    await expect(page).toHaveURL('/orders/my');
-    await expect(page.getByText('RDM001')).toBeVisible();
-    await page.getByRole('button', { name: /訂單 RDM001/ }).click();
-    await expect(page.getByText('消耗 3 點')).toBeVisible();
-    await expect(page.getByText('點數兌換').nth(1)).toBeVisible();
+
+    await expect(page).toHaveURL('/orders/guest');
+    await expect(page.getByRole('heading', { name: '訂單追蹤' })).toBeVisible();
+    await expect(page.getByText('訂單 RDM001')).toBeVisible();
+    await expect(page.getByText('訂單已送出，等待店員確認。')).toBeVisible();
   });
 });

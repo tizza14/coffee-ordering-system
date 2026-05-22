@@ -3,7 +3,7 @@
     <div class="flex min-h-16 items-center justify-between gap-4 px-4 py-3 sm:px-6">
     <RouterLink
       class="shrink-0 rounded-md px-2 py-1 font-bold text-amber-950 no-underline transition-colors hover:bg-amber-50"
-      to="/products"
+      :to="homeRoute"
       @click="closeMobileMenu"
     >
       咖啡點餐系統
@@ -108,11 +108,13 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from './stores/auth.store';
 import ToastContainer from './components/ToastContainer.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
+import { getDefaultRouteForRole } from './router/guards';
 
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const isMobileMenuOpen = ref(false);
+const homeRoute = computed(() => getDefaultRouteForRole(authStore.user?.role));
 const navLinkClass =
   'inline-flex min-h-9 shrink-0 items-center rounded-md border border-transparent px-3 font-bold text-amber-950 no-underline transition-colors hover:border-stone-300 hover:bg-amber-50';
 const navActiveClass =
@@ -128,13 +130,13 @@ const visibleNavItems = computed(() => {
   const points = authStore.user?.points ?? 0;
 
   return [
-    { label: '商品', to: '/products', visible: true },
-    { label: '結帳', to: '/checkout', visible: true },
-    { label: '訂單追蹤', to: '/orders/guest', visible: true },
+    { label: '商品', to: '/products', visible: role === 'user' || !authStore.isAuthenticated },
+    { label: '結帳', to: '/checkout', visible: role === 'user' || !authStore.isAuthenticated },
+    { label: '訂單追蹤', to: '/orders/guest', visible: role === 'user' || !authStore.isAuthenticated },
     {
       label: '點餐紀錄',
       to: '/orders/my',
-      visible: authStore.isAuthenticated,
+      visible: role === 'user',
     },
     {
       label: '我的點數',

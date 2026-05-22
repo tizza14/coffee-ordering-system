@@ -1099,7 +1099,7 @@ Line Pay 付款完成後採用單一路徑處理 confirm：
 3. 前端呼叫 backend confirm API
 4. Backend 呼叫 Line Pay confirm API
 5. Backend 更新 Payment、Order、Point 與 Notification
-6. 前端導向訂單追蹤頁
+6. 前端使用本機保存的查詢碼、取餐手機與 guest token（若有）自動導向訂單追蹤頁
 ```
 
 後端仍需保證 confirm API 具備冪等性，避免使用者重新整理 confirm page 時重複入帳。
@@ -1348,11 +1348,13 @@ type PaymentStatus =
 
 ## User
 
-* 商品列表頁（`/products`）— 骨架屏載入、分類篩選
-* 購物車頁 / 結帳頁（`/checkout`）— 訪客/會員結帳；會員結帳需填取餐手機；「前往付款」按鈕需手機滿版、平板/桌機固定寬度，切換訪客/會員模式時不得造成按鈕尺寸跳動
-* 點餐紀錄頁（`/orders/my`）— 可收合訂單卡、狀態步驟條、即時更新、推播通知開關
-* 訂單追蹤頁（`/orders/guest`）— 訪客輸入查詢碼與手機；User 登入後顯示自己的會員訂單查詢碼、手機與目前狀態；左右雙欄、狀態步驟條
-* 我的點數頁（`/points`）— 點數餘額、進度條、可兌換商品列表、點數紀錄歷史
+* 商品列表頁（`/products`）— 骨架屏載入、分類篩選；商品、購物車、空狀態與結帳入口需使用可讀中文；手機底部購物車列需同時提供展開明細與直接結帳入口
+* 購物車頁 / 結帳頁（`/checkout`）— 訪客/會員結帳；會員結帳需填取餐手機；建立訂單後需保存可用的追蹤資訊，供付款確認後自動帶入訂單追蹤；空購物車需提供回商品列表入口；「前往付款」按鈕需手機滿版、平板/桌機固定寬度，切換訪客/會員模式時不得造成按鈕尺寸跳動
+* 點餐紀錄頁（`/orders/my`）— 歷史訂單列表定位；可收合訂單卡、日期分組、狀態篩選、推播通知開關；進行中訂單需提供前往「訂單追蹤」的狀態追蹤入口
+* 訂單追蹤頁（`/orders/guest`）— 訪客輸入查詢碼與手機；User 登入後顯示自己的會員訂單查詢碼、手機與目前狀態，且無既有查詢條件時需自動載入最近一筆進行中訂單；左右雙欄、狀態步驟條
+* 我的點數頁（`/points`）— 點數餘額、進度條、可兌換商品列表、點數紀錄歷史；兌換成功後需顯示扣點、剩餘點數與前往訂單追蹤的兌換訂單狀態入口
+* 登入頁（`/login`）— 顯示帳密登入、建立會員帳號入口與「先以訪客身分瀏覽商品」入口
+* 註冊頁（`/register`）— 顯示姓名、Email、密碼註冊，並提供前往登入與「先以訪客身分瀏覽商品」入口
 
 ---
 
@@ -1361,13 +1363,16 @@ type PaymentStatus =
 * 桌機版使用上方水平導覽列。
 * 手機版 Header 顯示品牌與選單按鈕，導覽項目改由右側抽屜選單呈現。
 * 導覽項目需依角色顯示：Guest 不顯示「點餐紀錄」；User 顯示自己的會員功能；Staff/Admin 顯示員工與管理功能。
+* 角色預設入口需一致：Guest/User/Admin 預設進入 `/products`；Staff 預設進入 `/staff/orders`，且 Staff 不可切回顧客購物路由。
+* Header 品牌連結、登入成功、註冊成功與 Route Guard 需共用同一套角色預設入口規則。
 * 手機抽屜選單點擊導覽連結、登出或路由切換後應自動關閉。
+* E2E 測試選擇器不可使用會被 Tailwind 掃描成 CSS 的 literal `:visible` selector；需改用 Playwright locator visibility filter。
 
 ---
 
 ## Staff
 
-* 員工訂單頁（`/staff/orders`）— 顯示待處理已付款訂單，支援接單/製作/完成狀態轉換
+* 員工訂單頁（`/staff/orders`）— 以工作佇列顯示已付款訂單，支援進行中/待接單/製作中/可取餐/已結束篩選，並依 `pending → accepted → preparing → ready → completed` 推進狀態
 * 銷售報表頁（`/staff/sales`）— 依日/週/月/年/自訂區間查詢銷售數據，含品項銷售排行
 
 ---
@@ -1447,14 +1452,14 @@ type PaymentStatus =
 | `/products` | Guest / User / Staff / Admin | 公開頁面 |
 | `/cart` | Guest / User | 公開購物流程 |
 | `/checkout` | Guest / User | Guest 可直接結帳，User 使用會員資料 |
-| `/login` | Guest | 已登入者導向 `/products` |
-| `/register` | Guest | 已登入者導向 `/products` |
-| `/orders/my` | User / Staff / Admin | 需登入，僅顯示自己的訂單 |
+| `/login` | Guest | 已登入者導向該角色預設入口；Guest 可登入、前往註冊或先瀏覽商品 |
+| `/register` | Guest | 已登入者導向該角色預設入口；Guest 可註冊、前往登入或先瀏覽商品 |
+| `/orders/my` | User / Admin | 需登入；User 顯示自己的歷史訂單，Admin 顯示完整訂單歷史 |
 | `/points` | User | 需登入且 role 為 `user`，顯示點數餘額與兌換頁 |
 | `/orders/guest` | Guest / User | 需搭配 phone 或 guest token 驗證 |
-| `/payments/line-pay/confirm` | Guest / User | Line Pay redirect 頁，負責呼叫 backend confirm API |
+| `/payments/line-pay/confirm` | Guest / User | Line Pay redirect 頁，負責呼叫 backend confirm API；confirm 失敗時需提供重新付款、查看訂單追蹤與回商品列表入口 |
 | `/payments/line-pay/cancel` | Guest / User | Line Pay cancel 頁，顯示重新付款或取消訂單 |
-| `/staff/orders` | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
+| `/staff/orders` | Staff / Admin | 需登入且 role 為 `staff` 或 `admin`，以員工工作佇列處理已付款訂單 |
 | `/staff/sales`  | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
 | `/admin/products` | Admin | 需登入且 role 為 `admin` |
 | `/admin/users` | Admin | 需登入且 role 為 `admin` |
@@ -1466,6 +1471,7 @@ type PaymentStatus =
 * Staff route 需驗證 JWT 與角色。
 * Admin route 需驗證 JWT 與 `admin` 角色。
 * Guest order route 需驗證 `orderLookupCode` 搭配 phone 或 guest token。
+* 已登入者進入 `/login` 或 `/register` 時，需導向該角色預設入口；Staff 嘗試進入非 `/staff/`、`/admin/` 路由時，需導回 `/staff/orders`。
 
 ---
 
@@ -2017,7 +2023,7 @@ Line Pay 在本專案中作為主要線上付款方式，需支援：
 8. 後端建立 Line Pay 付款請求
 9. 訪客跳轉至 Line Pay 完成付款
 10. Line Pay 導回系統 confirm URL
-11. 系統顯示訂單追蹤頁
+11. 系統以保存的查詢碼與手機/token 自動顯示訂單追蹤頁
 ```
 
 ### 訪客限制
@@ -2056,8 +2062,9 @@ Line Pay 在本專案中作為主要線上付款方式，需支援：
 8. Line Pay 導回系統 confirm URL
 9. 後端驗證付款結果
 10. 付款成功後，付款狀態更新為 paid
-11. 系統依 paidAmount 每 100 元累積 1 點
-12. User 加入訂單 room 並追蹤訂單狀態
+11. 系統以保存的查詢碼與取餐手機自動顯示訂單追蹤頁
+12. 系統依 paidAmount 每 100 元累積 1 點
+13. User 加入訂單 room 並追蹤訂單狀態
 ```
 
 ### 會員訂單追蹤

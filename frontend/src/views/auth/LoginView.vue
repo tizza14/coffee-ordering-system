@@ -1,7 +1,5 @@
-﻿<template>
-  <section
-    class="grid min-h-[calc(100vh-64px)] place-items-center bg-amber-50 p-4 sm:p-6"
-  >
+<template>
+  <section class="grid min-h-[calc(100vh-64px)] place-items-center bg-amber-50 p-4 sm:p-6">
     <form
       class="grid w-full max-w-[420px] gap-4 rounded-lg border border-stone-300 bg-white p-4 sm:p-6"
       @submit.prevent="submit"
@@ -47,14 +45,27 @@
       >
         {{ isSubmitting ? '登入中...' : '登入' }}
       </button>
+
+      <div class="grid gap-2 border-t border-stone-200 pt-3 text-sm text-stone-600">
+        <p class="m-0">
+          還沒有帳號？
+          <RouterLink class="font-bold text-amber-900" to="/register">
+            建立會員帳號
+          </RouterLink>
+        </p>
+        <RouterLink class="font-bold text-amber-900" to="/products">
+          先以訪客身分瀏覽商品
+        </RouterLink>
+      </div>
     </form>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
+import { getDefaultRouteForRole } from '../../router/guards';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -68,7 +79,7 @@ async function submit() {
   isSubmitting.value = true;
   try {
     await authStore.login({ email: email.value, password: password.value });
-    await router.push('/products');
+    await router.push(getDefaultRouteForRole(authStore.user?.role));
   } catch {
     errorMessage.value = '無法使用這組帳密登入。';
   } finally {

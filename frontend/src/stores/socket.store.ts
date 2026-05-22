@@ -14,7 +14,8 @@ const socketUrl =
 export const useSocketStore = defineStore('socket', {
   state: () => ({
     socket: null as Socket | null,
-    latestOrderUpdate: null as Partial<Order> | null
+    latestOrderUpdate: null as Partial<Order> | null,
+    newOrderEvent: null as { orderId: string; orderLookupCode: string } | null
   }),
   actions: {
     connect(guest?: { orderLookupCode: string; guestToken: string }) {
@@ -31,12 +32,19 @@ export const useSocketStore = defineStore('socket', {
       this.socket.on('order_updated', (payload: Partial<Order>) => {
         this.latestOrderUpdate = payload;
       });
-      this.socket.on('notification', (payload: Notification) => {
-        notificationStore.push(payload);
+      this.socket.on('notification', (payload: Notification & { type?: string; orderId?: string; orderLookupCode?: string }) => {
+        if (payload.type === 'new_order') {
+          this.newOrderEvent = { orderId: payload.orderId ?? '', orderLookupCode: payload.orderLookupCode ?? '' };
+        } else {
+          notificationStore.push(payload);
+        }
       });
     },
     joinOrderRoom(orderId: string) {
       this.socket?.emit('join_room', { room: `room:order:${orderId}` });
+    },
+    joinStaffRoom() {
+      this.socket?.emit('join_room', { room: 'room:staff' });
     },
     disconnect() {
       this.socket?.disconnect();

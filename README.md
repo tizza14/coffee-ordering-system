@@ -20,14 +20,22 @@ These are seed-script defaults for the live demo. **Do not reuse these credentia
 | Staff | staff@demo.com | demo1234 |
 | Member | user@demo.com | demo1234 |
 
-Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. Guests use **訂單追蹤** with lookup code and phone/token to check an order. Members enter a pickup phone during checkout; member orders also receive a lookup code and appear in **訂單追蹤** after login with lookup code, phone, and current status. Creating a member account is required for **點餐紀錄**, full historical records, and points.
+Guest checkout does not require login. Add products to the cart, open Checkout, keep Guest order selected, enter guest info, and submit. After payment confirmation, the frontend automatically opens **訂單追蹤** with the saved lookup details when they are available. Guests can also use **訂單追蹤** manually with lookup code and phone/token to check an order. Members enter a pickup phone during checkout; member orders also receive a lookup code and appear in **訂單追蹤** after login with lookup code, phone, and current status. Creating a member account is required for **點餐紀錄**, full historical records, and points.
 
 ## UI Notes
 
 - Desktop uses the top navigation bar; mobile uses a right-side drawer menu opened from the header menu button.
+- On mobile Products, the fixed bottom cart bar separates cart expansion from the direct **結帳** action so customers can either review items or go straight to checkout.
 - The Checkout **前往付款** button is responsive: full-width on mobile for touch comfort, fixed width from `sm` screens upward. Member checkout and guest checkout share the same button sizing.
 - The Products **前往結帳** button also keeps a stable fixed size on wider screens and becomes full-width on narrow screens.
+- Empty checkout state includes a **回商品列表** action.
 - Internal Mongo order IDs are not shown as customer-facing order numbers. UI displays `orderLookupCode`; orders without one show a neutral label such as `未產生查詢碼` or `兌換訂單`.
+- Logged-in members opening **訂單追蹤** automatically see their most recent active order when one is available.
+- **點餐紀錄** is positioned as the historical order list; active orders include a **追蹤狀態** shortcut back to **訂單追蹤** for live progress.
+- After points redemption, the success panel shows the spent points, remaining points, and a direct **查看兌換訂單狀態** link to **訂單追蹤**.
+- Checkout saves the latest lookup code and pickup phone/token locally so the Line Pay confirmation page can hand off directly to **訂單追蹤**.
+- If payment confirmation fails, the confirmation page keeps the order context and offers **重新付款**, **查看訂單追蹤**, and **回商品列表** actions.
+- Login and register forms include reciprocal links plus **先以訪客身分瀏覽商品**, so guests can keep shopping without creating an account first.
 
 ## Demo Flow
 
@@ -36,11 +44,18 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 3. Go to Checkout.
 4. For guest checkout, fill name, phone, and optional email. For member checkout, fill the pickup phone.
 5. Submit the order and continue through the payment confirmation flow.
-6. For guest orders, open **訂單追蹤** and enter the lookup code and phone manually.
-7. Use Member login to open **訂單追蹤** or **點餐紀錄** for that member's own orders. The tracking page shows the member order lookup code, pickup phone, and current status.
-8. Use Staff/Admin login to open **點餐紀錄** for all orders, or **員工訂單** to process paid pending orders in order: `pending → accepted → preparing → ready → completed`.
-9. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
-10. Use Admin login to manage products and user roles.
+6. After successful payment confirmation, the app opens **訂單追蹤** automatically when lookup details are available.
+7. For guest orders opened later or from another device, open **訂單追蹤** and enter the lookup code and phone manually.
+8. Use Member login to open **訂單追蹤** or **點餐紀錄** for that member's own orders. The tracking page shows the member order lookup code, pickup phone, and current status.
+9. Use Staff/Admin login to open **員工訂單** as an order queue. The queue prioritizes active paid orders, separates `待接單` / `製作中` / `可取餐` / `已結束`, and guides the flow: `pending → accepted → preparing → ready → completed`.
+10. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
+11. Use Admin login to manage products and user roles.
+
+Role entry behavior: User/Admin login lands on **商品**, while Staff login lands on **員工訂單** and is kept inside staff/admin routes. The header brand link uses the same role default as the router guard.
+
+Build note: product cart E2E selectors must avoid literal `:visible` selector strings because Tailwind scans test files and can emit invalid CSS from those strings. Use Playwright locator filtering instead.
+
+E2E note: if Playwright keeps seeing stale UI, stop all listeners on port `5173` before rerunning because the config reuses existing dev servers.
 
 ## API Notes
 

@@ -6,7 +6,7 @@ const GUEST_TRACKING_STORAGE_KEY = 'coffee-ordering-guest-tracking';
 
 interface GuestTrackingSession {
   lookupCode: string;
-  guestToken: string;
+  guestToken?: string;
   phone?: string;
 }
 
@@ -25,7 +25,7 @@ function readGuestTrackingSession() {
 
   try {
     const session = JSON.parse(value) as GuestTrackingSession;
-    if (!session.lookupCode || !session.guestToken) return null;
+    if (!session.lookupCode || (!session.guestToken && !session.phone)) return null;
     return session;
   } catch {
     window.localStorage.removeItem(GUEST_TRACKING_STORAGE_KEY);
@@ -69,7 +69,7 @@ export const useOrderStore = defineStore('orders', {
     },
     setGuestTrackingSession(session: GuestTrackingSession) {
       this.guestLookupCode = session.lookupCode;
-      this.guestToken = session.guestToken;
+      this.guestToken = session.guestToken ?? '';
       this.guestPhone = session.phone ?? '';
       writeGuestTrackingSession(session);
     },
@@ -89,6 +89,12 @@ export const useOrderStore = defineStore('orders', {
           items: toOrderItems(items),
           guestInfo
         });
+        if (this.currentOrder.orderLookupCode && guestInfo?.phone) {
+          this.setGuestTrackingSession({
+            lookupCode: this.currentOrder.orderLookupCode,
+            phone: guestInfo.phone
+          });
+        }
         return this.currentOrder;
       } finally {
         this.isLoading = false;

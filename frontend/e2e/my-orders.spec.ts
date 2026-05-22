@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { clickLogout, mockAuth, mockProducts } from './helpers';
+import { mockAuth, mockProducts } from './helpers';
 
 const API = 'http://localhost:3000/api';
 
@@ -11,12 +11,12 @@ const buyerUser = {
   role: 'user' as const
 };
 
-const staffUser = {
-  id: 'staff-1',
-  name: 'Staff',
-  email: 'staff@example.com',
+const adminUser = {
+  id: 'admin-1',
+  name: 'Admin',
+  email: 'admin@example.com',
   password: 'password123',
-  role: 'staff' as const
+  role: 'admin' as const
 };
 
 async function loginAs(page: Page, email: string) {
@@ -27,14 +27,33 @@ async function loginAs(page: Page, email: string) {
   await expect(page).toHaveURL('/products');
 }
 
+function orderPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'order-1',
+    orderLookupCode: 'ORD001',
+    guestInfo: { phone: '0912345678' },
+    status: 'pending',
+    paymentStatus: 'paid',
+    orderType: 'purchase',
+    items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
+    totalAmount: 120,
+    paidAmount: 120,
+    pointsEarned: 1,
+    pointsRedeemed: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...overrides
+  };
+}
+
 test.describe('點餐紀錄', () => {
-  test('未登入時導向登入頁', async ({ page }) => {
+  test('未登入會導向登入頁', async ({ page }) => {
     await mockProducts(page);
     await page.goto('/orders/my');
     await expect(page).toHaveURL('/login');
   });
 
-  test('登入後無訂單時顯示空狀態', async ({ page }) => {
+  test('會員沒有訂單時顯示空狀態', async ({ page }) => {
     await mockAuth(page, [buyerUser]);
     await mockProducts(page);
     await page.route(`${API}/orders/my**`, async (route) => {
@@ -59,7 +78,7 @@ test.describe('點餐紀錄', () => {
     await expect(page.getByRole('link', { name: '前往點餐' })).toBeVisible();
   });
 
-  test('登入後顯示訂單列表', async ({ page }) => {
+  test('會員可展開歷史訂單並前往追蹤狀態', async ({ page }) => {
     await mockAuth(page, [buyerUser]);
     await mockProducts(page);
     await page.route(`${API}/orders/my**`, async (route) => {
@@ -67,22 +86,7 @@ test.describe('點餐紀錄', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: [
-            {
-              id: 'order-abc123',
-              orderLookupCode: 'ORD001',
-              status: 'pending',
-              paymentStatus: 'unpaid',
-              orderType: 'purchase',
-              items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
-              totalAmount: 120,
-              paidAmount: 0,
-              pointsEarned: 0,
-              pointsRedeemed: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            }
-          ],
+          data: [orderPayload()],
           pagination: { page: 1, limit: 20, total: 1 }
         })
       });
@@ -98,33 +102,28 @@ test.describe('點餐紀錄', () => {
     await loginAs(page, buyerUser.email);
     await page.goto('/orders/my');
 
+    await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
+    await expect(page.getByText('這裡保存完整會員點餐紀錄')).toBeVisible();
     await expect(page.getByText('ORD001')).toBeVisible();
     await page.getByRole('button', { name: /訂單 ORD001/ }).click();
     await expect(page.getByText('訂單查詢碼')).toBeVisible();
-    await expect(page.getByText('手機號碼')).toBeVisible();
-    await expect(page.getByText('會員訂單未留手機')).toBeVisible();
-    await expect(page.getByText('目前狀態')).toBeVisible();
-    await expect(page.locator('p').filter({ hasText: /^待處理$/ })).toBeVisible();
+    await expect(page.getByText('取餐手機')).toBeVisible();
+    await expect(page.getByText('0912345678')).toBeVisible();
+    await expect(page.getByRole('link', { name: '追蹤狀態' })).toBeVisible();
   });
 
-  test('訂單很多時先顯示最近 8 筆並可載入更多', async ({ page }) => {
+  test('會員歷史列表預設顯示前 8 筆並可載入更多', async ({ page }) => {
     await mockAuth(page, [buyerUser]);
     await mockProducts(page);
     const now = Date.now();
-    const orders = Array.from({ length: 10 }, (_, index) => ({
-      id: `order-${index + 1}`,
-      orderLookupCode: `ORD${String(index + 1).padStart(3, '0')}`,
-      status: 'pending',
-      paymentStatus: 'paid',
-      orderType: 'purchase',
-      items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
-      totalAmount: 120,
-      paidAmount: 120,
-      pointsEarned: 1,
-      pointsRedeemed: 0,
-      createdAt: new Date(now - index * 60_000).toISOString(),
-      updatedAt: new Date(now - index * 60_000).toISOString()
-    }));
+    const orders = Array.from({ length: 10 }, (_, index) =>
+      orderPayload({
+        id: `order-${index + 1}`,
+        orderLookupCode: `ORD${String(index + 1).padStart(3, '0')}`,
+        createdAt: new Date(now - index * 60_000).toISOString(),
+        updatedAt: new Date(now - index * 60_000).toISOString()
+      })
+    );
     await page.route(`${API}/orders/my**`, async (route) => {
       await route.fulfill({
         status: 200,
@@ -158,14 +157,20 @@ test.describe('點餐紀錄', () => {
     await expect(page.getByText('ORD010')).toBeVisible();
   });
 
-  test('點餐紀錄頁顯示頁面標題', async ({ page }) => {
+  test('會員可依狀態篩選歷史訂單', async ({ page }) => {
     await mockAuth(page, [buyerUser]);
     await mockProducts(page);
     await page.route(`${API}/orders/my**`, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ data: [], pagination: { page: 1, limit: 20, total: 0 } })
+        body: JSON.stringify({
+          data: [
+            orderPayload({ id: 'active', orderLookupCode: 'ACTIVE1', status: 'preparing' }),
+            orderPayload({ id: 'done', orderLookupCode: 'DONE001', status: 'completed' })
+          ],
+          pagination: { page: 1, limit: 20, total: 2 }
+        })
       });
     });
     await page.route(`${API}/auth/me`, async (route) => {
@@ -179,131 +184,43 @@ test.describe('點餐紀錄', () => {
     await loginAs(page, buyerUser.email);
     await page.goto('/orders/my');
 
-    await expect(page.getByRole('heading', { name: '點餐紀錄' })).toBeVisible();
+    await page.getByRole('button', { name: '已完成 1' }).click();
+
+    await expect(page.getByText('DONE001')).toBeVisible();
+    await expect(page.getByText('ACTIVE1')).toHaveCount(0);
   });
 
-  test('員工進入點餐紀錄時可查看完整訂單', async ({ page }) => {
-    await mockAuth(page, [staffUser]);
+  test('admin 進入點餐紀錄時可查看完整訂單', async ({ page }) => {
+    await mockAuth(page, [adminUser]);
     await mockProducts(page);
     let requestedAllOrders = false;
     await page.route(`${API}/orders**`, async (route) => {
-      requestedAllOrders = new URL(route.request().url()).searchParams.get('all') === 'true';
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          data: [
-            {
-              id: 'guest-order',
-              guestInfo: { name: 'Guest', phone: '0912345678' },
-              orderLookupCode: 'GUEST01',
-              status: 'completed',
-              paymentStatus: 'paid',
-              orderType: 'purchase',
-              items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
-              totalAmount: 120,
-              paidAmount: 120,
-              pointsEarned: 0,
-              pointsRedeemed: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            },
-            {
-              id: 'unpaid-order',
-              orderLookupCode: 'UNPAID1',
-              status: 'pending',
-              paymentStatus: 'unpaid',
-              orderType: 'purchase',
-              items: [{ productId: 'p2', name: 'Brownie', price: 80, quantity: 1 }],
-              totalAmount: 80,
-              paidAmount: 0,
-              pointsEarned: 0,
-              pointsRedeemed: 0,
-              createdAt: new Date(Date.now() - 60_000).toISOString(),
-              updatedAt: new Date(Date.now() - 60_000).toISOString()
-            }
-          ],
-          pagination: { page: 1, limit: 20, total: 2 }
-        })
-      });
-    });
-    await page.route(`${API}/orders/my**`, async (route) => {
-      throw new Error(`staff should not call ${route.request().url()}`);
-    });
-    await page.route(`${API}/auth/me`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(staffUser)
-      });
-    });
-
-    await loginAs(page, staffUser.email);
-    await page.goto('/orders/my');
-
-    await expect.poll(() => requestedAllOrders).toBe(true);
-    await expect(page.getByText('查看所有顧客的訂單狀態、付款結果與點餐明細。')).toBeVisible();
-    await expect(page.getByText('GUEST01')).toBeVisible();
-    await expect(page.getByText('UNPAID1')).toBeVisible();
-    await page.getByRole('button', { name: /訂單 GUEST01/ }).click();
-    await expect(page.getByText('0912345678')).toBeVisible();
-    await expect(page.locator('p').filter({ hasText: /^已完成$/ })).toBeVisible();
-  });
-
-  test('員工切換成一般使用者後不沿用完整訂單清單', async ({ page }) => {
-    await mockAuth(page, [staffUser, buyerUser]);
-    await mockProducts(page);
-    await page.route(`${API}/orders**`, async (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname === '/api/orders' && url.searchParams.get('all') === 'true') {
+      if (url.pathname === '/api/orders') {
+        requestedAllOrders = url.searchParams.get('all') === 'true';
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
             data: [
-              {
-                id: 'staff-visible-order',
-                orderLookupCode: 'ALL001',
+              orderPayload({
+                id: 'guest-order',
+                guestInfo: { name: 'Guest', phone: '0912345678' },
+                orderLookupCode: 'GUEST01',
                 status: 'completed',
-                paymentStatus: 'paid',
-                orderType: 'purchase',
-                items: [{ productId: 'p1', name: 'Latte', price: 120, quantity: 1 }],
-                totalAmount: 120,
-                paidAmount: 120,
-                pointsEarned: 0,
-                pointsRedeemed: 0,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
-            ],
-            pagination: { page: 1, limit: 20, total: 1 }
-          })
-        });
-        return;
-      }
-
-      if (url.pathname === '/api/orders/my') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            data: [
-              {
-                id: 'buyer-own-order',
-                orderLookupCode: 'MINE01',
+                pointsEarned: 0
+              }),
+              orderPayload({
+                id: 'unpaid-order',
+                orderLookupCode: 'UNPAID1',
                 status: 'pending',
-                paymentStatus: 'paid',
-                orderType: 'purchase',
-                items: [{ productId: 'p2', name: 'Brownie', price: 80, quantity: 1 }],
+                paymentStatus: 'unpaid',
                 totalAmount: 80,
-                paidAmount: 80,
-                pointsEarned: 0,
-                pointsRedeemed: 0,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              }
+                paidAmount: 0,
+                pointsEarned: 0
+              })
             ],
-            pagination: { page: 1, limit: 20, total: 1 }
+            pagination: { page: 1, limit: 20, total: 2 }
           })
         });
         return;
@@ -315,21 +232,16 @@ test.describe('點餐紀錄', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(buyerUser)
+        body: JSON.stringify(adminUser)
       });
     });
 
-    await loginAs(page, staffUser.email);
-    await page.goto('/orders/my');
-    await expect(page.getByText('ALL001')).toBeVisible();
-
-    await clickLogout(page);
-    await expect(page).toHaveURL('/login');
-    await loginAs(page, buyerUser.email);
+    await loginAs(page, adminUser.email);
     await page.goto('/orders/my');
 
-    await expect(page.getByText('MINE01')).toBeVisible();
-    await expect(page.getByText('ALL001')).toHaveCount(0);
-    await expect(page.getByText('查看你最近的訂單狀態、付款結果與點餐明細。')).toBeVisible();
+    await expect.poll(() => requestedAllOrders).toBe(true);
+    await expect(page.getByText('完整訂單歷史列表')).toBeVisible();
+    await expect(page.getByText('GUEST01')).toBeVisible();
+    await expect(page.getByText('UNPAID1')).toBeVisible();
   });
 });

@@ -3,12 +3,12 @@
     class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-amber-50 p-4 pb-24 sm:gap-6 sm:p-6 sm:pb-24 max-[820px]:grid-cols-1 min-[821px]:pb-6"
   >
     <div class="min-w-0">
-      <header
-        class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch"
-      >
+      <header class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch">
         <div>
           <h1 class="m-0 text-2xl font-bold text-amber-950">商品</h1>
-          <p class="m-0 text-stone-600">可點選咖啡與甜點</p>
+          <p class="m-0 text-stone-600">
+            選擇飲品或甜點加入購物車，完成後前往結帳。
+          </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
@@ -63,29 +63,41 @@
               v-else
               class="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-400"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2"
+                />
               </svg>
             </div>
             <div class="grid gap-1.5">
-              <span
-                class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"
-              >
+              <span class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600">
                 {{ categoryLabel(product.category) }}
               </span>
               <h2 class="m-0 text-xl font-bold text-amber-950">
                 {{ product.name }}
               </h2>
               <p class="m-0 text-stone-600">
-                {{ product.description || '尚無說明' }}
+                {{ product.description || '尚無商品說明' }}
               </p>
               <strong>NT$ {{ product.price }}</strong>
             </div>
           </div>
-          <div
-            class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch"
-          >
+          <div class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch">
             <span
               v-if="product.isRedeemable"
               class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"
@@ -104,7 +116,6 @@
       </ul>
     </div>
 
-    <!-- Desktop sidebar cart (sticky, hidden on mobile) -->
     <aside
       data-testid="cart-panel"
       class="sticky top-[72px] hidden max-h-[calc(100vh-88px)] min-w-0 gap-4 self-start overflow-y-auto rounded-lg border border-stone-300 bg-white p-4 min-[821px]:grid"
@@ -122,7 +133,7 @@
       </div>
 
       <p v-if="cartStore.items.length === 0" class="py-4 text-stone-600">
-        目前尚未選擇商品。
+        目前購物車沒有商品。
       </p>
       <ul v-else class="grid list-none gap-3 p-0">
         <li
@@ -165,7 +176,7 @@
         data-testid="cart-footer"
         class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
       >
-        <span>總計</span>
+        <span>合計</span>
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
       <RouterLink
@@ -177,9 +188,7 @@
     </aside>
   </section>
 
-  <!-- Mobile fixed bottom cart (hidden on desktop) -->
   <div class="fixed bottom-0 left-0 right-0 z-40 min-[821px]:hidden">
-    <!-- Expandable cart panel -->
     <Transition name="slide-up">
       <div
         v-show="mobileCartOpen"
@@ -187,7 +196,7 @@
         class="max-h-[60vh] overflow-y-auto border-t border-stone-300 bg-white px-4 pb-4 pt-3 shadow-lg"
       >
         <div class="flex items-center justify-between gap-4 pb-3">
-          <h2 class="m-0 text-lg font-bold text-amber-950">購物車明細</h2>
+          <h2 class="m-0 text-lg font-bold text-amber-950">購物車內容</h2>
           <button
             class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
             type="button"
@@ -198,7 +207,7 @@
           </button>
         </div>
         <p v-if="cartStore.items.length === 0" class="py-3 text-stone-600">
-          目前尚未選擇商品。
+          目前購物車沒有商品。
         </p>
         <ul v-else class="grid list-none gap-3 p-0">
           <li
@@ -240,7 +249,7 @@
           data-testid="cart-footer"
           class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
         >
-          <span>總計</span>
+          <span>合計</span>
           <strong>NT$ {{ cartStore.totalAmount }}</strong>
         </footer>
         <RouterLink
@@ -253,26 +262,43 @@
       </div>
     </Transition>
 
-    <!-- Toggle bar -->
-    <button
-      type="button"
-      class="flex w-full items-center justify-between bg-amber-900 px-4 py-3 font-bold text-white shadow-md"
-      @click="mobileCartOpen = !mobileCartOpen"
-    >
-      <span class="flex items-center gap-2">
-        <span>購物車</span>
-        <span
-          v-if="totalQuantity > 0"
-          class="rounded-full bg-white px-2 py-0.5 text-xs font-extrabold text-amber-900"
-        >
-          {{ totalQuantity }}
+    <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-amber-900 p-3 text-white shadow-md">
+      <button
+        type="button"
+        class="flex min-h-11 min-w-0 items-center justify-between gap-3 rounded-md bg-amber-800 px-3 font-bold"
+        @click="mobileCartOpen = !mobileCartOpen"
+      >
+        <span class="flex min-w-0 items-center gap-2">
+          <span>購物車</span>
+          <span
+            v-if="totalQuantity > 0"
+            class="rounded-full bg-white px-2 py-0.5 text-xs font-extrabold text-amber-900"
+          >
+            {{ totalQuantity }}
+          </span>
         </span>
-      </span>
-      <span class="flex items-center gap-2">
-        <span>NT$ {{ cartStore.totalAmount }}</span>
-        <span class="text-sm">{{ mobileCartOpen ? '▾' : '▴' }}</span>
-      </span>
-    </button>
+        <span class="flex shrink-0 items-center gap-2">
+          <span>NT$ {{ cartStore.totalAmount }}</span>
+          <span class="text-sm">{{ mobileCartOpen ? '收合' : '展開' }}</span>
+        </span>
+      </button>
+      <RouterLink
+        v-if="cartStore.items.length > 0"
+        class="grid h-11 min-w-24 place-items-center rounded-md bg-white px-3 text-sm font-extrabold text-amber-900 no-underline"
+        to="/checkout"
+        @click="mobileCartOpen = false"
+      >
+        結帳
+      </RouterLink>
+      <button
+        v-else
+        class="h-11 min-w-24 rounded-md bg-white/40 px-3 text-sm font-extrabold text-white"
+        type="button"
+        disabled
+      >
+        結帳
+      </button>
+    </div>
   </div>
 </template>
 
