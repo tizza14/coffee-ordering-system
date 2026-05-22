@@ -22,7 +22,7 @@ describe('route guards', () => {
     expect(getDefaultRouteForRole()).toBe('/products');
     expect(getDefaultRouteForRole('guest')).toBe('/products');
     expect(getDefaultRouteForRole('user')).toBe('/products');
-    expect(getDefaultRouteForRole('admin')).toBe('/products');
+    expect(getDefaultRouteForRole('admin')).toBe('/staff/orders');
     expect(getDefaultRouteForRole('staff')).toBe('/staff/orders');
   });
 
