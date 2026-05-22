@@ -1,6 +1,6 @@
-﻿<template>
+<template>
   <section
-    class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-amber-50 p-4 sm:gap-6 sm:p-6 max-[820px]:grid-cols-1"
+    class="grid min-h-[calc(100vh-64px)] grid-cols-[minmax(0,1fr)_340px] gap-5 bg-amber-50 p-4 pb-24 sm:gap-6 sm:p-6 sm:pb-24 max-[820px]:grid-cols-1 min-[821px]:pb-6"
   >
     <div class="min-w-0">
       <header
@@ -95,8 +95,9 @@
       </ul>
     </div>
 
+    <!-- Desktop sidebar cart (sticky, hidden on mobile) -->
     <aside
-      class="grid min-w-0 gap-4 self-start rounded-lg border border-stone-300 bg-white p-4 max-[820px]:order-first"
+      class="sticky top-4 hidden max-h-[calc(100vh-88px)] min-w-0 gap-4 self-start overflow-y-auto rounded-lg border border-stone-300 bg-white p-4 min-[821px]:grid"
     >
       <div class="flex items-center justify-between gap-4">
         <h2 class="m-0 text-xl font-bold text-amber-950">購物車</h2>
@@ -157,13 +158,103 @@
         <strong>NT$ {{ cartStore.totalAmount }}</strong>
       </footer>
       <RouterLink
-        class="grid h-11 w-36 shrink-0 place-items-center justify-self-end rounded-md bg-amber-900 px-4 font-bold text-white no-underline max-[820px]:w-full"
+        class="grid h-11 w-36 shrink-0 place-items-center justify-self-end rounded-md bg-amber-900 px-4 font-bold text-white no-underline"
         to="/checkout"
       >
         前往結帳
       </RouterLink>
     </aside>
   </section>
+
+  <!-- Mobile fixed bottom cart (hidden on desktop) -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 min-[821px]:hidden">
+    <!-- Expandable cart panel -->
+    <Transition name="slide-up">
+      <div
+        v-show="mobileCartOpen"
+        class="max-h-[60vh] overflow-y-auto border-t border-stone-300 bg-white px-4 pb-4 pt-3 shadow-lg"
+      >
+        <div class="flex items-center justify-between gap-4 pb-3">
+          <h2 class="m-0 text-lg font-bold text-amber-950">購物車明細</h2>
+          <button
+            class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
+            type="button"
+            :disabled="cartStore.items.length === 0"
+            @click="cartStore.clearCart()"
+          >
+            清空
+          </button>
+        </div>
+        <p v-if="cartStore.items.length === 0" class="py-3 text-stone-600">
+          目前尚未選擇商品。
+        </p>
+        <ul v-else class="grid list-none gap-3 p-0">
+          <li
+            v-for="item in cartStore.items"
+            :key="item.productId"
+            class="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 border-b border-stone-200 pb-3"
+          >
+            <div class="grid gap-1">
+              <strong>{{ item.name }}</strong>
+              <span>NT$ {{ item.price }}</span>
+            </div>
+            <div class="grid grid-cols-[34px_32px_34px] items-center text-center">
+              <button
+                class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+                type="button"
+                @click="cartStore.decrement(item.productId)"
+              >
+                -
+              </button>
+              <span>{{ item.quantity }}</span>
+              <button
+                class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+                type="button"
+                @click="cartStore.increment(item.productId)"
+              >
+                +
+              </button>
+            </div>
+            <button
+              type="button"
+              class="col-span-full min-h-8 w-fit cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950"
+              @click="cartStore.removeProduct(item.productId)"
+            >
+              移除
+            </button>
+          </li>
+        </ul>
+        <RouterLink
+          class="mt-3 grid h-11 w-full place-items-center rounded-md bg-amber-900 px-4 font-bold text-white no-underline"
+          to="/checkout"
+          @click="mobileCartOpen = false"
+        >
+          前往結帳
+        </RouterLink>
+      </div>
+    </Transition>
+
+    <!-- Toggle bar -->
+    <button
+      type="button"
+      class="flex w-full items-center justify-between bg-amber-900 px-4 py-3 font-bold text-white shadow-md"
+      @click="mobileCartOpen = !mobileCartOpen"
+    >
+      <span class="flex items-center gap-2">
+        <span>購物車</span>
+        <span
+          v-if="totalQuantity > 0"
+          class="rounded-full bg-white px-2 py-0.5 text-xs font-extrabold text-amber-900"
+        >
+          {{ totalQuantity }}
+        </span>
+      </span>
+      <span class="flex items-center gap-2">
+        <span>NT$ {{ cartStore.totalAmount }}</span>
+        <span class="text-sm">{{ mobileCartOpen ? '▾' : '▴' }}</span>
+      </span>
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -185,6 +276,11 @@ const products = ref<Product[]>([]);
 const selectedCategory = ref<CategoryFilter>('all');
 const isLoading = ref(false);
 const errorMessage = ref('');
+const mobileCartOpen = ref(false);
+
+const totalQuantity = computed(() =>
+  cartStore.items.reduce((sum, item) => sum + item.quantity, 0)
+);
 
 function categoryLabel(value: Product['category']) {
   return value === 'coffee' ? '咖啡' : '甜點';
@@ -209,3 +305,15 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+</style>
