@@ -210,15 +210,6 @@ import { useToastStore } from '../../stores/toast.store';
 type OrderTransitionStatus = Exclude<Order['status'], 'pending'>;
 type QueueFilter = 'active' | 'pending' | 'preparing' | 'ready' | 'done';
 
-const nextStatusesByStatus = {
-  pending: ['accepted', 'cancelled'],
-  accepted: ['preparing'],
-  preparing: ['ready'],
-  ready: ['completed'],
-  completed: [],
-  cancelled: []
-} as const satisfies Record<Order['status'], readonly OrderTransitionStatus[]>;
-
 const primaryStatusByStatus = {
   pending: 'accepted',
   accepted: 'preparing',
