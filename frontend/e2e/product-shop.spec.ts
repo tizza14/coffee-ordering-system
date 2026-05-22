@@ -21,10 +21,13 @@ test.describe('商品頁', () => {
     await expect(page.locator('button:has-text("甜點")')).toBeVisible();
   });
 
-  test('可將商品加入購物車', async ({ page }) => {
+  test('可將商品加入購物車', async ({ page, isMobile }) => {
     await page.goto('/products');
     await page.locator('li', { hasText: 'Latte' }).getByRole('button', { name: '加入' }).click();
-    await expect(page.locator('aside').getByText('Latte')).toBeVisible();
-    await expect(page.locator('aside footer').getByText('NT$ 120')).toBeVisible();
+    if (isMobile) {
+      await page.locator('button', { hasText: '購物車' }).click();
+    }
+    await expect(page.locator('[data-testid="cart-panel"]').getByText('Latte')).toBeVisible();
+    await expect(page.locator('[data-testid="cart-panel"] [data-testid="cart-footer"]').getByText('NT$ 120')).toBeVisible();
   });
 });

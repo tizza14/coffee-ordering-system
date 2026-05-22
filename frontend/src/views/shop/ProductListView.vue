@@ -97,7 +97,8 @@
 
     <!-- Desktop sidebar cart (sticky, hidden on mobile) -->
     <aside
-      class="sticky top-4 hidden max-h-[calc(100vh-88px)] min-w-0 gap-4 self-start overflow-y-auto rounded-lg border border-stone-300 bg-white p-4 min-[821px]:grid"
+      data-testid="cart-panel"
+      class="sticky top-[72px] hidden max-h-[calc(100vh-88px)] min-w-0 gap-4 self-start overflow-y-auto rounded-lg border border-stone-300 bg-white p-4 min-[821px]:grid"
     >
       <div class="flex items-center justify-between gap-4">
         <h2 class="m-0 text-xl font-bold text-amber-950">購物車</h2>
@@ -152,6 +153,7 @@
       </ul>
 
       <footer
+        data-testid="cart-footer"
         class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
       >
         <span>總計</span>
@@ -172,6 +174,7 @@
     <Transition name="slide-up">
       <div
         v-show="mobileCartOpen"
+        data-testid="cart-panel"
         class="max-h-[60vh] overflow-y-auto border-t border-stone-300 bg-white px-4 pb-4 pt-3 shadow-lg"
       >
         <div class="flex items-center justify-between gap-4 pb-3">
@@ -224,6 +227,13 @@
             </button>
           </li>
         </ul>
+        <footer
+          data-testid="cart-footer"
+          class="flex items-center justify-between gap-4 border-t border-stone-300 pt-3.5"
+        >
+          <span>總計</span>
+          <strong>NT$ {{ cartStore.totalAmount }}</strong>
+        </footer>
         <RouterLink
           class="mt-3 grid h-11 w-full place-items-center rounded-md bg-amber-900 px-4 font-bold text-white no-underline"
           to="/checkout"
