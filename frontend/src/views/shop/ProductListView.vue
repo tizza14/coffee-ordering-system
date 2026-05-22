@@ -59,6 +59,15 @@
               :alt="product.name"
               class="h-24 w-24 shrink-0 rounded-lg object-cover"
             />
+            <div
+              v-else
+              class="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-400"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2" />
+              </svg>
+            </div>
             <div class="grid gap-1.5">
               <span
                 class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"

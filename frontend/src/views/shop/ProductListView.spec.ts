@@ -67,6 +67,41 @@ describe('ProductListView', () => {
     expect(screen.getAllByText('NT$ 120').length).toBeGreaterThan(0);
   });
 
+  it('shows product image when imageUrl is provided', async () => {
+    mockedProductApi.getProducts.mockResolvedValue({
+      data: [
+        {
+          id: 'p1',
+          name: 'Latte',
+          price: 120,
+          category: 'coffee',
+          description: 'Milk coffee',
+          isAvailable: true,
+          isRedeemable: false,
+          redeemPoints: 3,
+          imageUrl: 'https://example.com/latte.jpg'
+        }
+      ],
+      pagination: { page: 1, limit: 20, total: 1 }
+    });
+
+    renderProductListView();
+
+    const img = await screen.findByRole('img', { name: 'Latte' });
+    expect(img).toBeTruthy();
+    expect((img as HTMLImageElement).src).toBe('https://example.com/latte.jpg');
+  });
+
+  it('shows placeholder when imageUrl is not provided', async () => {
+    renderProductListView();
+
+    await screen.findByText('Latte');
+    const imgs = document.querySelectorAll('img');
+    expect(imgs).toHaveLength(0);
+    const placeholders = document.querySelectorAll('svg');
+    expect(placeholders.length).toBeGreaterThan(0);
+  });
+
   it('filters products by category', async () => {
     renderProductListView();
 
