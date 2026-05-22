@@ -27,7 +27,7 @@ test.describe('商品頁', () => {
     if (isMobile) {
       await page.locator('button', { hasText: '購物車' }).click();
     }
-    await expect(page.locator('[data-testid="cart-panel"]').getByText('Latte')).toBeVisible();
-    await expect(page.locator('[data-testid="cart-panel"] [data-testid="cart-footer"]').getByText('NT$ 120')).toBeVisible();
+    await expect(page.locator('[data-testid="cart-panel"]:visible').getByText('Latte')).toBeVisible();
+    await expect(page.locator('[data-testid="cart-panel"]:visible [data-testid="cart-footer"]').getByText('NT$ 120')).toBeVisible();
   });
 });
