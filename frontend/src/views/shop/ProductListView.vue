@@ -105,11 +105,14 @@
               可兌換 {{ product.redeemPoints }} 點
             </span>
             <button
-              class="min-h-9 cursor-pointer rounded-md border border-amber-900 bg-amber-900 px-3 font-bold text-white"
+              class="min-h-9 cursor-pointer rounded-md border px-3 font-bold transition-colors"
+              :class="addedProducts.has(product.id)
+                ? 'border-emerald-600 bg-emerald-600 text-white'
+                : 'border-amber-900 bg-amber-900 text-white hover:bg-amber-800'"
               type="button"
-              @click="cartStore.addProduct(product)"
+              @click="addToCart(product)"
             >
-              加入
+              {{ addedProducts.has(product.id) ? '已加入 ✓' : '加入' }}
             </button>
           </div>
         </li>
@@ -322,6 +325,17 @@ const selectedCategory = ref<CategoryFilter>('all');
 const isLoading = ref(false);
 const errorMessage = ref('');
 const mobileCartOpen = ref(false);
+const addedProducts = ref(new Set<string>());
+
+function addToCart(product: Product) {
+  cartStore.addProduct(product);
+  addedProducts.value.add(product.id);
+  setTimeout(() => {
+    addedProducts.value.delete(product.id);
+    addedProducts.value = new Set(addedProducts.value);
+  }, 1500);
+  addedProducts.value = new Set(addedProducts.value);
+}
 
 const totalQuantity = computed(() =>
   cartStore.items.reduce((sum, item) => sum + item.quantity, 0)

@@ -296,6 +296,7 @@ test.describe('員工與管理者流程', () => {
     await expect(page.getByRole('heading', { name: '使用者管理' })).toBeVisible();
     await expect(page.getByText('buyer@example.com')).toBeVisible();
     await page.getByRole('combobox').selectOption('staff');
+    await page.getByRole('button', { name: '確認變更' }).click();
     await expect(page.locator('span').filter({ hasText: /^員工$/ })).toBeVisible();
   });
 });

@@ -504,13 +504,13 @@ Latest result:
 
 - lint passed
 - unit tests passed: 10 suites, 33 tests
-- e2e passed: 94 tests (desktop Chromium + Pixel 5 mobile)
+- e2e passed: 122 tests (desktop Chromium + Pixel 5 mobile)
 - build passed
 
 RWD verification:
 
 - Playwright runs both `chromium` desktop and `mobile-chrome` Pixel 5 projects.
-- Latest frontend E2E result: 94 tests passed.
+- Latest frontend E2E result: 122 tests passed.
 - Global navigation, shop, checkout, auth, order tracking, staff, and admin views have responsive layout baselines.
 
 ## Environment Notes
@@ -528,7 +528,7 @@ Implemented:
 
 - `backend/Dockerfile`: multi-stage build (builder → production). Runs `node dist/server.js`. Uses `npm ci --omit=dev` in production stage.
 - `backend/.dockerignore`: excludes `node_modules/`, `dist/`, `.env`, logs, test artifacts, `.git/`.
-- `docker-compose.yml` (root): starts `mongodb` (mongo:7), `backend`, and `frontend` services. All backend secrets are injected via environment variables; `JWT_SECRET`, `LINE_PAY_CHANNEL_ID`, `LINE_PAY_CHANNEL_SECRET` are required at runtime.
+- `docker-compose.yml` (root): starts `backend` and `frontend` services. Local MongoDB service removed — `MONGODB_URI` is injected from host environment and should point to Atlas (or any external MongoDB). `JWT_SECRET`, `LINE_PAY_CHANNEL_ID`, `LINE_PAY_CHANNEL_SECRET` are also required at runtime.
 - `frontend/Dockerfile`: builds the Vite app with Node 20 and serves compiled `dist/` through Nginx.
 - `frontend/nginx.conf`: serves static assets and uses `try_files $uri $uri/ /index.html` so Vue Router browser refreshes do not return 404.
 - `frontend/.dockerignore`: excludes `node_modules/`, `dist/`, `.env`, test reports, cache files, and Git metadata.
@@ -956,8 +956,8 @@ Verified:
 ## Navigation Role UX Step 7 (2026-05-22)
 
 - Added shared route helper functions in `router/guards.ts` so the router guard, header brand link, login success, and register success use the same role default.
-- Staff login now explicitly lands on **員工訂單** through the shared helper, and Staff is still kept inside staff/admin routes.
-- User and Admin login continue to land on **商品**; Admin keeps both customer/history links and staff/admin links.
+- Staff login now explicitly lands on **員工訂單** through the shared helper, and Staff is kept inside staff/admin routes.
+- User login lands on **商品**. Admin login previously also landed on **商品** but was changed — see Admin Navigation Cleanup below.
 - Added focused unit coverage for default role routes and staff-only restriction behavior.
 - Added Playwright coverage for Staff and Admin navigation entry behavior on desktop and mobile.
 
@@ -966,6 +966,44 @@ Verified:
 - `frontend`: `npm.cmd test -- --run src/router/guards.spec.ts`
 - `frontend`: `npm.cmd run e2e -- navigation-role.spec.ts`
 - `frontend`: `npm.cmd run build`
+
+---
+
+## Admin Navigation Cleanup (2026-05-22)
+
+- `getDefaultRouteForRole` in `router/guards.ts` now returns `/staff/orders` for both `staff` and `admin`, so Admin login lands directly on **員工訂單** instead of **商品**.
+- `App.vue` navigation is now strictly role-separated:
+  - `user` / unauthenticated: 商品, 結帳, 訂單追蹤, 點餐紀錄, 我的點數, 登入, 註冊
+  - `staff` / `admin`: 員工訂單, 銷售報表, 商品管理 (admin only), 使用者管理 (admin only)
+  - Admin no longer sees customer-facing links (商品, 結帳, 點餐紀錄 etc.) to reduce nav clutter.
+- `guards.spec.ts` unit test updated: `getDefaultRouteForRole('admin')` now expects `/staff/orders`.
+- `navigation-role.spec.ts` E2E test rewritten to verify Admin lands on `/staff/orders`, sees 員工訂單/銷售報表/商品管理/使用者管理, and does not see 商品/點餐紀錄.
+- `staff-admin.spec.ts` E2E selector fixes:
+  - `'製作中'` → `'開始製作'` and `'可取餐'` → `'標記可取餐'`: action button labels differ from queue filter button labels.
+  - `{ name: '接單' }` → `{ name: '接單', exact: true }`: prevents strict-mode match against the `'待接單'` filter button.
+- `helpers.ts`: added shared `mockStaffOrders` export used by `sales-report.spec.ts`, `my-orders.spec.ts`, and `staff-admin.spec.ts` so staff/admin login mocks land correctly on `/staff/orders`.
+
+Verified:
+
+- `frontend`: `npm.cmd test -- --run src/router/guards.spec.ts`
+- `frontend`: `npm.cmd run e2e` (122 tests — desktop Chromium + mobile Chromium, all pass)
+- `frontend`: `npm.cmd run build`
+
+---
+
+## Docker Local Dev — Atlas Connection (2026-05-22)
+
+- `docker-compose.yml` updated: removed local `mongodb` service and `mongo_data` volume; `MONGODB_URI` is now injected from the host environment via `${MONGODB_URI:?MONGODB_URI is required}`.
+- Root `.env` (not committed) should set `MONGODB_URI` to the Atlas connection string so local Docker containers connect to the same database as the deployed product.
+- `backend/Dockerfile` production stage now copies `node_modules` from the builder stage and runs `npm prune --omit=dev` instead of re-downloading packages, avoiding ECONNRESET failures in restricted network environments.
+
+To run locally with Atlas:
+
+```powershell
+# root .env must contain:
+# MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/coffee_ordering?retryWrites=true&w=majority
+docker compose up --build
+```
 
 ---
 

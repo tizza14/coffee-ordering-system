@@ -86,17 +86,20 @@
           </button>
         </div>
 
-        <div class="flex gap-2 overflow-x-auto pb-1">
-          <button
-            v-for="option in filterOptions"
-            :key="option.value"
-            class="min-h-9 shrink-0 rounded-md border px-3 text-sm font-bold transition-colors"
-            :class="activeFilter === option.value ? 'border-amber-900 bg-amber-900 text-white' : 'border-stone-300 bg-white text-amber-950 hover:border-amber-900'"
-            type="button"
-            @click="setFilter(option.value)"
-          >
-            {{ option.label }} {{ filterCounts[option.value] }}
-          </button>
+        <div class="relative">
+          <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              v-for="option in filterOptions"
+              :key="option.value"
+              class="min-h-9 shrink-0 rounded-md border px-3 text-sm font-bold transition-colors"
+              :class="activeFilter === option.value ? 'border-amber-900 bg-amber-900 text-white' : 'border-stone-300 bg-white text-amber-950 hover:border-amber-900'"
+              type="button"
+              @click="setFilter(option.value)"
+            >
+              {{ option.label }} {{ filterCounts[option.value] }}
+            </button>
+          </div>
+          <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent"></div>
         </div>
       </div>
 

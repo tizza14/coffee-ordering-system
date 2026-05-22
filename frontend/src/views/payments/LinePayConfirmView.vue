@@ -12,8 +12,16 @@
       <p v-if="errorCode" class="m-0 text-sm text-red-600">
         錯誤代碼：{{ errorCode }}
       </p>
-      <p v-if="lookupCode" class="m-0 text-sm text-stone-600">
-        訂單查詢碼：{{ lookupCode }}
+      <p v-if="lookupCode" class="m-0 flex flex-wrap items-center gap-2 text-sm text-stone-600">
+        訂單查詢碼：<strong class="text-amber-950">{{ lookupCode }}</strong>
+        <button
+          type="button"
+          class="cursor-pointer rounded px-1.5 py-0.5 text-xs font-bold transition"
+          :class="codeCopied ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500 hover:bg-amber-100 hover:text-amber-900'"
+          @click="copyCode"
+        >
+          {{ codeCopied ? '已複製 ✓' : '複製' }}
+        </button>
       </p>
       <div class="flex flex-wrap gap-3 pt-2">
         <button
@@ -73,6 +81,13 @@ const isError = ref(false);
 const lookupCode = ref('');
 const guestToken = ref('');
 const orderId = ref('');
+const codeCopied = ref(false);
+
+async function copyCode() {
+  await navigator.clipboard.writeText(lookupCode.value);
+  codeCopied.value = true;
+  setTimeout(() => { codeCopied.value = false; }, 2000);
+}
 
 const trackingQuery = computed(() => ({
   lookupCode: lookupCode.value,

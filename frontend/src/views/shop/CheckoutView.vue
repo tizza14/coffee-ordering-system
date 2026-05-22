@@ -3,7 +3,7 @@
     class="grid min-h-[calc(100vh-64px)] gap-5 bg-amber-50 p-4 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px]"
   >
     <form
-      class="grid gap-4 rounded-lg border border-stone-300 bg-white p-6"
+      class="order-2 grid gap-4 rounded-lg border border-stone-300 bg-white p-6 lg:order-1"
       @submit.prevent="submit"
     >
       <div>
@@ -92,7 +92,7 @@
     </form>
 
     <aside
-      class="grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6"
+      class="order-1 grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6 lg:order-2"
     >
       <h2 class="m-0 text-xl font-bold">訂單明細</h2>
       <p v-if="cartStore.items.length === 0" class="m-0 text-stone-600">

@@ -108,9 +108,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import type { User } from '../../api/user.api';
+import { useConfirmStore } from '../../stores/confirm.store';
+import { useToastStore } from '../../stores/toast.store';
 import { useUserAdminStore } from '../../stores/user-admin.store';
 
 const userStore = useUserAdminStore();
+const confirmStore = useConfirmStore();
+const toastStore = useToastStore();
 const errorMessage = ref('');
 
 const totalPages = computed(() =>
@@ -133,9 +137,20 @@ function roleBadgeClass(role: User['role']) {
 }
 
 async function onRoleChange(id: string, role: User['role']) {
+  const user = userStore.users.find((u) => u.id === id);
+  const ok = await confirmStore.confirm({
+    title: '變更使用者角色',
+    message: `確定要將 ${user?.name ?? '此使用者'} 的角色變更為「${roleLabel(role)}」嗎？`,
+    confirmLabel: '確認變更',
+    cancelLabel: '取消',
+    danger: false
+  });
+  if (!ok) return;
+
   errorMessage.value = '';
   try {
     await userStore.updateRole(id, role);
+    toastStore.success(`已將 ${user?.name ?? '使用者'} 的角色更新為「${roleLabel(role)}」`);
   } catch {
     errorMessage.value = '無法更新角色。';
   }

@@ -51,7 +51,7 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 10. Use Staff or Admin login to open **銷售報表** and query daily / weekly / monthly / yearly sales, or use the custom date-range picker.
 11. Use Admin login to manage products and user roles.
 
-Role entry behavior: User/Admin login lands on **商品**, while Staff login lands on **員工訂單** and is kept inside staff/admin routes. The header brand link uses the same role default as the router guard.
+Role entry behavior: User login lands on **商品**. Staff and Admin login land on **員工訂單** and are kept inside staff/admin routes. Admin navigation shows only staff/admin links (員工訂單, 銷售報表, 商品管理, 使用者管理) — no customer-facing links. The header brand link uses the same role default as the router guard.
 
 Build note: product cart E2E selectors must avoid literal `:visible` selector strings because Tailwind scans test files and can emit invalid CSS from those strings. Use Playwright locator filtering instead.
 

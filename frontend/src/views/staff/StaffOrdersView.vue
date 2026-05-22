@@ -34,16 +34,22 @@
           <strong class="text-sm text-amber-900">{{ activeOrders.length }} 筆進行中</strong>
         </div>
         <div class="mt-3 grid gap-2 sm:grid-cols-4">
-          <div
+          <button
             v-for="status in queueStatuses"
             :key="status"
-            class="rounded-md border border-stone-200 bg-amber-50 p-3"
+            type="button"
+            class="cursor-pointer rounded-md border p-3 text-left transition"
+            :class="statusCardIsActive(status)
+              ? 'border-amber-700 bg-amber-100 ring-1 ring-amber-700'
+              : 'border-stone-200 bg-amber-50 hover:border-amber-400 hover:bg-amber-100'"
+            :aria-label="`篩選 ${statusLabel(status)}`"
+            @click="activeFilter = statusToFilter(status)"
           >
             <p class="m-0 text-xs font-bold text-stone-500">{{ statusLabel(status) }}</p>
             <strong class="text-xl text-amber-950">
               {{ orderStore.todaySummary.statusCounts[status] }}
             </strong>
-          </div>
+          </button>
         </div>
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
@@ -245,6 +251,21 @@ const queueFilters = [
   { value: 'ready', label: '可取餐' },
   { value: 'done', label: '已結束' }
 ] as const satisfies ReadonlyArray<{ value: QueueFilter; label: string }>;
+
+const statusFilterMap: Record<typeof queueStatuses[number], QueueFilter> = {
+  pending: 'pending',
+  accepted: 'active',
+  preparing: 'preparing',
+  ready: 'ready'
+};
+
+function statusToFilter(status: typeof queueStatuses[number]): QueueFilter {
+  return statusFilterMap[status];
+}
+
+function statusCardIsActive(status: typeof queueStatuses[number]) {
+  return activeFilter.value === statusFilterMap[status] && activeFilter.value !== 'active';
+}
 
 const soldItems = computed(() => orderStore.todaySummary?.soldItems ?? []);
 const activeOrders = computed(() =>

@@ -179,9 +179,21 @@
                     <span class="block text-xs font-bold text-stone-500">
                       訂單查詢碼
                     </span>
-                    <strong class="text-amber-950">
-                      {{ displayOrderCode(orderStore.currentOrder) }}
-                    </strong>
+                    <span class="flex items-center gap-2">
+                      <strong class="text-amber-950">
+                        {{ displayOrderCode(orderStore.currentOrder) }}
+                      </strong>
+                      <button
+                        v-if="orderStore.currentOrder?.orderLookupCode"
+                        type="button"
+                        class="cursor-pointer rounded px-1.5 py-0.5 text-xs font-bold transition"
+                        :class="codeCopied ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500 hover:bg-amber-100 hover:text-amber-900'"
+                        :aria-label="`複製訂單碼 ${orderStore.currentOrder.orderLookupCode}`"
+                        @click="copyOrderCode(orderStore.currentOrder!.orderLookupCode!)"
+                      >
+                        {{ codeCopied ? '已複製 ✓' : '複製' }}
+                      </button>
+                    </span>
                   </p>
                   <p class="m-0">
                     <span class="block text-xs font-bold text-stone-500">
@@ -374,6 +386,13 @@ const loadedLookupCode = ref('');
 const loadedPhone = ref('');
 const loadedGuestToken = ref('');
 const isLoadingMemberOrders = ref(false);
+const codeCopied = ref(false);
+
+async function copyOrderCode(code: string) {
+  await navigator.clipboard.writeText(code);
+  codeCopied.value = true;
+  setTimeout(() => { codeCopied.value = false; }, 2000);
+}
 
 interface ApiErrorBody {
   code?: string;
