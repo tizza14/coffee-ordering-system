@@ -15,7 +15,7 @@
 
       <fieldset class="grid gap-3 border-0 p-0">
         <legend class="font-bold">訂單類型</legend>
-        <label class="flex items-center gap-2">
+        <label class="flex cursor-pointer items-center gap-2" @click="handleMemberClick">
           <input
             v-model="mode"
             type="radio"
@@ -23,6 +23,7 @@
             :disabled="!authStore.isAuthenticated"
           />
           會員點餐
+          <span v-if="!authStore.isAuthenticated" class="text-xs text-stone-500">（需登入）</span>
         </label>
         <label class="flex items-center gap-2">
           <input v-model="mode" type="radio" value="guest" />
@@ -125,17 +126,24 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useCartStore } from '../../stores/cart.store';
 import { useOrderStore } from '../../stores/order.store';
 import { usePaymentStore } from '../../stores/payment.store';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const cartStore = useCartStore();
 const orderStore = useOrderStore();
 const paymentStore = usePaymentStore();
 const mode = ref(authStore.isAuthenticated ? 'member' : 'guest');
+
+function handleMemberClick() {
+  if (!authStore.isAuthenticated) {
+    void router.push({ path: '/login', query: { redirect: '/checkout' } });
+  }
+}
 const guestName = ref('');
 const guestPhone = ref('');
 const guestEmail = ref('');

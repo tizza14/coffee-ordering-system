@@ -63,11 +63,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { RouterLink, useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { getDefaultRouteForRole } from '../../router/guards';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const email = ref('');
 const password = ref('');
@@ -79,7 +80,14 @@ async function submit() {
   isSubmitting.value = true;
   try {
     await authStore.login({ email: email.value, password: password.value });
-    await router.push(getDefaultRouteForRole(authStore.user?.role));
+    const role = authStore.user?.role;
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null;
+    // Staff/admin always go to their default route; only user role honours the redirect
+    const target =
+      redirect && redirect.startsWith('/') && !redirect.startsWith('//') && role === 'user'
+        ? redirect
+        : getDefaultRouteForRole(role);
+    await router.push(target);
   } catch {
     errorMessage.value = '無法使用這組帳密登入。';
   } finally {

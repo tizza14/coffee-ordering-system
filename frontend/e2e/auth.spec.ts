@@ -65,6 +65,16 @@ test.describe('登入與註冊', () => {
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 
+  test('登入時帶有 redirect 參數會導回指定頁面', async ({ page }) => {
+    await mockAuth(page);
+    await page.goto('/login?redirect=/checkout');
+    await page.fill('input[type="email"]', 'buyer@example.com');
+    await page.fill('input[type="password"]', 'password123');
+    await page.click('button[type="submit"]');
+
+    await expect(page).toHaveURL('/checkout');
+  });
+
   test('已登入會員不能重新開啟登入頁', async ({ page }) => {
     await mockAuth(page);
     await mockProducts(page);

@@ -25,6 +25,13 @@ test.describe('結帳流程', () => {
     await expect(page.getByRole('heading', { name: '訂單追蹤' })).toBeVisible();
   });
 
+  test('未登入時點選會員點餐會導向登入頁（帶 redirect 參數）', async ({ page }) => {
+    await page.goto('/checkout');
+    await page.locator('label', { hasText: '會員點餐' }).click({ force: true });
+
+    await expect(page).toHaveURL('/login?redirect=/checkout');
+  });
+
   test('結帳頁會顯示購物車品項與總計', async ({ page }) => {
     await mockProducts(page);
     await page.goto('/products');
