@@ -23,6 +23,10 @@ export const authRoutes = Router();
  *               name: { type: string }
  *               email: { type: string, format: email }
  *               password: { type: string, minLength: 6 }
+ *           example:
+ *             name: 測試會員
+ *             email: test_swagger@example.com
+ *             password: password123
  *     responses:
  *       201:
  *         description: User created
@@ -61,6 +65,16 @@ authRoutes.post(
  *             properties:
  *               email: { type: string, format: email }
  *               password: { type: string }
+ *           examples:
+ *             admin:
+ *               summary: Admin 登入
+ *               value: { email: admin@demo.com, password: demo1234 }
+ *             staff:
+ *               summary: Staff 登入
+ *               value: { email: staff@demo.com, password: demo1234 }
+ *             user:
+ *               summary: 會員登入
+ *               value: { email: user@demo.com, password: demo1234 }
  *     responses:
  *       200:
  *         description: Login successful
@@ -101,36 +115,3 @@ authRoutes.post('/login', validateBody(loginSchema), authController.login);
  */
 authRoutes.get('/me', authenticate, authController.getMe);
 
-/**
- * @openapi
- * /auth/refresh:
- *   post:
- *     tags: [Auth]
- *     summary: Refresh access token using a valid refresh token
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [refreshToken]
- *             properties:
- *               refreshToken: { type: string }
- *     responses:
- *       200:
- *         description: New tokens issued
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user: { $ref: '#/components/schemas/User' }
- *                 accessToken: { type: string }
- *                 refreshToken: { type: string }
- *       401:
- *         description: Invalid or expired refresh token
- *         content:
- *           application/json:
- *             schema: { $ref: '#/components/schemas/ApiError' }
- */
-authRoutes.post('/refresh', authController.refresh);

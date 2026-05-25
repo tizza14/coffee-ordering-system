@@ -10,7 +10,8 @@
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "seed": "ts-node src/scripts/seed.ts",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "swagger": "start http://localhost:3000/api-docs"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

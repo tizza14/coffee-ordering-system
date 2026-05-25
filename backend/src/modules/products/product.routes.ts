@@ -55,6 +55,13 @@ productRoutes.get('/', productController.listProducts);
  *               description: { type: string }
  *               isAvailable: { type: boolean }
  *               isRedeemable: { type: boolean }
+ *           example:
+ *             name: 測試拿鐵
+ *             description: 濃縮咖啡加牛奶
+ *             price: 120
+ *             category: coffee
+ *             isAvailable: true
+ *             isRedeemable: false
  *     responses:
  *       201:
  *         description: Product created
@@ -101,6 +108,10 @@ productRoutes.post(
  *               description: { type: string }
  *               isAvailable: { type: boolean }
  *               isRedeemable: { type: boolean }
+ *           example:
+ *             name: 測試拿鐵（更新）
+ *             price: 150
+ *             isAvailable: false
  *     responses:
  *       200:
  *         description: Product updated

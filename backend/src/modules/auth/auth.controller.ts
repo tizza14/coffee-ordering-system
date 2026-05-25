@@ -24,13 +24,3 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     points: user.points ?? 0
   });
 });
-
-export const refresh = asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body as { refreshToken?: string };
-  if (!refreshToken) {
-    res.status(400).json({ message: 'refreshToken is required', code: 'MISSING_REFRESH_TOKEN' });
-    return;
-  }
-  const result = await authService.refresh(refreshToken);
-  res.json(result);
-});

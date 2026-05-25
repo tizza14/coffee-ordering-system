@@ -20,7 +20,6 @@
             v-model="mode"
             type="radio"
             value="member"
-            :disabled="!authStore.isAuthenticated"
             @click.prevent="handleMemberClick"
           />
           會員點餐

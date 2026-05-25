@@ -36,6 +36,13 @@ export const orderRoutes = Router();
  *                   properties:
  *                     productId: { type: string }
  *                     quantity: { type: integer, minimum: 1 }
+ *           example:
+ *             items:
+ *               - productId: "6a1400b121bd21429d6f88d2"
+ *                 quantity: 1
+ *               - productId: "6a1400b121bd21429d6f88d3"
+ *                 quantity: 2
+ *             note: 少冰
  *     responses:
  *       201:
  *         description: Order created
@@ -79,6 +86,14 @@ orderRoutes.post(
  *                     productId: { type: string }
  *                     quantity: { type: integer, minimum: 1 }
  *               phone: { type: string }
+ *           example:
+ *             items:
+ *               - productId: "6a1400b121bd21429d6f88d4"
+ *                 quantity: 1
+ *             guestName: 王小明
+ *             guestPhone: "0922333444"
+ *             guestEmail: guest@example.com
+ *             note: ""
  *     responses:
  *       201:
  *         description: Guest order created
@@ -114,6 +129,8 @@ orderRoutes.post(
  *             required: [productId]
  *             properties:
  *               productId: { type: string }
+ *           example:
+ *             productId: "6a1400b121bd21429d6f88d2"
  *     responses:
  *       201:
  *         description: Redeem order created
@@ -305,6 +322,8 @@ orderRoutes.get(
  *             required: [status]
  *             properties:
  *               status: { type: string, enum: [accepted, preparing, ready, completed, cancelled] }
+ *           example:
+ *             status: accepted
  *     responses:
  *       200:
  *         description: Updated order

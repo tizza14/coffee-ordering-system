@@ -1,13 +1,9 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosError } from 'axios';
 import { useAuthStore } from '../stores/auth.store';
 
 interface ApiErrorData {
   message?: string;
   code?: string;
-}
-
-interface RetryableConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
 }
 
 export function extractApiError(err: unknown): string {
@@ -39,30 +35,13 @@ http.interceptors.request.use((config) => {
 
 http.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const config = error.config as RetryableConfig | undefined;
-
-    if (
-      error.response?.status === 401 &&
-      config &&
-      !config._retry &&
-      !config.url?.includes('/auth/refresh')
-    ) {
-      config._retry = true;
-      const authStore = useAuthStore();
-      const refreshed = await authStore.tryRefreshTokens();
-      if (refreshed) {
-        config.headers.Authorization = `Bearer ${authStore.accessToken}`;
-        return http.request(config);
-      }
-      authStore.logout();
-    } else if (error.response?.status === 401) {
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
       const authStore = useAuthStore();
       if (authStore.accessToken) {
         authStore.logout();
       }
     }
-
     return Promise.reject(error);
   }
 );

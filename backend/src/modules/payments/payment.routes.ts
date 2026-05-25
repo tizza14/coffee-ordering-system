@@ -26,6 +26,8 @@ export const paymentRoutes = Router();
  *             required: [orderId]
  *             properties:
  *               orderId: { type: string }
+ *           example:
+ *             orderId: "<POST /api/orders 回傳的 _id>"
  *     responses:
  *       200:
  *         description: Line Pay payment URL
@@ -66,6 +68,9 @@ paymentRoutes.post(
  *             properties:
  *               transactionId: { type: string }
  *               orderId: { type: string }
+ *           example:
+ *             orderId: "<POST /api/orders 回傳的 _id>"
+ *             transactionId: mock-txn-001
  *     responses:
  *       200:
  *         description: Payment confirmed

@@ -105,47 +105,6 @@ describe('Auth API', () => {
     expect(response.body.code).toBe('AUTH_INVALID_CREDENTIALS');
   });
 
-  it('login returns refreshToken alongside accessToken', async () => {
-    await request(app).post('/api/auth/register').send({
-      name: 'Alice',
-      email: 'alice@example.com',
-      password: 'password123'
-    });
-
-    const response = await request(app).post('/api/auth/login').send({
-      email: 'alice@example.com',
-      password: 'password123'
-    });
-
-    expect(response.status).toBe(200);
-    expect(response.body.refreshToken).toEqual(expect.any(String));
-  });
-
-  it('refreshes access token with valid refresh token', async () => {
-    const registerRes = await request(app).post('/api/auth/register').send({
-      name: 'Alice',
-      email: 'alice@example.com',
-      password: 'password123'
-    });
-    const { refreshToken } = registerRes.body as { refreshToken: string };
-
-    const response = await request(app).post('/api/auth/refresh').send({ refreshToken });
-
-    expect(response.status).toBe(200);
-    expect(response.body.accessToken).toEqual(expect.any(String));
-    expect(response.body.refreshToken).toEqual(expect.any(String));
-    expect(response.body.refreshToken).not.toBe(refreshToken);
-  });
-
-  it('rejects refresh with invalid token', async () => {
-    const response = await request(app).post('/api/auth/refresh').send({
-      refreshToken: 'invalid-token'
-    });
-
-    expect(response.status).toBe(401);
-    expect(response.body.code).toBe('INVALID_REFRESH_TOKEN');
-  });
-
   it('GET /api/auth/me returns flat user object without user wrapper', async () => {
     const registerRes = await request(app).post('/api/auth/register').send({
       name: 'Alice',
