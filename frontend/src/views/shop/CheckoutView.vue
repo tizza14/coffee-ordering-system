@@ -15,12 +15,13 @@
 
       <fieldset class="grid gap-3 border-0 p-0">
         <legend class="font-bold">訂單類型</legend>
-        <label class="flex cursor-pointer items-center gap-2" @click="handleMemberClick">
+        <label class="flex cursor-pointer items-center gap-2">
           <input
             v-model="mode"
             type="radio"
             value="member"
             :disabled="!authStore.isAuthenticated"
+            @click.prevent="handleMemberClick"
           />
           會員點餐
           <span v-if="!authStore.isAuthenticated" class="text-xs text-stone-500">（需登入）</span>
@@ -142,6 +143,8 @@ const mode = ref(authStore.isAuthenticated ? 'member' : 'guest');
 function handleMemberClick() {
   if (!authStore.isAuthenticated) {
     void router.push({ path: '/login', query: { redirect: '/checkout' } });
+  } else {
+    mode.value = 'member';
   }
 }
 const guestName = ref('');
