@@ -202,6 +202,38 @@ test.describe('訂單追蹤', () => {
     await expect(page.locator('p.text-red-700')).toHaveCount(0);
   });
 
+  test('重新進入頁面（無 URL params）不顯示先前查詢過的訂單', async ({ page }) => {
+    await page.route(`${API}/orders/guest/ABC123**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(orderPayload())
+      });
+    });
+    await page.route(`${API}/notifications/guest/ABC123**`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ orderId: 'order-1', notifications: [] })
+      });
+    });
+
+    // 第一次查詢成功
+    await page.goto('/orders/guest');
+    await page.fill('input:first-of-type', 'ABC123');
+    await page.fill('input[pattern]', '0912345678');
+    await page.getByRole('button', { name: '查詢訂單' }).click();
+    await expect(page.getByText('ABC123')).toBeVisible();
+
+    // 離開後再回到頁面（無 URL params）
+    await page.goto('/products');
+    await page.goto('/orders/guest');
+
+    // 右側應顯示空白狀態，不顯示先前的訂單
+    await expect(page.getByText('尚未載入訂單')).toBeVisible();
+    await expect(page.getByText('ABC123')).toHaveCount(0);
+  });
+
   test('查詢碼會自動去空白並轉大寫', async ({ page }) => {
     await page.route(`${API}/orders/guest/ABC123**`, async (route) => {
       await route.fulfill({

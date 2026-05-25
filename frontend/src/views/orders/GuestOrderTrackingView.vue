@@ -710,6 +710,16 @@ async function load() {
 }
 
 onMounted(() => {
+  const hasUrlContext = Boolean(
+    route.query.lookupCode || route.query.guestToken || route.query.phone
+  );
+  if (!hasUrlContext) {
+    orderStore.currentOrder = null;
+    notificationStore.items = [];
+    loadedLookupCode.value = '';
+    loadedPhone.value = '';
+    loadedGuestToken.value = '';
+  }
   void loadMemberTrackingOrders();
   if (lookupCode.value && (guestToken.value || phone.value)) {
     void load();
