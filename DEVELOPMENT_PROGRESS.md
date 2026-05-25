@@ -1,6 +1,6 @@
 ﻿# Development Progress
 
-Last updated: 2026-05-21 +08:00 (rev 7)
+Last updated: 2026-05-22 +08:00 (rev 10)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 

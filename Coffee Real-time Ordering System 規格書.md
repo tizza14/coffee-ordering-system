@@ -1363,7 +1363,7 @@ type PaymentStatus =
 * 桌機版使用上方水平導覽列。
 * 手機版 Header 顯示品牌與選單按鈕，導覽項目改由右側抽屜選單呈現。
 * 導覽項目需依角色顯示：Guest 不顯示「點餐紀錄」；User 顯示自己的會員功能；Staff/Admin 顯示員工與管理功能。
-* 角色預設入口需一致：Guest/User/Admin 預設進入 `/products`；Staff 預設進入 `/staff/orders`，且 Staff 不可切回顧客購物路由。
+* 角色預設入口需一致：Guest/User 預設進入 `/products`；Staff/Admin 預設進入 `/staff/orders`，且 Staff/Admin 不可切回顧客購物路由。
 * Header 品牌連結、登入成功、註冊成功與 Route Guard 需共用同一套角色預設入口規則。
 * 手機抽屜選單點擊導覽連結、登出或路由切換後應自動關閉。
 * E2E 測試選擇器不可使用會被 Tailwind 掃描成 CSS 的 literal `:visible` selector；需改用 Playwright locator visibility filter。
@@ -1382,6 +1382,7 @@ type PaymentStatus =
 * 商品管理頁（`/admin/products`）— 商品 CRUD，支援圖片預覽、上傳、移除與可兌換設定
 * 使用者管理頁（`/admin/users`）— 查看所有使用者並變更角色
 * Admin 同時擁有 Staff 頁面的完整存取權
+* Admin 導覽列只顯示員工與管理功能（員工訂單、銷售報表、商品管理、使用者管理），不顯示顧客購物入口（商品、結帳、點餐紀錄等），以避免介面混亂
 
 ---
 
@@ -1399,6 +1400,12 @@ type PaymentStatus =
 * 管理購物車商品
 * 計算總金額
 * 建立訂單後清空購物車
+
+### paymentStore
+
+* 發起 Line Pay 付款請求（`requestLinePay`）
+* 確認 Line Pay 付款（`confirmLinePay`）
+* 儲存付款狀態與錯誤資訊
 
 ### orderStore
 
@@ -1418,8 +1425,19 @@ type PaymentStatus =
 ### socketStore
 
 * 建立與關閉 Socket.io 連線
-* 管理 join room
+* 管理 join room（`room:user:{userId}`、`room:order:{orderId}`、`room:staff`）
 * 統一監聽 `order_updated` 與 `notification`
+
+### productAdminStore
+
+* Admin 商品列表載入（含下架商品，使用 `available=all`）
+* 新增、更新、刪除商品（`addProduct`, `updateProduct`, `deleteProduct`）
+* 圖片上傳與移除操作
+
+### userAdminStore
+
+* Admin 使用者列表載入（分頁）
+* 使用者角色更新（`updateRole`）
 
 ### toastStore
 
@@ -1449,16 +1467,15 @@ type PaymentStatus =
 
 | Route | 允許角色 | Guard 規則 |
 | ----- | -------- | ---------- |
-| `/products` | Guest / User / Staff / Admin | 公開頁面 |
-| `/cart` | Guest / User | 公開購物流程 |
-| `/checkout` | Guest / User | Guest 可直接結帳，User 使用會員資料 |
-| `/login` | Guest | 已登入者導向該角色預設入口；Guest 可登入、前往註冊或先瀏覽商品 |
-| `/register` | Guest | 已登入者導向該角色預設入口；Guest 可註冊、前往登入或先瀏覽商品 |
-| `/orders/my` | User / Admin | 需登入；User 顯示自己的歷史訂單，Admin 顯示完整訂單歷史 |
-| `/points` | User | 需登入且 role 為 `user`，顯示點數餘額與兌換頁 |
-| `/orders/guest` | Guest / User | 需搭配 phone 或 guest token 驗證 |
-| `/payments/line-pay/confirm` | Guest / User | Line Pay redirect 頁，負責呼叫 backend confirm API；confirm 失敗時需提供重新付款、查看訂單追蹤與回商品列表入口 |
-| `/payments/line-pay/cancel` | Guest / User | Line Pay cancel 頁，顯示重新付款或取消訂單 |
+| `/products` | 全部 | 公開頁面 |
+| `/checkout` | 全部 | Guest 可直接結帳，User 填取餐手機，建立訂單後儲存追蹤資訊供付款後自動帶入 |
+| `/login` | Guest | 已登入者導向該角色預設入口；提供登入、前往註冊與先以訪客瀏覽商品入口 |
+| `/register` | Guest | 已登入者導向該角色預設入口；提供註冊、前往登入與先以訪客瀏覽商品入口 |
+| `/orders/my` | User / Staff / Admin | 需登入；User 顯示自己的歷史訂單；Staff / Admin 顯示完整訂單歷史（使用 `?all=true`） |
+| `/points` | User | 需登入且 role 為 `user`，顯示點數餘額、可兌換商品與兌換流程 |
+| `/orders/guest` | 全部 | 訪客需搭配 phone 或 guest token 查詢；已登入 User 自動帶入最近一筆進行中訂單 |
+| `/payments/line-pay/confirm` | 全部 | Line Pay redirect 頁，呼叫 backend confirm API；成功後自動導向訂單追蹤；失敗時提供重新付款、查看追蹤與回商品列表入口 |
+| `/payments/line-pay/cancel` | 全部 | Line Pay 使用者取消後的 redirect 頁，由 backend 標記付款失敗後導回前端 |
 | `/staff/orders` | Staff / Admin | 需登入且 role 為 `staff` 或 `admin`，以員工工作佇列處理已付款訂單 |
 | `/staff/sales`  | Staff / Admin | 需登入且 role 為 `staff` 或 `admin` |
 | `/admin/products` | Admin | 需登入且 role 為 `admin` |
@@ -1471,7 +1488,7 @@ type PaymentStatus =
 * Staff route 需驗證 JWT 與角色。
 * Admin route 需驗證 JWT 與 `admin` 角色。
 * Guest order route 需驗證 `orderLookupCode` 搭配 phone 或 guest token。
-* 已登入者進入 `/login` 或 `/register` 時，需導向該角色預設入口；Staff 嘗試進入非 `/staff/`、`/admin/` 路由時，需導回 `/staff/orders`。
+* 已登入者進入 `/login` 或 `/register` 時，需導向該角色預設入口；Staff/Admin 嘗試進入非 `/staff/`、`/admin/` 路由時，需導回 `/staff/orders`。
 
 ---
 
@@ -1485,54 +1502,74 @@ backend/
 │  ├─ app.ts
 │  ├─ server.ts
 │  ├─ config/
+│  │  ├─ cloudinary.ts
 │  │  ├─ database.ts
 │  │  ├─ env.ts
-│  │  └─ linePay.ts
+│  │  └─ swagger.ts
 │  ├─ modules/
 │  │  ├─ auth/
 │  │  │  ├─ auth.controller.ts
 │  │  │  ├─ auth.routes.ts
 │  │  │  ├─ auth.service.ts
-│  │  │  └─ auth.validators.ts
+│  │  │  ├─ auth.validators.ts
+│  │  │  └─ auth.spec.ts
 │  │  ├─ users/
 │  │  │  ├─ user.model.ts
 │  │  │  ├─ user.service.ts
-│  │  │  └─ user.routes.ts
+│  │  │  ├─ user.controller.ts
+│  │  │  ├─ user.routes.ts
+│  │  │  └─ user.spec.ts
 │  │  ├─ products/
 │  │  │  ├─ product.model.ts
 │  │  │  ├─ product.controller.ts
 │  │  │  ├─ product.routes.ts
-│  │  │  └─ product.service.ts
+│  │  │  ├─ product.service.ts
+│  │  │  ├─ product.validators.ts
+│  │  │  └─ product.spec.ts
 │  │  ├─ orders/
 │  │  │  ├─ order.model.ts
 │  │  │  ├─ order.controller.ts
 │  │  │  ├─ order.routes.ts
 │  │  │  ├─ order.service.ts
-│  │  │  └─ orderStatus.ts
+│  │  │  ├─ order.validators.ts
+│  │  │  └─ order.spec.ts
 │  │  ├─ payments/
 │  │  │  ├─ payment.model.ts
 │  │  │  ├─ linePay.client.ts
 │  │  │  ├─ payment.controller.ts
 │  │  │  ├─ payment.routes.ts
-│  │  │  └─ payment.service.ts
+│  │  │  ├─ payment.service.ts
+│  │  │  ├─ payment.validators.ts
+│  │  │  └─ payment.spec.ts
 │  │  ├─ points/
-│  │  │  └─ point.service.ts
+│  │  │  ├─ point.service.ts
+│  │  │  └─ point.spec.ts
 │  │  └─ notifications/
 │  │     ├─ notification.model.ts
-│  │     └─ notification.service.ts
+│  │     ├─ notification.controller.ts
+│  │     ├─ notification.routes.ts
+│  │     ├─ notification.service.ts
+│  │     └─ notification.spec.ts
 │  ├─ middlewares/
 │  │  ├─ auth.middleware.ts
 │  │  ├─ rbac.middleware.ts
 │  │  ├─ error.middleware.ts
-│  │  └─ validate.middleware.ts
+│  │  ├─ validate.middleware.ts
+│  │  └─ upload.middleware.ts
 │  ├─ sockets/
 │  │  ├─ socket.server.ts
-│  │  ├─ socket.auth.ts
-│  │  └─ order.socket.ts
+│  │  └─ socket.auth.ts
 │  ├─ utils/
 │  │  ├─ ApiError.ts
-│  │  └─ asyncHandler.ts
-│  └─ tests/
+│  │  ├─ asyncHandler.ts
+│  │  ├─ crypto.ts
+│  │  └─ webPush.ts
+│  ├─ scripts/
+│  │  └─ seed.ts
+│  └─ test/
+│     ├─ testDb.ts
+│     ├─ e2e.spec.ts
+│     └─ websocket.spec.ts
 ├─ package.json
 └─ tsconfig.json
 ```
@@ -1563,28 +1600,32 @@ frontend/
 │  │  ├─ product.api.ts
 │  │  ├─ order.api.ts
 │  │  ├─ notification.api.ts
-│  │  └─ payment.api.ts
+│  │  ├─ payment.api.ts
+│  │  └─ user.api.ts
 │  ├─ stores/
 │  │  ├─ auth.store.ts
 │  │  ├─ cart.store.ts
+│  │  ├─ confirm.store.ts
 │  │  ├─ notification.store.ts
 │  │  ├─ order.store.ts
-│  │  └─ socket.store.ts
-│  ├─ socket/
-│  │  ├─ socket.ts
-│  │  └─ orderSocket.ts
+│  │  ├─ payment.store.ts
+│  │  ├─ product-admin.store.ts
+│  │  ├─ socket.store.ts
+│  │  ├─ toast.store.ts
+│  │  └─ user-admin.store.ts
 │  ├─ views/
 │  │  ├─ auth/
 │  │  │  ├─ LoginView.vue
 │  │  │  └─ RegisterView.vue
 │  │  ├─ shop/
 │  │  │  ├─ ProductListView.vue
-│  │  │  ├─ CartView.vue
 │  │  │  └─ CheckoutView.vue
 │  │  ├─ orders/
 │  │  │  ├─ MyOrdersView.vue
 │  │  │  ├─ PointsView.vue
 │  │  │  └─ GuestOrderTrackingView.vue
+│  │  ├─ payments/
+│  │  │  └─ LinePayConfirmView.vue
 │  │  ├─ staff/
 │  │  │  ├─ StaffOrdersView.vue
 │  │  │  └─ SalesReportView.vue
@@ -1592,19 +1633,21 @@ frontend/
 │  │     ├─ AdminProductsView.vue
 │  │     └─ AdminUsersView.vue
 │  ├─ components/
-│  ├─ types/
+│  ├─ composables/
 │  └─ utils/
+├─ e2e/
+│  └─ *.spec.ts
 ├─ package.json
 └─ vite.config.ts
 ```
 
 ### Frontend 分層規則
 
-* `api`：集中封裝 REST API。
-* `stores`：管理登入、購物車、訂單與 socket 狀態。
-* `socket`：集中封裝 Socket.io client。
+* `api`：集中封裝 REST API；`http.ts` 注入 Bearer token，訪客操作透過 `X-Guest-Token` header。
+* `stores`：管理登入、購物車、訂單、付款、通知、WebSocket、toast、confirm、商品管理與使用者管理等狀態。
 * `views`：頁面層，只組合 store、api 與 components。
-* `router/guards.ts`：處理會員、Staff、Admin 權限守衛。
+* `composables`：可複用的 Vue 3 composition functions，例如 Web Push 訂閱邏輯。
+* `router/guards.ts`：處理會員、Staff、Admin 權限守衛；提供 `getDefaultRouteForRole` 等角色預設路由輔助函式。
 * 訪客流程不可依賴 auth store，需透過 guest token 或 order lookup code 查詢訂單。
 
 ---
