@@ -170,7 +170,7 @@ test.describe('訂單追蹤', () => {
     await page.fill('input[pattern]', '0912345678');
     await page.getByRole('button', { name: '查詢訂單' }).click();
 
-    await expect(page.getByText('ABC123')).toBeVisible();
+    await expect(page.getByText('ABC123', { exact: true })).toBeVisible();
     await expect(page.getByText('目前已顯示這筆訂單', { exact: false })).toBeVisible();
     await expect(page.getByRole('button', { name: '查詢訂單' })).toHaveCount(0);
     await page.fill('input:first-of-type', 'ABC124');
@@ -198,7 +198,7 @@ test.describe('訂單追蹤', () => {
     await page.fill('input[pattern]', '0912345678');
     await page.getByRole('button', { name: '查詢訂單' }).click();
 
-    await expect(page.getByText('ABC123')).toBeVisible();
+    await expect(page.getByText('ABC123', { exact: true })).toBeVisible();
     await expect(page.locator('p.text-red-700')).toHaveCount(0);
   });
 
@@ -223,15 +223,15 @@ test.describe('訂單追蹤', () => {
     await page.fill('input:first-of-type', 'ABC123');
     await page.fill('input[pattern]', '0912345678');
     await page.getByRole('button', { name: '查詢訂單' }).click();
-    await expect(page.getByText('ABC123')).toBeVisible();
+    await expect(page.getByText('ABC123', { exact: true })).toBeVisible();
 
     // 離開後再回到頁面（無 URL params）
     await page.goto('/products');
     await page.goto('/orders/guest');
 
-    // 右側應顯示空白狀態，不顯示先前的訂單
+    // 右側應顯示空白狀態，不顯示先前的訂單（<strong>ABC123</strong> 不應出現）
     await expect(page.getByText('尚未載入訂單')).toBeVisible();
-    await expect(page.getByText('ABC123')).toHaveCount(0);
+    await expect(page.getByText('ABC123', { exact: true })).toHaveCount(0);
   });
 
   test('查詢碼會自動去空白並轉大寫', async ({ page }) => {
@@ -255,7 +255,7 @@ test.describe('訂單追蹤', () => {
     await page.fill('input[pattern]', '0912345678');
     await page.getByRole('button', { name: '查詢訂單' }).click();
 
-    await expect(page.getByText('ABC123')).toBeVisible();
+    await expect(page.getByText('ABC123', { exact: true })).toBeVisible();
     await expect(page.getByText('餐點已可取餐，請至櫃台核對取餐。')).toBeVisible();
   });
 });
