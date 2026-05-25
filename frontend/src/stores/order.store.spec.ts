@@ -63,12 +63,8 @@ describe('orderStore', () => {
     expect(orderStore.guestLookupCode).toBe('MEM123');
     expect(orderStore.guestToken).toBe('');
     expect(orderStore.guestPhone).toBe('0912345678');
-    expect(
-      JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}')
-    ).toEqual({
-      lookupCode: 'MEM123',
-      phone: '0912345678'
-    });
+    const memSessions = JSON.parse(localStorage.getItem('coffee-ordering-guest-sessions') ?? '[]') as Array<{ lookupCode: string }>;
+    expect(memSessions.some((s) => s.lookupCode === 'MEM123')).toBe(true);
   });
 
   it('stores guest token after guest order', async () => {
@@ -87,13 +83,8 @@ describe('orderStore', () => {
     expect(orderStore.guestToken).toBe('guest-token');
     expect(orderStore.guestLookupCode).toBe('ABC123');
     expect(orderStore.guestPhone).toBe('0912345678');
-    expect(
-      JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}')
-    ).toEqual({
-      lookupCode: 'ABC123',
-      guestToken: 'guest-token',
-      phone: '0912345678'
-    });
+    const sessions = JSON.parse(localStorage.getItem('coffee-ordering-guest-sessions') ?? '[]') as Array<{ lookupCode: string; guestToken?: string }>;
+    expect(sessions.some((s) => s.lookupCode === 'ABC123' && s.guestToken === 'guest-token')).toBe(true);
   });
 
   it('loads staff orders and updates an order status', async () => {
@@ -141,7 +132,7 @@ describe('orderStore', () => {
     expect(orderStore.guestLookupCode).toBe('GUEST01');
   });
 
-  it('setGuestTrackingSession updates state and persists to localStorage', () => {
+  it('setGuestTrackingSession updates state and persists to localStorage as array', () => {
     const orderStore = useOrderStore();
 
     orderStore.setGuestTrackingSession({
@@ -154,11 +145,13 @@ describe('orderStore', () => {
     expect(orderStore.guestToken).toBe('tok-abc');
     expect(orderStore.guestPhone).toBe('0911222333');
 
-    const stored = JSON.parse(localStorage.getItem('coffee-ordering-guest-tracking') ?? '{}');
-    expect(stored).toEqual({ lookupCode: 'TRK999', guestToken: 'tok-abc', phone: '0911222333' });
+    const sessions = JSON.parse(localStorage.getItem('coffee-ordering-guest-sessions') ?? '[]') as Array<{ lookupCode: string }>;
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].lookupCode).toBe('TRK999');
+    expect(orderStore.guestSessions).toHaveLength(1);
   });
 
-  it('restores tracking session with lookup code and phone only', () => {
+  it('migrates legacy single-session key to new array format on init', () => {
     localStorage.setItem(
       'coffee-ordering-guest-tracking',
       JSON.stringify({ lookupCode: 'MEM999', phone: '0987654321' })
@@ -170,6 +163,30 @@ describe('orderStore', () => {
     expect(orderStore.guestLookupCode).toBe('MEM999');
     expect(orderStore.guestToken).toBe('');
     expect(orderStore.guestPhone).toBe('0987654321');
+    expect(orderStore.guestSessions).toHaveLength(1);
+    // Old key should be removed after migration
+    expect(localStorage.getItem('coffee-ordering-guest-tracking')).toBeNull();
+  });
+
+  it('removeGuestSession removes only the specified session', () => {
+    const orderStore = useOrderStore();
+    orderStore.setGuestTrackingSession({ lookupCode: 'AAA', phone: '0911000000' });
+    orderStore.setGuestTrackingSession({ lookupCode: 'BBB', phone: '0922000000' });
+
+    orderStore.removeGuestSession('AAA');
+
+    expect(orderStore.guestSessions.map((s) => s.lookupCode)).toEqual(['BBB']);
+  });
+
+  it('clearAllGuestSessions clears state and localStorage', () => {
+    const orderStore = useOrderStore();
+    orderStore.setGuestTrackingSession({ lookupCode: 'ZZZ', phone: '0900000000' });
+
+    orderStore.clearAllGuestSessions();
+
+    expect(orderStore.guestSessions).toHaveLength(0);
+    expect(orderStore.guestLookupCode).toBe('');
+    expect(localStorage.getItem('coffee-ordering-guest-sessions')).toBeNull();
   });
 
   it('loads today staff summary', async () => {

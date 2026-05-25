@@ -95,7 +95,9 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     logout() {
-      useOrderStore().clearOrderLists();
+      const orderStore = useOrderStore();
+      orderStore.clearOrderLists();
+      orderStore.clearAllGuestSessions();
       this.user = null;
       this.accessToken = '';
       this.refreshToken = '';

@@ -91,7 +91,7 @@
                   手動查詢
                 </h3>
                 <p class="m-0 text-sm text-stone-600">
-                  使用查詢碼搭配手機號碼，或使用本機保存的訪客 token 查詢。
+                  輸入結帳後取得的查詢碼與取餐手機；本機有記錄的訂單會在輸入手機後出現。
                 </p>
               </div>
               <label class="grid gap-1.5 font-semibold">
@@ -113,6 +113,28 @@
                   :required="!normalizedGuestToken"
                 />
               </label>
+
+              <!-- 本機保存的訂單 (依手機號碼篩選，保護不同訪客資料) -->
+              <div v-if="matchingGuestSessions.length > 0" class="grid gap-2">
+                <p class="m-0 text-sm font-semibold text-stone-600">本機保存的訂單</p>
+                <ul class="grid list-none gap-1.5 p-0">
+                  <li v-for="session in matchingGuestSessions" :key="session.lookupCode">
+                    <button
+                      class="grid w-full cursor-pointer gap-0.5 rounded-md border border-stone-200 bg-stone-50 p-2.5 text-left transition hover:border-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                      type="button"
+                      :disabled="isLoading"
+                      @click="fillGuestSession(session)"
+                    >
+                      <span class="text-sm font-bold text-amber-950">
+                        訂單 {{ session.lookupCode }}
+                      </span>
+                      <span class="text-xs text-stone-400">
+                        {{ formatSavedAt(session.savedAt) }}
+                      </span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
               <button
                 v-if="shouldShowLookupButton"
@@ -366,7 +388,7 @@ import { useRoute } from 'vue-router';
 import type { Order } from '../../api/order.api';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
-import { useOrderStore } from '../../stores/order.store';
+import { type GuestTrackingSession, useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 
 const route = useRoute();
@@ -375,9 +397,11 @@ const orderStore = useOrderStore();
 const notificationStore = useNotificationStore();
 const socketStore = useSocketStore();
 
-const lookupCode = ref(String(route.query.lookupCode ?? orderStore.guestLookupCode));
-const phone = ref(String(route.query.phone ?? orderStore.guestPhone));
-const guestToken = ref(String(route.query.guestToken ?? orderStore.guestToken));
+// Do NOT auto-fill from localStorage — different guests on the same device
+// should not see each other's sessions. URL query params (from Line Pay redirect) are fine.
+const lookupCode = ref(String(route.query.lookupCode ?? ''));
+const phone = ref(String(route.query.phone ?? ''));
+const guestToken = ref(String(route.query.guestToken ?? ''));
 const errorMessage = ref('');
 const isLoading = ref(false);
 const itemDetailsOpen = ref(true);
@@ -425,6 +449,17 @@ const lookupButtonLabel = computed(() =>
   isLoading.value ? '查詢中...' : '查詢訂單'
 );
 const memberTrackingOrders = computed(() => orderStore.myOrders.slice(0, 5));
+
+// Show stored guest sessions for the typed phone (guest mode only)
+const matchingGuestSessions = computed((): GuestTrackingSession[] => {
+  if (authStore.user?.role === 'user') return [];
+  const p = normalizedPhone.value;
+  if (!p) return [];
+  return [...orderStore.guestSessions]
+    .filter((s) => s.phone === p)
+    .sort((a, b) => b.savedAt - a.savedAt)
+    .slice(0, 5);
+});
 
 const steps = [
   { status: 'pending', label: '待確認' },
@@ -560,6 +595,23 @@ function isActiveOrder(order: Order) {
   return !['completed', 'cancelled'].includes(order.status);
 }
 
+function formatSavedAt(ts: number) {
+  return new Intl.DateTimeFormat('zh-TW', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(ts));
+}
+
+async function fillGuestSession(session: GuestTrackingSession) {
+  lookupCode.value = session.lookupCode;
+  phone.value = session.phone ?? '';
+  guestToken.value = session.guestToken ?? '';
+  await nextTick();
+  await load();
+}
+
 async function fillMemberOrder(order: Order) {
   if (!canLookupOrder(order)) return;
   lookupCode.value = order.orderLookupCode ?? '';
@@ -643,7 +695,7 @@ async function load() {
       (error as CodedError).code === 'GUEST_LOOKUP_INVALID';
 
     if (isOrderNotFound || isEmptyResult) {
-      orderStore.clearGuestTrackingSession();
+      orderStore.removeGuestSession(trackingLookupCode);
       guestToken.value = '';
       loadedLookupCode.value = '';
       loadedPhone.value = '';
