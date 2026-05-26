@@ -194,38 +194,50 @@ test.describe('點餐紀錄', () => {
     await mockAuth(page, [adminUser]);
     await mockProducts(page);
     let requestedAllOrders = false;
+    const ordersBody = JSON.stringify({
+      data: [
+        orderPayload({
+          id: 'guest-order',
+          guestInfo: { name: 'Guest', phone: '0912345678' },
+          orderLookupCode: 'GUEST01',
+          status: 'completed',
+          pointsEarned: 0
+        }),
+        orderPayload({
+          id: 'unpaid-order',
+          orderLookupCode: 'UNPAID1',
+          status: 'pending',
+          paymentStatus: 'unpaid',
+          totalAmount: 80,
+          paidAmount: 0,
+          pointsEarned: 0
+        })
+      ],
+      pagination: { page: 1, limit: 20, total: 2 }
+    });
     await page.route(`${API}/orders**`, async (route) => {
       const url = new URL(route.request().url());
-      if (url.pathname === '/api/orders') {
-        requestedAllOrders = url.searchParams.get('all') === 'true';
+      if (url.pathname === '/api/orders/summary/today') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            data: [
-              orderPayload({
-                id: 'guest-order',
-                guestInfo: { name: 'Guest', phone: '0912345678' },
-                orderLookupCode: 'GUEST01',
-                status: 'completed',
-                pointsEarned: 0
-              }),
-              orderPayload({
-                id: 'unpaid-order',
-                orderLookupCode: 'UNPAID1',
-                status: 'pending',
-                paymentStatus: 'unpaid',
-                totalAmount: 80,
-                paidAmount: 0,
-                pointsEarned: 0
-              })
-            ],
-            pagination: { page: 1, limit: 20, total: 2 }
+            date: new Date().toISOString().slice(0, 10),
+            timezone: 'Asia/Taipei',
+            totalOrders: 0, paidOrders: 0, paidRevenue: 0,
+            averagePaidOrderValue: 0, itemQuantity: 0, soldItems: [],
+            guestOrders: 0, memberOrders: 0,
+            statusCounts: { pending: 0, accepted: 0, preparing: 0, ready: 0, completed: 0, cancelled: 0 },
+            paymentStatusCounts: { unpaid: 0, payment_pending: 0, paid: 0, payment_failed: 0, refunded: 0 }
           })
         });
         return;
       }
-
+      if (url.pathname === '/api/orders') {
+        requestedAllOrders = url.searchParams.get('all') === 'true';
+        await route.fulfill({ status: 200, contentType: 'application/json', body: ordersBody });
+        return;
+      }
       await route.fallback();
     });
     await page.route(`${API}/auth/me`, async (route) => {

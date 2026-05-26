@@ -728,6 +728,20 @@ onMounted(() => {
     loadedLookupCode.value = '';
     loadedPhone.value = '';
     loadedGuestToken.value = '';
+
+    // Restore the most-recent guest session that has a guestToken so a page
+    // refresh does not wipe the tracking view. Token presence confirms this
+    // browser placed the order; members are handled by loadMemberTrackingOrders.
+    if (authStore.user?.role !== 'user') {
+      const recent = [...orderStore.guestSessions]
+        .sort((a, b) => b.savedAt - a.savedAt)
+        .find((s) => s.guestToken);
+      if (recent) {
+        lookupCode.value = recent.lookupCode;
+        phone.value = recent.phone ?? '';
+        guestToken.value = recent.guestToken ?? '';
+      }
+    }
   }
   void loadMemberTrackingOrders();
   if (lookupCode.value && (guestToken.value || phone.value)) {
