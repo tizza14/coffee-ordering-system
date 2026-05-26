@@ -54,14 +54,14 @@
         >
           回商品列表
         </RouterLink>
-        <RouterLink
-          v-if="isError && authStore.isAuthenticated"
-          class="rounded-md border border-stone-400 px-4 py-2 font-bold text-stone-700 no-underline"
-          to="/orders/my"
-        >
-          查看點餐紀錄
-        </RouterLink>
       </div>
+      <RouterLink
+        v-if="isError && authStore.isAuthenticated"
+        class="text-sm text-stone-500 underline-offset-2 hover:text-amber-900 hover:underline no-underline"
+        to="/orders/my"
+      >
+        查看點餐紀錄
+      </RouterLink>
       <p
         v-if="isError"
         class="m-0 text-xs text-stone-500"

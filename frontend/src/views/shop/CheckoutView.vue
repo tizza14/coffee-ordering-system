@@ -60,6 +60,7 @@
             v-model="guestPhone"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
+            title="請輸入有效的手機號碼，例如 0912345678"
             required
           >
         </label>
@@ -84,6 +85,7 @@
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
             placeholder="例如 0912345678"
+            title="請輸入有效的手機號碼，例如 0912345678"
             required
           >
         </label>
@@ -108,7 +110,13 @@
             paymentStore.isLoading
         "
       >
-        前往付款
+        {{
+          orderStore.isLoading
+            ? '建立訂單中...'
+            : paymentStore.isLoading
+              ? '建立付款中...'
+              : '前往付款'
+        }}
       </button>
     </form>
 

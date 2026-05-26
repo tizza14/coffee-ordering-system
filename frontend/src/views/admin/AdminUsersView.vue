@@ -60,11 +60,12 @@
             class="rounded-full px-2 py-1 text-xs font-extrabold uppercase"
             :class="roleBadgeClass(user.role)"
           >
-            {{ roleLabel(user.role) }}
+            {{ updatingUserId === user.id ? '更新中...' : roleLabel(user.role) }}
           </span>
           <select
-            class="min-h-9 rounded-md border border-stone-400 px-2 text-sm"
+            class="min-h-9 rounded-md border border-stone-400 px-2 text-sm disabled:opacity-60"
             :value="user.role"
+            :disabled="updatingUserId === user.id"
             @change="
               onRoleChange(
                 user.id,
@@ -101,7 +102,7 @@
       class="mt-4 flex flex-wrap items-center gap-3"
     >
       <button
-        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-50"
+        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-60"
         :disabled="userStore.pagination.page <= 1"
         type="button"
         @click="goToPage(userStore.pagination.page - 1)"
@@ -112,7 +113,7 @@
         第 {{ userStore.pagination.page }} 頁 / 共 {{ totalPages }} 頁
       </span>
       <button
-        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-50"
+        class="min-h-9 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-60"
         :disabled="userStore.pagination.page >= totalPages"
         type="button"
         @click="goToPage(userStore.pagination.page + 1)"
@@ -134,6 +135,7 @@ const userStore = useUserAdminStore();
 const confirmStore = useConfirmStore();
 const toastStore = useToastStore();
 const errorMessage = ref('');
+const updatingUserId = ref('');
 
 const totalPages = computed(() =>
   Math.max(
@@ -166,11 +168,14 @@ async function onRoleChange(id: string, role: User['role']) {
   if (!ok) return;
 
   errorMessage.value = '';
+  updatingUserId.value = id;
   try {
     await userStore.updateRole(id, role);
     toastStore.success(`已將 ${user?.name ?? '使用者'} 的角色更新為「${roleLabel(role)}」`);
   } catch {
     errorMessage.value = '無法更新角色。';
+  } finally {
+    updatingUserId.value = '';
   }
 }
 

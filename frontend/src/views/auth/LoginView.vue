@@ -17,11 +17,17 @@
         電子郵件
         <input
           v-model="email"
-          class="min-h-10 rounded-md border border-stone-400 px-2.5"
+          class="min-h-10 rounded-md border px-2.5 transition-colors"
+          :class="emailError ? 'border-red-400 focus:outline-red-400' : 'border-stone-400'"
           type="email"
           autocomplete="email"
           required
+          @blur="validateEmail"
         >
+        <span
+          v-if="emailError"
+          class="text-xs font-semibold text-red-600"
+        >{{ emailError }}</span>
       </label>
 
       <label class="grid gap-1.5 font-semibold">
@@ -44,7 +50,7 @@
       </p>
 
       <button
-        class="min-h-10 rounded-md border-0 bg-amber-900 px-4 font-bold text-white disabled:opacity-65"
+        class="min-h-10 rounded-md border-0 bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
         type="submit"
         :disabled="isSubmitting"
       >
@@ -84,7 +90,15 @@ const authStore = useAuthStore();
 const email = ref('');
 const password = ref('');
 const errorMessage = ref('');
+const emailError = ref('');
 const isSubmitting = ref(false);
+
+function validateEmail() {
+  emailError.value =
+    email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)
+      ? '請輸入有效的電子郵件格式'
+      : '';
+}
 
 async function submit() {
   errorMessage.value = '';

@@ -110,7 +110,7 @@
             >
           </label>
           <button
-            class="min-h-9 self-end rounded-md border border-amber-900 bg-amber-900 px-4 font-bold text-white disabled:opacity-50"
+            class="min-h-9 self-end rounded-md border border-amber-900 bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
             type="button"
             :disabled="!rangeStart || !rangeEnd || rangeStart > rangeEnd"
             @click="loadReport"
@@ -174,77 +174,80 @@
       <!-- Breakdown table -->
       <section
         v-if="report.breakdown.length > 1"
-        class="overflow-x-auto rounded-lg border border-stone-300 bg-white"
+        class="relative rounded-lg border border-stone-300 bg-white"
       >
+        <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent sm:hidden" />
         <div class="p-4 pb-2">
           <h2 class="m-0 text-lg font-bold text-amber-950">
             {{ periodBreakdownTitle }}
             <span class="ml-2 text-sm font-normal text-stone-500">{{ report.label }}</span>
           </h2>
         </div>
-        <table class="w-full min-w-[480px] border-collapse text-sm">
-          <thead>
-            <tr class="border-t border-stone-200 bg-stone-50 text-left text-xs font-bold uppercase text-stone-500">
-              <th class="px-4 py-2">
-                {{ periodColLabel }}
-              </th>
-              <th class="px-4 py-2 text-right">
-                營收 (NT$)
-              </th>
-              <th class="px-4 py-2 text-right">
-                訂單數
-              </th>
-              <th class="px-4 py-2 text-right">
-                品項數
-              </th>
-              <th class="px-4 py-2 text-right">
-                佔比
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="bucket in report.breakdown"
-              :key="bucket.date"
-              class="border-t border-stone-200 text-amber-950 hover:bg-amber-50"
-            >
-              <td class="px-4 py-2 font-bold">
-                {{ bucket.label }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ bucket.revenue.toLocaleString() }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ bucket.orders }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ bucket.items }}
-              </td>
-              <td class="px-4 py-2 text-right text-stone-500">
-                {{ report.totalRevenue > 0 ? Math.round((bucket.revenue / report.totalRevenue) * 100) : 0 }}%
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr class="border-t-2 border-stone-300 bg-stone-50 font-bold text-amber-950">
-              <td class="px-4 py-2">
-                合計
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ report.totalRevenue.toLocaleString() }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ report.totalOrders }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                {{ report.totalItems }}
-              </td>
-              <td class="px-4 py-2 text-right">
-                100%
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[480px] border-collapse text-sm">
+            <thead>
+              <tr class="border-t border-stone-200 bg-stone-50 text-left text-xs font-bold uppercase text-stone-500">
+                <th class="px-4 py-2">
+                  {{ periodColLabel }}
+                </th>
+                <th class="px-4 py-2 text-right">
+                  營收 (NT$)
+                </th>
+                <th class="px-4 py-2 text-right">
+                  訂單數
+                </th>
+                <th class="px-4 py-2 text-right">
+                  品項數
+                </th>
+                <th class="px-4 py-2 text-right">
+                  佔比
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="bucket in report.breakdown"
+                :key="bucket.date"
+                class="border-t border-stone-200 text-amber-950 hover:bg-amber-50"
+              >
+                <td class="px-4 py-2 font-bold">
+                  {{ bucket.label }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ bucket.revenue.toLocaleString() }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ bucket.orders }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ bucket.items }}
+                </td>
+                <td class="px-4 py-2 text-right text-stone-500">
+                  {{ report.totalRevenue > 0 ? Math.round((bucket.revenue / report.totalRevenue) * 100) : 0 }}%
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="border-t-2 border-stone-300 bg-stone-50 font-bold text-amber-950">
+                <td class="px-4 py-2">
+                  合計
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ report.totalRevenue.toLocaleString() }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ report.totalOrders }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  {{ report.totalItems }}
+                </td>
+                <td class="px-4 py-2 text-right">
+                  100%
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </section>
 
       <!-- Sold items breakdown -->

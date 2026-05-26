@@ -63,12 +63,26 @@
       <div class="mb-4 flex items-center justify-between gap-3 border-b border-stone-200 pb-3">
         <span class="font-bold text-amber-950">選單</span>
         <button
-          class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-stone-300 text-xl leading-none text-amber-950 hover:border-amber-900 hover:bg-amber-50"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-stone-300 text-amber-950 hover:border-amber-900 hover:bg-amber-50"
           type="button"
           aria-label="關閉選單"
           @click="closeMobileMenu"
         >
-          ×
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
         </button>
       </div>
       <nav

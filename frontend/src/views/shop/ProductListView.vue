@@ -111,7 +111,7 @@
           <div class="grid justify-items-end gap-2.5 max-[820px]:justify-items-stretch">
             <span
               v-if="product.isRedeemable"
-              class="w-fit rounded-full bg-stone-200 px-2 py-0.5 text-xs font-extrabold uppercase text-stone-600"
+              class="w-fit rounded-full bg-amber-100 px-2 py-0.5 text-xs font-extrabold uppercase text-amber-800"
             >
               可兌換 {{ product.redeemPoints }} 點
             </span>
@@ -139,7 +139,7 @@
           購物車
         </h2>
         <button
-          class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
+          class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-60"
           type="button"
           :disabled="cartStore.items.length === 0"
           @click="cartStore.clearCart()"
@@ -222,7 +222,7 @@
             購物車內容
           </h2>
           <button
-            class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
+            class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-60"
             type="button"
             :disabled="cartStore.items.length === 0"
             @click="cartStore.clearCart()"

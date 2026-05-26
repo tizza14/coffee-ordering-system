@@ -104,10 +104,11 @@
 
       <div class="flex flex-wrap gap-2">
         <button
-          class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white"
+          class="min-h-10 cursor-pointer rounded-md bg-amber-900 px-4 font-bold text-white disabled:opacity-60"
           type="submit"
+          :disabled="isSaving"
         >
-          {{ editingId ? '更新' : '新增' }}
+          {{ isSaving ? '儲存中...' : (editingId ? '更新' : '新增') }}
         </button>
         <button
           v-if="editingId"
@@ -277,6 +278,7 @@ const toastStore = useToastStore();
 const confirmStore = useConfirmStore();
 const editingId = ref('');
 const loadError = ref('');
+const isSaving = ref(false);
 const pendingFile = ref<File | null>(null);
 const previewUrl = ref('');
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -371,6 +373,7 @@ async function saveProduct() {
     isRedeemable: form.isRedeemable,
     redeemPoints: 3 as const
   };
+  isSaving.value = true;
   try {
     let saved: Product;
     if (editingId.value) {
@@ -387,6 +390,8 @@ async function saveProduct() {
     resetForm();
   } catch (err) {
     toastStore.error(extractApiError(err) || '無法儲存商品。');
+  } finally {
+    isSaving.value = false;
   }
 }
 

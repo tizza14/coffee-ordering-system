@@ -23,7 +23,14 @@
       <p class="m-0 mt-3 text-sm opacity-80">
         {{ points >= REDEEM_COST ? '已可兌換指定商品' : `還差 ${REDEEM_COST - points} 點可兌換` }}
       </p>
-      <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-amber-800">
+      <div
+        class="mt-3 h-2 w-full overflow-hidden rounded-full bg-amber-800"
+        role="progressbar"
+        :aria-valuenow="Math.min(points, REDEEM_COST)"
+        aria-valuemin="0"
+        :aria-valuemax="REDEEM_COST"
+        :aria-label="`點數進度：${points} / ${REDEEM_COST}`"
+      >
         <div
           class="h-full rounded-full bg-white transition-all"
           :style="{ width: `${Math.min((points / REDEEM_COST) * 100, 100)}%` }"
@@ -124,7 +131,7 @@
               {{ product.redeemPoints }} 點兌換
             </span>
             <button
-              class="min-h-9 rounded-md bg-amber-900 px-4 text-sm font-bold text-white disabled:opacity-40"
+              class="min-h-9 rounded-md bg-amber-900 px-4 text-sm font-bold text-white disabled:opacity-60"
               type="button"
               :disabled="points < REDEEM_COST || isRedeeming === product.id"
               @click="redeem(product.id, product.name)"
