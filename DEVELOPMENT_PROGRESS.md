@@ -1,6 +1,6 @@
 ﻿# Development Progress
 
-Last updated: 2026-05-22 +08:00 (rev 10)
+Last updated: 2026-05-26 +08:00 (rev 11)
 
 This is the single source of truth for project progress. Keep future updates in this file instead of creating separate `PROGRESS_*.md` files.
 
@@ -1044,3 +1044,55 @@ Verified:
 - **CI E2E gate**: Updated `.github/workflows/ci.yml` frontend job to include Playwright E2E step (`npx playwright install --with-deps chromium` → `npm run e2e`). All PRs now must pass lint + unit + E2E + build before merge.
 - **README demo credential warning**: Added "Do not reuse these credentials in any production environment." note above the demo accounts table so public repo visitors understand they are seed-script defaults.
 - **README CI badge**: Added `![CI](…/ci.yml/badge.svg)` to the README header for immediate build status visibility.
+
+---
+
+## Code Quality & Bug Fixes (2026-05-26 rev 11)
+
+### Refresh Token Removal
+
+- Removed the unused refresh-token implementation from backend and frontend. Auth is now access-token-only (`JWT_SECRET`, `JWT_EXPIRES_IN`).
+- Removed from backend: `refreshToken` field on `UserModel`, `crypto.ts` `generateRefreshToken`, `auth.service.ts` issue/verify refresh logic, `auth.controller.ts` `/refresh` endpoint, `auth.routes.ts` route registration, and the `REFRESH_TOKEN_EXPIRES_DAYS` env var from `backend/.env.example`.
+- Removed from frontend: `auth.api.ts` `refreshToken` call, `auth.store.ts` refresh token state and action.
+- The 401 auto-logout interceptor in `http.ts` (added in rev 3) already handles expired access tokens: any 401 response clears the session so users are redirected to login automatically.
+
+### Swagger Production Path Fix
+
+- `backend/src/config/swagger.ts`: In Docker production builds (`NODE_ENV=production`), `swagger-jsdoc` now uses `./dist/modules/**/*.routes.js` instead of `./src/modules/**/*.routes.ts`. Previously, Swagger UI showed empty `paths: {}` in Docker because `src/` is not included in the production image.
+
+### Backend Clean Code
+
+- `backend/src/utils/request.ts` (new): Extracted four shared request-parsing helpers (`getParam`, `getQueryString`, `parsePage`, `parseLimit`) that were duplicated across order, notification, product, and user controllers. Controllers now import from this module.
+- `backend/src/modules/orders/order.service.ts`: Replaced the magic number `86400000` with the named constant `MS_PER_DAY = 24 * 60 * 60 * 1000`. Restored two WHY comments that explain timezone arithmetic and Socket.io room broadcast intent.
+- `backend/src/sockets/socket.server.ts`: Removed `console.log` calls and the empty disconnect event handler.
+- `backend/src/scripts/seed.ts`: Removed `(OrderModel as any)` cast and typed the historical orders array as `Record<string, unknown>[]`.
+
+### Frontend Clean Code
+
+- `frontend/src/composables/useOrderFormat.ts` (new): Extracted three shared formatting utilities (`formatDate`, `paymentLabel`, `displayOrderCode`) that were duplicated across `MyOrdersView`, `GuestOrderTrackingView`, `StaffOrdersView`, and `PointsView`. Views now import from this composable.
+
+### Guest Tracking Session Persistence
+
+- **Bug fix**: Refreshing `/orders/guest` without URL query params previously cleared the tracking view, requiring guests to re-enter their lookup code and phone.
+- **Fix** (`GuestOrderTrackingView.vue` `onMounted`): On mount without URL params, the view now auto-restores the most recent guest session that has a `guestToken` from localStorage. Token presence proves this browser placed the order, so the restoration is safe. Members are unaffected — they are handled separately by `loadMemberTrackingOrders`.
+
+### E2E Test Fix — Admin Order History
+
+- `e2e/my-orders.spec.ts` admin test: The `${API}/orders**` route mock previously fell back for `GET /api/orders/summary/today`, which caused a 401 from the real backend (if running locally) due to the fake mock token. The 401 triggered the http.ts auto-logout interceptor, clearing localStorage before the test's `page.goto('/orders/my')` reload. Fixed by adding an explicit mock for the summary endpoint inside the test's route handler.
+
+### Verification
+
+Frontend commands run from `frontend/`:
+
+```powershell
+npm run lint
+npm test
+npm run e2e
+npm run build
+```
+
+Latest result:
+- lint passed
+- unit tests passed: 10 suites, 42 tests
+- e2e passed: 128 tests (desktop Chromium + Pixel 5 mobile, all pass)
+- build passed

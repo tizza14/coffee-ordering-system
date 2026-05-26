@@ -31,6 +31,7 @@ Guest checkout does not require login. Add products to the cart, open Checkout, 
 - Empty checkout state includes a **回商品列表** action.
 - Internal Mongo order IDs are not shown as customer-facing order numbers. UI displays `orderLookupCode`; orders without one show a neutral label such as `未產生查詢碼` or `兌換訂單`.
 - Logged-in members opening **訂單追蹤** automatically see their most recent active order when one is available.
+- Guests who refresh **訂單追蹤** (without URL query params) automatically see their most recent order again — the browser restores the saved guest token from localStorage so re-entering the lookup code is not required on the same device.
 - **點餐紀錄** is positioned as the historical order list; active orders include a **追蹤狀態** shortcut back to **訂單追蹤** for live progress.
 - After points redemption, the success panel shows the spent points, remaining points, and a direct **查看兌換訂單狀態** link to **訂單追蹤**.
 - Checkout saves the latest lookup code and pickup phone/token locally so the Line Pay confirmation page can hand off directly to **訂單追蹤**.
