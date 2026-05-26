@@ -22,10 +22,10 @@ services:
       VAPID_EMAIL: ${VAPID_EMAIL:-admin@example.com}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
 
   frontend:
     build:
