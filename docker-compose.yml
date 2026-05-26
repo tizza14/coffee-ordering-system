@@ -6,22 +6,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      - "3000:3000"
     environment:
       PORT: 3000
-      MONGODB_URI: ${MONGODB_URI:?MONGODB_URI is required}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
-      LINE_PAY_CHANNEL_ID: ${LINE_PAY_CHANNEL_ID:?LINE_PAY_CHANNEL_ID is required}
-      LINE_PAY_CHANNEL_SECRET: ${LINE_PAY_CHANNEL_SECRET:?LINE_PAY_CHANNEL_SECRET is required}
-      LINE_PAY_API_BASE_URL: ${LINE_PAY_API_BASE_URL:-https://sandbox-api-pay.line.me}
-      LINE_PAY_CONFIRM_URL: ${LINE_PAY_CONFIRM_URL:-http://localhost:5173/payments/line-pay/confirm}
-      LINE_PAY_CANCEL_URL: ${LINE_PAY_CANCEL_URL:-http://localhost:5173/payments/line-pay/cancel}
-      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
-      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_EMAIL: ${VAPID_EMAIL:-admin@example.com}
+    ports:
+      - "3000:3000"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
       interval: 10s
@@ -42,4 +30,3 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-
