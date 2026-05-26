@@ -1,15 +1,8 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ApiError } from '../../utils/ApiError';
+import { getParam, getQueryString, parsePage, parseLimit } from '../../utils/request';
 import * as orderService from './order.service';
-
-function getParam(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function getQueryString(value: unknown) {
-  return typeof value === 'string' ? value : undefined;
-}
 
 export const createMemberOrder = asyncHandler(
   async (req: Request, res: Response) => {
@@ -60,8 +53,8 @@ export const listStaffOrders = asyncHandler(
       paymentStatus: getQueryString(req.query.paymentStatus),
       date: getQueryString(req.query.date),
       all: getQueryString(req.query.all) === 'true',
-      page: Number(req.query.page) || 1,
-      limit: Number(req.query.limit) || 20
+      page: parsePage(req.query.page),
+      limit: parseLimit(req.query.limit)
     });
     res.json(orders);
   }

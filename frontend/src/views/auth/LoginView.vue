@@ -5,7 +5,9 @@
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">登入</h1>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          登入
+        </h1>
         <p class="m-0 text-stone-600">
           使用帳號登入後即可點會員訂單並累積點數。
         </p>
@@ -19,7 +21,7 @@
           type="email"
           autocomplete="email"
           required
-        />
+        >
       </label>
 
       <label class="grid gap-1.5 font-semibold">
@@ -31,10 +33,13 @@
           autocomplete="current-password"
           minlength="8"
           required
-        />
+        >
       </label>
 
-      <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
+      <p
+        v-if="errorMessage"
+        class="m-0 font-semibold text-red-700"
+      >
         {{ errorMessage }}
       </p>
 
@@ -49,11 +54,17 @@
       <div class="grid gap-2 border-t border-stone-200 pt-3 text-sm text-stone-600">
         <p class="m-0">
           還沒有帳號？
-          <RouterLink class="font-bold text-amber-900" to="/register">
+          <RouterLink
+            class="font-bold text-amber-900"
+            to="/register"
+          >
             建立會員帳號
           </RouterLink>
         </p>
-        <RouterLink class="font-bold text-amber-900" to="/products">
+        <RouterLink
+          class="font-bold text-amber-900"
+          to="/products"
+        >
           先以訪客身分瀏覽商品
         </RouterLink>
       </div>

@@ -1,8 +1,12 @@
 <template>
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
     <header>
-      <h1 class="m-0 text-2xl font-bold text-amber-950">銷售報表</h1>
-      <p class="m-0 text-stone-600">依日/週/月/年或自訂區間查詢銷售紀錄。</p>
+      <h1 class="m-0 text-2xl font-bold text-amber-950">
+        銷售報表
+      </h1>
+      <p class="m-0 text-stone-600">
+        依日/週/月/年或自訂區間查詢銷售紀錄。
+      </p>
     </header>
 
     <!-- Period selector + date picker -->
@@ -34,7 +38,7 @@
               type="date"
               :max="maxDate"
               @change="loadReport"
-            />
+            >
           </label>
         </template>
 
@@ -47,7 +51,7 @@
               type="date"
               :max="maxDate"
               @change="loadReport"
-            />
+            >
           </label>
         </template>
 
@@ -60,7 +64,7 @@
               type="month"
               :max="maxMonth"
               @change="loadReport"
-            />
+            >
           </label>
         </template>
 
@@ -72,7 +76,11 @@
               class="rounded-md border border-stone-400 px-3 py-1.5 text-amber-950"
               @change="loadReport"
             >
-              <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
+              <option
+                v-for="y in yearOptions"
+                :key="y"
+                :value="y"
+              >{{ y }} 年</option>
             </select>
           </label>
         </template>
@@ -87,7 +95,7 @@
               type="date"
               :max="rangeEnd || maxDate"
               @change="onRangeChange"
-            />
+            >
           </label>
           <span class="pb-1.5 font-bold text-stone-400">～</span>
           <label class="flex flex-col gap-1">
@@ -99,7 +107,7 @@
               :min="rangeStart"
               :max="maxDate"
               @change="onRangeChange"
-            />
+            >
           </label>
           <button
             class="min-h-9 self-end rounded-md border border-amber-900 bg-amber-900 px-4 font-bold text-white disabled:opacity-50"
@@ -109,7 +117,10 @@
           >
             查詢
           </button>
-          <p v-if="rangeValidationMsg" class="m-0 self-end text-xs font-bold text-red-600">
+          <p
+            v-if="rangeValidationMsg"
+            class="m-0 self-end text-xs font-bold text-red-600"
+          >
             {{ rangeValidationMsg }}
           </p>
         </template>
@@ -117,14 +128,17 @@
     </section>
 
     <!-- Loading / error -->
-    <section v-if="isLoading" class="grid gap-3 sm:grid-cols-3">
+    <section
+      v-if="isLoading"
+      class="grid gap-3 sm:grid-cols-3"
+    >
       <div
         v-for="i in 3"
         :key="i"
         class="animate-pulse rounded-lg border border-stone-200 bg-white p-4"
       >
-        <div class="mb-3 h-3 w-20 rounded bg-stone-200"></div>
-        <div class="h-7 w-32 rounded bg-stone-200"></div>
+        <div class="mb-3 h-3 w-20 rounded bg-stone-200" />
+        <div class="h-7 w-32 rounded bg-stone-200" />
       </div>
     </section>
     <p
@@ -138,15 +152,21 @@
       <!-- Summary cards -->
       <section class="grid gap-3 sm:grid-cols-3">
         <article class="rounded-lg border border-stone-300 bg-white p-4">
-          <p class="m-0 text-sm font-bold uppercase text-stone-500">總營收</p>
+          <p class="m-0 text-sm font-bold uppercase text-stone-500">
+            總營收
+          </p>
           <strong class="text-2xl text-amber-950">NT$ {{ report.totalRevenue.toLocaleString() }}</strong>
         </article>
         <article class="rounded-lg border border-stone-300 bg-white p-4">
-          <p class="m-0 text-sm font-bold uppercase text-stone-500">已付款訂單</p>
+          <p class="m-0 text-sm font-bold uppercase text-stone-500">
+            已付款訂單
+          </p>
           <strong class="text-2xl text-amber-950">{{ report.totalOrders }}</strong>
         </article>
         <article class="rounded-lg border border-stone-300 bg-white p-4">
-          <p class="m-0 text-sm font-bold uppercase text-stone-500">已售品項</p>
+          <p class="m-0 text-sm font-bold uppercase text-stone-500">
+            已售品項
+          </p>
           <strong class="text-2xl text-amber-950">{{ report.totalItems }}</strong>
         </article>
       </section>
@@ -165,11 +185,21 @@
         <table class="w-full min-w-[480px] border-collapse text-sm">
           <thead>
             <tr class="border-t border-stone-200 bg-stone-50 text-left text-xs font-bold uppercase text-stone-500">
-              <th class="px-4 py-2">{{ periodColLabel }}</th>
-              <th class="px-4 py-2 text-right">營收 (NT$)</th>
-              <th class="px-4 py-2 text-right">訂單數</th>
-              <th class="px-4 py-2 text-right">品項數</th>
-              <th class="px-4 py-2 text-right">佔比</th>
+              <th class="px-4 py-2">
+                {{ periodColLabel }}
+              </th>
+              <th class="px-4 py-2 text-right">
+                營收 (NT$)
+              </th>
+              <th class="px-4 py-2 text-right">
+                訂單數
+              </th>
+              <th class="px-4 py-2 text-right">
+                品項數
+              </th>
+              <th class="px-4 py-2 text-right">
+                佔比
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -178,10 +208,18 @@
               :key="bucket.date"
               class="border-t border-stone-200 text-amber-950 hover:bg-amber-50"
             >
-              <td class="px-4 py-2 font-bold">{{ bucket.label }}</td>
-              <td class="px-4 py-2 text-right">{{ bucket.revenue.toLocaleString() }}</td>
-              <td class="px-4 py-2 text-right">{{ bucket.orders }}</td>
-              <td class="px-4 py-2 text-right">{{ bucket.items }}</td>
+              <td class="px-4 py-2 font-bold">
+                {{ bucket.label }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ bucket.revenue.toLocaleString() }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ bucket.orders }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ bucket.items }}
+              </td>
               <td class="px-4 py-2 text-right text-stone-500">
                 {{ report.totalRevenue > 0 ? Math.round((bucket.revenue / report.totalRevenue) * 100) : 0 }}%
               </td>
@@ -189,11 +227,21 @@
           </tbody>
           <tfoot>
             <tr class="border-t-2 border-stone-300 bg-stone-50 font-bold text-amber-950">
-              <td class="px-4 py-2">合計</td>
-              <td class="px-4 py-2 text-right">{{ report.totalRevenue.toLocaleString() }}</td>
-              <td class="px-4 py-2 text-right">{{ report.totalOrders }}</td>
-              <td class="px-4 py-2 text-right">{{ report.totalItems }}</td>
-              <td class="px-4 py-2 text-right">100%</td>
+              <td class="px-4 py-2">
+                合計
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ report.totalRevenue.toLocaleString() }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ report.totalOrders }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                {{ report.totalItems }}
+              </td>
+              <td class="px-4 py-2 text-right">
+                100%
+              </td>
             </tr>
           </tfoot>
         </table>
@@ -202,19 +250,33 @@
       <!-- Sold items breakdown -->
       <section class="rounded-lg border border-stone-300 bg-white p-4">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="m-0 text-lg font-bold text-amber-950">銷售品項明細</h2>
+          <h2 class="m-0 text-lg font-bold text-amber-950">
+            銷售品項明細
+          </h2>
           <span class="text-sm font-bold text-stone-500">共 {{ report.soldItems.length }} 種商品</span>
         </div>
-        <p v-if="report.soldItems.length === 0" class="m-0 pt-3 text-stone-600">
+        <p
+          v-if="report.soldItems.length === 0"
+          class="m-0 pt-3 text-stone-600"
+        >
           此期間無已付款品項。
         </p>
-        <div v-else class="mt-3 overflow-x-auto">
+        <div
+          v-else
+          class="mt-3 overflow-x-auto"
+        >
           <table class="w-full min-w-[400px] border-collapse text-sm">
             <thead>
               <tr class="border-b border-stone-200 text-left text-xs font-bold uppercase text-stone-500">
-                <th class="pb-2 pr-4">商品名稱</th>
-                <th class="pb-2 pr-4 text-right">數量</th>
-                <th class="pb-2 text-right">營收 (NT$)</th>
+                <th class="pb-2 pr-4">
+                  商品名稱
+                </th>
+                <th class="pb-2 pr-4 text-right">
+                  數量
+                </th>
+                <th class="pb-2 text-right">
+                  營收 (NT$)
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -223,9 +285,15 @@
                 :key="item.productId"
                 class="border-t border-stone-200 text-amber-950"
               >
-                <td class="py-2 pr-4 font-bold">{{ item.name }}</td>
-                <td class="py-2 pr-4 text-right">{{ item.quantity }}</td>
-                <td class="py-2 text-right">{{ item.revenue.toLocaleString() }}</td>
+                <td class="py-2 pr-4 font-bold">
+                  {{ item.name }}
+                </td>
+                <td class="py-2 pr-4 text-right">
+                  {{ item.quantity }}
+                </td>
+                <td class="py-2 text-right">
+                  {{ item.revenue.toLocaleString() }}
+                </td>
               </tr>
             </tbody>
           </table>

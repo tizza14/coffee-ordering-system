@@ -1,21 +1,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { getParam, parsePage, parseLimit } from '../../utils/request';
 import * as productService from './product.service';
-
-function parsePage(value: unknown) {
-  const page = Number(value ?? 1);
-  return Number.isInteger(page) && page > 0 ? page : 1;
-}
-
-function parseLimit(value: unknown) {
-  const limit = Number(value ?? 20);
-  if (!Number.isInteger(limit) || limit < 1) return 20;
-  return Math.min(limit, 100);
-}
-
-function getParam(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
-}
 
 export const listProducts = asyncHandler(
   async (req: Request, res: Response) => {

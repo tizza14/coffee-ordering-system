@@ -34,7 +34,10 @@
               </span>
             </div>
 
-            <div v-if="authStore.user?.role === 'user'" class="grid gap-3">
+            <div
+              v-if="authStore.user?.role === 'user'"
+              class="grid gap-3"
+            >
               <div>
                 <h3 class="m-0 text-base font-bold text-amber-950">
                   近期訂單
@@ -55,8 +58,14 @@
               >
                 目前沒有可追蹤的會員訂單。
               </p>
-              <ul v-else class="grid list-none gap-2 p-0">
-                <li v-for="order in memberTrackingOrders" :key="order.id">
+              <ul
+                v-else
+                class="grid list-none gap-2 p-0"
+              >
+                <li
+                  v-for="order in memberTrackingOrders"
+                  :key="order.id"
+                >
                   <button
                     class="grid w-full cursor-pointer gap-3 rounded-md border border-stone-200 bg-white p-3 text-left transition hover:border-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
                     type="button"
@@ -85,7 +94,10 @@
               </ul>
             </div>
 
-            <form class="grid gap-3 border-t border-stone-200 pt-4" @submit.prevent="load">
+            <form
+              class="grid gap-3 border-t border-stone-200 pt-4"
+              @submit.prevent="load"
+            >
               <div>
                 <h3 class="m-0 text-base font-bold text-amber-950">
                   手動查詢
@@ -101,7 +113,7 @@
                   class="min-h-11 rounded-md border border-stone-400 px-3"
                   placeholder="例如 DEMO0001"
                   required
-                />
+                >
               </label>
               <label class="grid gap-1.5 font-semibold">
                 手機
@@ -111,14 +123,22 @@
                   pattern="09[0-9]{8}"
                   placeholder="例如 0912345678"
                   :required="!normalizedGuestToken"
-                />
+                >
               </label>
 
               <!-- 本機保存的訂單 (依手機號碼篩選，保護不同訪客資料) -->
-              <div v-if="matchingGuestSessions.length > 0" class="grid gap-2">
-                <p class="m-0 text-sm font-semibold text-stone-600">本機保存的訂單</p>
+              <div
+                v-if="matchingGuestSessions.length > 0"
+                class="grid gap-2"
+              >
+                <p class="m-0 text-sm font-semibold text-stone-600">
+                  本機保存的訂單
+                </p>
                 <ul class="grid list-none gap-1.5 p-0">
-                  <li v-for="session in matchingGuestSessions" :key="session.lookupCode">
+                  <li
+                    v-for="session in matchingGuestSessions"
+                    :key="session.lookupCode"
+                  >
                     <button
                       class="grid w-full cursor-pointer gap-0.5 rounded-md border border-stone-200 bg-stone-50 p-2.5 text-left transition hover:border-amber-700 hover:bg-amber-50 disabled:opacity-50"
                       type="button"
@@ -184,7 +204,9 @@
               class="grid min-h-52 place-items-center rounded-lg border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-stone-500"
             >
               <div>
-                <p class="m-0 mt-2 font-semibold">尚未載入訂單</p>
+                <p class="m-0 mt-2 font-semibold">
+                  尚未載入訂單
+                </p>
                 <p class="m-0 text-sm">
                   請輸入查詢資料，或登入會員查看近期訂單。
                 </p>
@@ -259,7 +281,7 @@
                         class="absolute top-4 h-0.5 transition-colors"
                         style="left: calc(-50% + 16px); right: calc(50% + 16px)"
                         :class="stepIndex(step.status) <= currentStepIndex ? activeLineClass : 'bg-stone-200'"
-                      ></div>
+                      />
                       <div
                         class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-extrabold transition-colors"
                         :class="circleClass(step.status)"
@@ -269,7 +291,7 @@
                           v-else-if="step.status === currentStatus"
                           class="h-2.5 w-2.5 rounded-full bg-current"
                           :class="currentStatus === 'ready' ? 'animate-ping' : ''"
-                        ></span>
+                        />
                       </div>
                       <span
                         class="mt-2 text-center text-xs font-bold leading-tight"
@@ -292,7 +314,7 @@
                 v-if="latestNotification"
                 class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
               >
-                <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-500"></span>
+                <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-500" />
                 <div>
                   <p class="m-0 text-xs font-extrabold uppercase tracking-wide text-amber-700">
                     最新通知
@@ -315,7 +337,10 @@
                     {{ itemDetailsOpen ? '收合' : '展開' }}
                   </span>
                 </button>
-                <div v-if="itemDetailsOpen" class="border-t border-stone-200 p-4">
+                <div
+                  v-if="itemDetailsOpen"
+                  class="border-t border-stone-200 p-4"
+                >
                   <ul class="grid list-none gap-2 p-0">
                     <li
                       v-for="item in orderStore.currentOrder.items"
@@ -363,7 +388,7 @@
                 :key="notification.id"
                 class="flex items-start gap-3 rounded-lg border border-stone-200 bg-white p-3"
               >
-                <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400"></span>
+                <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
                 <div class="grid gap-0.5">
                   <strong class="text-sm text-amber-950">
                     {{ notification.message }}
@@ -390,6 +415,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { type GuestTrackingSession, useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
+import { paymentLabel, displayOrderCode } from '../../composables/useOrderFormat';
 
 const route = useRoute();
 const authStore = useAuthStore();
@@ -564,23 +590,6 @@ function statusBadgeClass(status: Order['status']) {
   if (status === 'completed') return `${base} bg-emerald-100 text-emerald-800`;
   if (status === 'cancelled') return `${base} bg-red-100 text-red-700`;
   return `${base} bg-amber-100 text-amber-900`;
-}
-
-function paymentLabel(status: Order['paymentStatus']) {
-  const labels: Record<Order['paymentStatus'], string> = {
-    unpaid: '未付款',
-    payment_pending: '付款處理中',
-    paid: '已付款',
-    payment_failed: '付款失敗',
-    refunded: '已退款'
-  };
-  return labels[status];
-}
-
-function displayOrderCode(order: Order) {
-  if (order.orderLookupCode) return order.orderLookupCode;
-  if (order.orderType === 'redeem') return '兌換訂單';
-  return '未產生查詢碼';
 }
 
 function displayPhone(order: Order) {

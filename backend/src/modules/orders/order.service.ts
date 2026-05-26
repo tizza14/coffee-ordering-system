@@ -49,6 +49,7 @@ interface SoldItemSummary {
 }
 
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function taipeiMidnightUTC(year: number, month: number, day: number): Date {
   // month is 1-indexed; Date.UTC uses 0-indexed but handles overflow correctly
@@ -75,11 +76,11 @@ function getTaipeiDayRange(dateStrOrNow?: string | Date, _now = new Date()) {
       taipeiNow.getUTCMonth() + 1,
       taipeiNow.getUTCDate()
     );
-    return { start, end: new Date(start.getTime() + 86400000) };
+    return { start, end: new Date(start.getTime() + MS_PER_DAY) };
   }
   const [y, m, d] = parseDateStr(dateStrOrNow);
   const start = taipeiMidnightUTC(y, m, d);
-  return { start, end: new Date(start.getTime() + 86400000) };
+  return { start, end: new Date(start.getTime() + MS_PER_DAY) };
 }
 
 interface TimeBucket {
@@ -94,11 +95,11 @@ function getWeekBuckets(dateStr: string): TimeBucket[] {
   const dayStart = taipeiMidnightUTC(y, m, d);
   const dow = new Date(dayStart.getTime() + TAIPEI_OFFSET_MS).getUTCDay();
   const daysFromMon = dow === 0 ? 6 : dow - 1;
-  const mondayUTC = new Date(dayStart.getTime() - daysFromMon * 86400000);
+  const mondayUTC = new Date(dayStart.getTime() - daysFromMon * MS_PER_DAY);
   const dayLabels = ['(一)', '(二)', '(三)', '(四)', '(五)', '(六)', '(日)'];
   return Array.from({ length: 7 }, (_, i) => {
-    const start = new Date(mondayUTC.getTime() + i * 86400000);
-    const end = new Date(start.getTime() + 86400000);
+    const start = new Date(mondayUTC.getTime() + i * MS_PER_DAY);
+    const end = new Date(start.getTime() + MS_PER_DAY);
     const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
     const date = t.toISOString().slice(0, 10);
     return { start, end, date, label: `${t.getUTCMonth() + 1}/${t.getUTCDate()} ${dayLabels[i]}` };
@@ -108,10 +109,10 @@ function getWeekBuckets(dateStr: string): TimeBucket[] {
 function getMonthBuckets(year: number, month: number): TimeBucket[] {
   const firstDay = taipeiMidnightUTC(year, month, 1);
   const nextMonthFirst = taipeiMidnightUTC(year, month + 1, 1);
-  const daysInMonth = Math.round((nextMonthFirst.getTime() - firstDay.getTime()) / 86400000);
+  const daysInMonth = Math.round((nextMonthFirst.getTime() - firstDay.getTime()) / MS_PER_DAY);
   return Array.from({ length: daysInMonth }, (_, i) => {
-    const start = new Date(firstDay.getTime() + i * 86400000);
-    const end = new Date(start.getTime() + 86400000);
+    const start = new Date(firstDay.getTime() + i * MS_PER_DAY);
+    const end = new Date(start.getTime() + MS_PER_DAY);
     const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
     return {
       start,
@@ -148,10 +149,10 @@ function getCustomRangeBuckets(startDate: string, endDate: string): TimeBucket[]
   const [ey, em, ed] = parseDateStr(endDate);
   const startUTC = taipeiMidnightUTC(sy, sm, sd);
   const endUTC = taipeiMidnightUTC(ey, em, ed + 1);
-  const daysCount = Math.round((endUTC.getTime() - startUTC.getTime()) / 86400000);
+  const daysCount = Math.round((endUTC.getTime() - startUTC.getTime()) / MS_PER_DAY);
   return Array.from({ length: daysCount }, (_, i) => {
-    const start = new Date(startUTC.getTime() + i * 86400000);
-    const end = new Date(start.getTime() + 86400000);
+    const start = new Date(startUTC.getTime() + i * MS_PER_DAY);
+    const end = new Date(start.getTime() + MS_PER_DAY);
     const t = new Date(start.getTime() + TAIPEI_OFFSET_MS);
     return {
       start,
@@ -257,7 +258,7 @@ export async function createGuestOrder(input: CreateGuestOrderInput) {
     guestInfo: input.guestInfo,
     orderLookupCode: createLookupCode(),
     guestTokenHash: hashGuestToken(guestToken),
-    guestTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    guestTokenExpiresAt: new Date(Date.now() + 7 * MS_PER_DAY),
     items: orderItems,
     totalAmount
   });
@@ -606,7 +607,6 @@ async function notifyStatusUpdate(order: OrderDocument) {
   const statusLabel = statusLabels[order.status] || order.status;
   const message = `訂單 ${order.orderLookupCode || order._id} 狀態已更新為 ${statusLabel}`;
 
-  // Create notification for user/guest
   const notification = await notificationService.createNotification({
     userId: order.userId ? String(order.userId) : undefined,
     guestOrderLookupCode: order.orderLookupCode || undefined,
@@ -616,20 +616,18 @@ async function notifyStatusUpdate(order: OrderDocument) {
     message
   });
 
-  // Emit to order room (both user and staff might be listening)
   socketServer.emitOrderUpdated(String(order._id), {
     status: order.status,
     updatedAt: order.updatedAt
   });
 
+  // room:order broadcasts to both the order owner and any staff watching this order
   socketServer.emitNotification(`room:order:${order._id}`, notification);
 
-  // Emit notification to user room
   if (order.userId) {
     socketServer.emitNotification(`room:user:${order.userId}`, notification);
   }
 
-  // Also notify staff if it's a significant change or just all changes for now
   socketServer.emitNotification('room:staff', {
     type: 'order_status_updated',
     orderId: String(order._id),
@@ -637,7 +635,6 @@ async function notifyStatusUpdate(order: OrderDocument) {
     message
   });
 
-  // Web Push: notify user when order is ready for pickup
   if (order.status === 'ready' && order.userId) {
     void sendPushToUser(String(order.userId), {
       title: '您的餐點已完成',

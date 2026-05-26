@@ -7,7 +7,9 @@
       @submit.prevent="saveProduct"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">商品管理</h1>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          商品管理
+        </h1>
         <p class="m-0 text-stone-600">
           管理店內商品與可兌換品項。
         </p>
@@ -19,7 +21,7 @@
           v-model="form.name"
           class="min-h-10 rounded-md border border-stone-400 px-2.5"
           required
-        />
+        >
       </label>
       <label class="grid gap-1.5 font-semibold">
         價格
@@ -29,7 +31,7 @@
           min="0"
           required
           type="number"
-        />
+        >
       </label>
       <label class="grid gap-1.5 font-semibold">
         分類
@@ -59,7 +61,7 @@
             class="hidden"
             type="file"
             @change="onFileChange"
-          />
+          >
           {{ pendingFile ? pendingFile.name : '選擇圖片（JPEG / PNG / WebP，最大 5 MB）' }}
         </label>
         <img
@@ -67,7 +69,7 @@
           :src="previewUrl || form.imageUrl"
           alt="預覽"
           class="h-32 w-32 rounded-lg object-cover"
-        />
+        >
         <button
           v-if="previewUrl || form.imageUrl"
           class="min-h-9 w-fit cursor-pointer rounded-md border border-red-700 bg-white px-3 text-sm font-bold text-red-700"
@@ -79,15 +81,24 @@
       </div>
 
       <label class="flex items-center gap-2 font-semibold">
-        <input v-model="form.isAvailable" type="checkbox" />
+        <input
+          v-model="form.isAvailable"
+          type="checkbox"
+        >
         上架中
       </label>
       <label class="flex items-center gap-2 font-semibold">
-        <input v-model="form.isRedeemable" type="checkbox" />
+        <input
+          v-model="form.isRedeemable"
+          type="checkbox"
+        >
         可用 3 點兌換
       </label>
 
-      <p v-if="loadError" class="m-0 font-bold text-red-700">
+      <p
+        v-if="loadError"
+        class="m-0 font-bold text-red-700"
+      >
         {{ loadError }}
       </p>
 
@@ -113,7 +124,9 @@
       <header
         class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
       >
-        <h2 class="m-0 text-xl font-bold text-amber-950">商品列表</h2>
+        <h2 class="m-0 text-xl font-bold text-amber-950">
+          商品列表
+        </h2>
         <button
           class="min-h-10 cursor-pointer rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
           type="button"
@@ -123,33 +136,39 @@
         </button>
       </header>
 
-      <ul v-if="productStore.isLoading" class="grid list-none gap-3 p-0">
+      <ul
+        v-if="productStore.isLoading"
+        class="grid list-none gap-3 p-0"
+      >
         <li
           v-for="i in 4"
           :key="i"
           class="animate-pulse grid gap-3 rounded-lg border border-stone-200 bg-white p-4"
         >
           <div class="flex items-start gap-4">
-            <div class="h-20 w-20 shrink-0 rounded-lg bg-stone-200"></div>
+            <div class="h-20 w-20 shrink-0 rounded-lg bg-stone-200" />
             <div class="flex flex-1 items-start justify-between gap-4">
               <div class="flex-1 space-y-2">
-                <div class="h-5 w-40 rounded bg-stone-200"></div>
-                <div class="h-3 w-56 rounded bg-stone-200"></div>
+                <div class="h-5 w-40 rounded bg-stone-200" />
+                <div class="h-3 w-56 rounded bg-stone-200" />
               </div>
-              <div class="h-5 w-16 rounded bg-stone-200"></div>
+              <div class="h-5 w-16 rounded bg-stone-200" />
             </div>
           </div>
           <div class="flex gap-2">
-            <div class="h-5 w-12 rounded-full bg-stone-200"></div>
-            <div class="h-5 w-10 rounded-full bg-stone-200"></div>
+            <div class="h-5 w-12 rounded-full bg-stone-200" />
+            <div class="h-5 w-10 rounded-full bg-stone-200" />
           </div>
           <div class="flex gap-2">
-            <div class="h-8 w-14 rounded bg-stone-200"></div>
-            <div class="h-8 w-14 rounded bg-stone-200"></div>
+            <div class="h-8 w-14 rounded bg-stone-200" />
+            <div class="h-8 w-14 rounded bg-stone-200" />
           </div>
         </li>
       </ul>
-      <ul v-else class="grid list-none gap-3 p-0">
+      <ul
+        v-else
+        class="grid list-none gap-3 p-0"
+      >
         <li
           v-for="product in productStore.products"
           :key="product.id"
@@ -163,14 +182,29 @@
               :src="product.imageUrl"
               :alt="product.name"
               class="h-20 w-20 shrink-0 rounded-lg object-cover"
-            />
+            >
             <div
               v-else
               class="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-400"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 8h6M9 12h4m-7 8h10a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 8c1.657 0 3 .895 3 2s-1.343 2-3 2"
+                />
               </svg>
             </div>
             <div class="flex min-w-0 flex-1 items-start justify-between gap-4 max-[760px]:flex-col">

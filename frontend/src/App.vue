@@ -1,52 +1,55 @@
 ﻿<template>
   <header class="sticky top-0 z-40 border-b border-stone-300 bg-white">
     <div class="flex min-h-16 items-center justify-between gap-4 px-4 py-3 sm:px-6">
-    <RouterLink
-      class="shrink-0 rounded-md px-2 py-1 font-bold text-amber-950 no-underline transition-colors hover:bg-amber-50"
-      :to="homeRoute"
-      @click="closeMobileMenu"
-    >
-      咖啡點餐系統
-    </RouterLink>
-
-    <nav class="hidden items-center gap-3.5 md:flex">
       <RouterLink
-        v-for="item in visibleNavItems"
-        :key="item.to"
-        :class="navLinkClass"
-        :exact-active-class="navActiveClass"
-        :to="item.to"
+        class="shrink-0 rounded-md px-2 py-1 font-bold text-amber-950 no-underline transition-colors hover:bg-amber-50"
+        :to="homeRoute"
+        @click="closeMobileMenu"
       >
-        {{ item.label }}
-        <span
-          v-if="item.showPoints"
-          class="ml-1 rounded-full bg-amber-900 px-1.5 py-0.5 text-xs font-bold text-white"
-        >{{ authStore.user?.points }}</span>
+        咖啡點餐系統
       </RouterLink>
-      <button
-        v-if="authStore.isAuthenticated"
-        class="min-h-9 shrink-0 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50"
-        type="button"
-        @click="handleLogout"
-      >
-        登出
-      </button>
-    </nav>
 
-    <button
-      class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-400 bg-white text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50 md:hidden"
-      type="button"
-      :aria-expanded="isMobileMenuOpen"
-      aria-controls="mobile-navigation"
-      aria-label="開啟選單"
-      @click="isMobileMenuOpen = true"
-    >
-      <span class="block h-0.5 w-5 rounded bg-current shadow-[0_6px_0_currentColor,0_-6px_0_currentColor]" />
-    </button>
+      <nav class="hidden items-center gap-3.5 md:flex">
+        <RouterLink
+          v-for="item in visibleNavItems"
+          :key="item.to"
+          :class="navLinkClass"
+          :exact-active-class="navActiveClass"
+          :to="item.to"
+        >
+          {{ item.label }}
+          <span
+            v-if="item.showPoints"
+            class="ml-1 rounded-full bg-amber-900 px-1.5 py-0.5 text-xs font-bold text-white"
+          >{{ authStore.user?.points }}</span>
+        </RouterLink>
+        <button
+          v-if="authStore.isAuthenticated"
+          class="min-h-9 shrink-0 rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50"
+          type="button"
+          @click="handleLogout"
+        >
+          登出
+        </button>
+      </nav>
+
+      <button
+        class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-400 bg-white text-amber-950 transition-colors hover:border-amber-900 hover:bg-amber-50 md:hidden"
+        type="button"
+        :aria-expanded="isMobileMenuOpen"
+        aria-controls="mobile-navigation"
+        aria-label="開啟選單"
+        @click="isMobileMenuOpen = true"
+      >
+        <span class="block h-0.5 w-5 rounded bg-current shadow-[0_6px_0_currentColor,0_-6px_0_currentColor]" />
+      </button>
     </div>
   </header>
 
-  <div v-if="isMobileMenuOpen" class="fixed inset-0 z-50 md:hidden">
+  <div
+    v-if="isMobileMenuOpen"
+    class="fixed inset-0 z-50 md:hidden"
+  >
     <button
       class="absolute inset-0 h-full w-full bg-stone-950/40"
       type="button"
@@ -68,7 +71,10 @@
           ×
         </button>
       </div>
-      <nav id="mobile-navigation" class="flex flex-col gap-2">
+      <nav
+        id="mobile-navigation"
+        class="flex flex-col gap-2"
+      >
         <RouterLink
           v-for="item in visibleNavItems"
           :key="item.to"

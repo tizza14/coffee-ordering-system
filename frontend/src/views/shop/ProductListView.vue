@@ -5,7 +5,9 @@
     <div class="min-w-0">
       <header class="flex items-center justify-between gap-4 max-[820px]:flex-col max-[820px]:items-stretch">
         <div>
-          <h1 class="m-0 text-2xl font-bold text-amber-950">商品</h1>
+          <h1 class="m-0 text-2xl font-bold text-amber-950">
+            商品
+          </h1>
           <p class="m-0 text-stone-600">
             選擇飲品或甜點加入購物車，完成後前往結帳。
           </p>
@@ -28,25 +30,34 @@
         </div>
       </header>
 
-      <ul v-if="isLoading" class="grid list-none gap-3 p-0">
+      <ul
+        v-if="isLoading"
+        class="grid list-none gap-3 p-0"
+      >
         <li
           v-for="i in 4"
           :key="i"
           class="flex animate-pulse items-center gap-4 rounded-lg border border-stone-200 bg-white p-4"
         >
-          <div class="h-24 w-24 shrink-0 rounded-lg bg-stone-200"></div>
+          <div class="h-24 w-24 shrink-0 rounded-lg bg-stone-200" />
           <div class="flex-1 space-y-2.5">
-            <div class="h-3 w-12 rounded-full bg-stone-200"></div>
-            <div class="h-5 w-36 rounded bg-stone-200"></div>
-            <div class="h-3 w-52 rounded bg-stone-200"></div>
-            <div class="h-4 w-20 rounded bg-stone-200"></div>
+            <div class="h-3 w-12 rounded-full bg-stone-200" />
+            <div class="h-5 w-36 rounded bg-stone-200" />
+            <div class="h-3 w-52 rounded bg-stone-200" />
+            <div class="h-4 w-20 rounded bg-stone-200" />
           </div>
         </li>
       </ul>
-      <p v-else-if="errorMessage" class="py-4 font-bold text-red-700">
+      <p
+        v-else-if="errorMessage"
+        class="py-4 font-bold text-red-700"
+      >
         {{ errorMessage }}
       </p>
-      <ul v-else class="grid list-none gap-3 p-0">
+      <ul
+        v-else
+        class="grid list-none gap-3 p-0"
+      >
         <li
           v-for="product in filteredProducts"
           :key="product.id"
@@ -58,7 +69,7 @@
               :src="product.imageUrl"
               :alt="product.name"
               class="h-24 w-24 shrink-0 rounded-lg object-cover"
-            />
+            >
             <div
               v-else
               class="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-400"
@@ -124,7 +135,9 @@
       class="sticky top-[72px] hidden max-h-[calc(100vh-88px)] min-w-0 gap-4 self-start overflow-y-auto rounded-lg border border-stone-300 bg-white p-4 min-[821px]:grid"
     >
       <div class="flex items-center justify-between gap-4">
-        <h2 class="m-0 text-xl font-bold text-amber-950">購物車</h2>
+        <h2 class="m-0 text-xl font-bold text-amber-950">
+          購物車
+        </h2>
         <button
           class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
           type="button"
@@ -135,10 +148,16 @@
         </button>
       </div>
 
-      <p v-if="cartStore.items.length === 0" class="py-4 text-stone-600">
+      <p
+        v-if="cartStore.items.length === 0"
+        class="py-4 text-stone-600"
+      >
         目前購物車沒有商品。
       </p>
-      <ul v-else class="grid list-none gap-3 p-0">
+      <ul
+        v-else
+        class="grid list-none gap-3 p-0"
+      >
         <li
           v-for="item in cartStore.items"
           :key="item.productId"
@@ -199,7 +218,9 @@
         class="max-h-[60vh] overflow-y-auto border-t border-stone-300 bg-white px-4 pb-4 pt-3 shadow-lg"
       >
         <div class="flex items-center justify-between gap-4 pb-3">
-          <h2 class="m-0 text-lg font-bold text-amber-950">購物車內容</h2>
+          <h2 class="m-0 text-lg font-bold text-amber-950">
+            購物車內容
+          </h2>
           <button
             class="min-h-9 cursor-pointer rounded-md border border-stone-500 bg-white px-3 font-bold text-amber-950 disabled:opacity-55"
             type="button"
@@ -209,10 +230,16 @@
             清空
           </button>
         </div>
-        <p v-if="cartStore.items.length === 0" class="py-3 text-stone-600">
+        <p
+          v-if="cartStore.items.length === 0"
+          class="py-3 text-stone-600"
+        >
           目前購物車沒有商品。
         </p>
-        <ul v-else class="grid list-none gap-3 p-0">
+        <ul
+          v-else
+          class="grid list-none gap-3 p-0"
+        >
           <li
             v-for="item in cartStore.items"
             :key="item.productId"

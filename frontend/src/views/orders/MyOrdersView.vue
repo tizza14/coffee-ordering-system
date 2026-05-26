@@ -5,8 +5,12 @@
         <p class="m-0 text-sm font-extrabold uppercase text-amber-700">
           Order History
         </p>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">點餐紀錄</h1>
-        <p class="m-0 max-w-3xl text-stone-600">{{ pageDescription }}</p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          點餐紀錄
+        </h1>
+        <p class="m-0 max-w-3xl text-stone-600">
+          {{ pageDescription }}
+        </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <RouterLink
@@ -20,7 +24,10 @@
       </div>
     </header>
 
-    <ul v-if="isLoading" class="grid list-none gap-3 p-0">
+    <ul
+      v-if="isLoading"
+      class="grid list-none gap-3 p-0"
+    >
       <li
         v-for="i in 3"
         :key="i"
@@ -28,15 +35,15 @@
       >
         <div class="flex items-start justify-between gap-3">
           <div class="grid gap-2">
-            <div class="h-5 w-36 rounded bg-stone-200"></div>
-            <div class="h-3 w-24 rounded bg-stone-200"></div>
+            <div class="h-5 w-36 rounded bg-stone-200" />
+            <div class="h-3 w-24 rounded bg-stone-200" />
           </div>
           <div class="flex gap-2">
-            <div class="h-6 w-16 rounded-full bg-stone-200"></div>
-            <div class="h-6 w-16 rounded-full bg-stone-200"></div>
+            <div class="h-6 w-16 rounded-full bg-stone-200" />
+            <div class="h-6 w-16 rounded-full bg-stone-200" />
           </div>
         </div>
-        <div class="h-4 w-28 rounded bg-stone-200"></div>
+        <div class="h-4 w-28 rounded bg-stone-200" />
       </li>
     </ul>
 
@@ -52,7 +59,9 @@
       class="grid min-h-40 place-items-center rounded-lg border border-dashed border-stone-300 bg-white p-6 text-center"
     >
       <div>
-        <p class="m-0 mt-2 font-semibold text-amber-950">尚無點餐紀錄</p>
+        <p class="m-0 mt-2 font-semibold text-amber-950">
+          尚無點餐紀錄
+        </p>
         <p class="m-0 mt-1 text-sm text-stone-600">
           會員訂單完成後會保留在這裡，方便日後查詢。
         </p>
@@ -65,7 +74,10 @@
       </div>
     </div>
 
-    <div v-else class="grid gap-3">
+    <div
+      v-else
+      class="grid gap-3"
+    >
       <div class="grid gap-3 rounded-lg border border-stone-200 bg-white px-4 py-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -99,7 +111,7 @@
               {{ option.label }} {{ filterCounts[option.value] }}
             </button>
           </div>
-          <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent"></div>
+          <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent" />
         </div>
       </div>
 
@@ -110,10 +122,16 @@
         目前沒有符合條件的訂單。
       </p>
 
-      <div v-else class="grid max-h-[68vh] gap-1 overflow-y-auto pr-1">
-        <template v-for="group in groupedOrders" :key="group.key">
+      <div
+        v-else
+        class="grid max-h-[68vh] gap-1 overflow-y-auto pr-1"
+      >
+        <template
+          v-for="group in groupedOrders"
+          :key="group.key"
+        >
           <div class="flex items-center gap-3 px-1 py-2">
-            <div class="h-px flex-1 bg-stone-300"></div>
+            <div class="h-px flex-1 bg-stone-300" />
             <div class="flex items-center gap-2">
               <span class="whitespace-nowrap text-xs font-bold text-stone-500">
                 {{ group.label }}
@@ -122,7 +140,7 @@
                 {{ group.orders.length }} 筆
               </span>
             </div>
-            <div class="h-px flex-1 bg-stone-300"></div>
+            <div class="h-px flex-1 bg-stone-300" />
           </div>
 
           <ul class="grid list-none gap-3 p-0">
@@ -168,22 +186,31 @@
                 </div>
               </button>
 
-              <div v-if="openOrders.has(order.id)" class="border-t border-stone-200">
+              <div
+                v-if="openOrders.has(order.id)"
+                class="border-t border-stone-200"
+              >
                 <div class="grid gap-3 border-b border-stone-100 bg-stone-50 p-4 sm:grid-cols-3">
                   <div>
-                    <p class="m-0 text-xs font-bold text-stone-500">訂單查詢碼</p>
+                    <p class="m-0 text-xs font-bold text-stone-500">
+                      訂單查詢碼
+                    </p>
                     <p class="m-0 mt-1 font-bold text-amber-950">
                       {{ displayOrderCode(order) }}
                     </p>
                   </div>
                   <div>
-                    <p class="m-0 text-xs font-bold text-stone-500">取餐手機</p>
+                    <p class="m-0 text-xs font-bold text-stone-500">
+                      取餐手機
+                    </p>
                     <p class="m-0 mt-1 font-bold text-amber-950">
                       {{ displayPhone(order) }}
                     </p>
                   </div>
                   <div>
-                    <p class="m-0 text-xs font-bold text-stone-500">目前狀態</p>
+                    <p class="m-0 text-xs font-bold text-stone-500">
+                      目前狀態
+                    </p>
                     <p class="m-0 mt-1 font-bold text-amber-950">
                       {{ statusLabel(liveStatus(order)) }}
                     </p>
@@ -238,7 +265,10 @@
         </template>
       </div>
 
-      <div v-if="hasHiddenOrders || isShowingAll" class="flex justify-center">
+      <div
+        v-if="hasHiddenOrders || isShowingAll"
+        class="flex justify-center"
+      >
         <button
           v-if="hasHiddenOrders"
           class="min-h-10 rounded-md bg-amber-900 px-4 text-sm font-bold text-white"
@@ -268,6 +298,7 @@ import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 import PushNotificationToggle from '../../components/PushNotificationToggle.vue';
 import type { Order } from '../../api/order.api';
+import { formatDate, paymentLabel, displayOrderCode } from '../../composables/useOrderFormat';
 
 const authStore = useAuthStore();
 const orderStore = useOrderStore();
@@ -395,17 +426,6 @@ function statusMessage(status: Order['status']) {
   return map[status];
 }
 
-function paymentLabel(status: Order['paymentStatus']) {
-  const labels: Record<Order['paymentStatus'], string> = {
-    unpaid: '未付款',
-    payment_pending: '付款處理中',
-    paid: '已付款',
-    payment_failed: '付款失敗',
-    refunded: '已退款'
-  };
-  return labels[status];
-}
-
 function paymentBadgeClass(status: Order['paymentStatus']) {
   const base = 'rounded-full px-2 py-1 text-xs font-extrabold uppercase';
   if (status === 'paid') return `${base} bg-emerald-100 text-emerald-800`;
@@ -433,27 +453,12 @@ function statusBadgeClass(status: Order['status']) {
   return `${base} bg-amber-900 text-white`;
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('zh-TW', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(value));
-}
-
 function compactItems(order: Order) {
   const [firstItem, ...restItems] = order.items;
   if (!firstItem) return '無品項';
   const firstLabel = `${firstItem.name} x${firstItem.quantity}`;
   if (restItems.length === 0) return firstLabel;
   return `${firstLabel} 等 ${order.items.length} 項`;
-}
-
-function displayOrderCode(order: Order) {
-  if (order.orderLookupCode) return order.orderLookupCode;
-  if (order.orderType === 'redeem') return '兌換訂單';
-  return '未產生查詢碼';
 }
 
 function displayPhone(order: Order) {

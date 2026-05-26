@@ -1,15 +1,21 @@
 <template>
   <section class="grid min-h-[calc(100vh-64px)] content-start gap-5 bg-amber-50 p-4 sm:p-6">
     <header class="grid gap-1">
-      <p class="m-0 text-sm font-extrabold uppercase text-amber-700">Rewards</p>
-      <h1 class="m-0 text-2xl font-bold text-amber-950">我的點數</h1>
+      <p class="m-0 text-sm font-extrabold uppercase text-amber-700">
+        Rewards
+      </p>
+      <h1 class="m-0 text-2xl font-bold text-amber-950">
+        我的點數
+      </h1>
       <p class="m-0 max-w-3xl text-stone-600">
         消費每滿 NT$100 獲得 1 點，累積 3 點可兌換指定商品。
       </p>
     </header>
 
     <article class="rounded-lg border border-amber-300 bg-amber-900 p-6 text-white">
-      <p class="m-0 text-sm font-bold uppercase tracking-widest opacity-70">目前點數</p>
+      <p class="m-0 text-sm font-bold uppercase tracking-widest opacity-70">
+        目前點數
+      </p>
       <div class="mt-2 flex items-end gap-3">
         <span class="text-6xl font-extrabold leading-none">{{ points }}</span>
         <span class="mb-1 text-lg opacity-80">點</span>
@@ -21,7 +27,7 @@
         <div
           class="h-full rounded-full bg-white transition-all"
           :style="{ width: `${Math.min((points / REDEEM_COST) * 100, 100)}%` }"
-        ></div>
+        />
       </div>
     </article>
 
@@ -30,7 +36,9 @@
       class="grid gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4"
     >
       <div>
-        <p class="m-0 text-sm font-extrabold text-emerald-700">兌換成功</p>
+        <p class="m-0 text-sm font-extrabold text-emerald-700">
+          兌換成功
+        </p>
         <h2 class="m-0 mt-1 text-xl font-bold text-amber-950">
           已建立兌換訂單 {{ displayOrderCode(lastRedeemOrder) }}
         </h2>
@@ -69,32 +77,47 @@
     </section>
 
     <section>
-      <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">可兌換商品</h2>
+      <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">
+        可兌換商品
+      </h2>
 
-      <div v-if="isLoadingProducts" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        v-if="isLoadingProducts"
+        class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <div
           v-for="i in 3"
           :key="i"
           class="animate-pulse rounded-lg border border-stone-200 bg-white p-4"
         >
-          <div class="mb-3 h-4 w-28 rounded bg-stone-200"></div>
-          <div class="h-3 w-20 rounded bg-stone-200"></div>
+          <div class="mb-3 h-4 w-28 rounded bg-stone-200" />
+          <div class="h-3 w-20 rounded bg-stone-200" />
         </div>
       </div>
 
-      <p v-else-if="redeemableProducts.length === 0" class="text-stone-500">
+      <p
+        v-else-if="redeemableProducts.length === 0"
+        class="text-stone-500"
+      >
         目前沒有可兌換的商品。
       </p>
 
-      <ul v-else class="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+      <ul
+        v-else
+        class="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <li
           v-for="product in redeemableProducts"
           :key="product.id"
           class="grid gap-3 rounded-lg border border-stone-300 bg-white p-4"
         >
           <div>
-            <h3 class="m-0 font-bold text-amber-950">{{ product.name }}</h3>
-            <p class="m-0 text-sm text-stone-500">{{ product.description }}</p>
+            <h3 class="m-0 font-bold text-amber-950">
+              {{ product.name }}
+            </h3>
+            <p class="m-0 text-sm text-stone-500">
+              {{ product.description }}
+            </p>
           </div>
           <div class="flex items-center justify-between gap-3">
             <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-extrabold text-amber-900">
@@ -120,7 +143,9 @@
     </section>
 
     <section v-if="pointHistory.length > 0">
-      <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">點數紀錄</h2>
+      <h2 class="m-0 mb-3 text-lg font-bold text-amber-950">
+        點數紀錄
+      </h2>
       <ul class="grid list-none gap-2 p-0">
         <li
           v-for="record in pointHistory"
@@ -159,6 +184,7 @@ import { extractApiError } from '../../api/http';
 import * as productApi from '../../api/product.api';
 import * as orderApi from '../../api/order.api';
 import * as pointsApi from '../../api/points.api';
+import { formatDate, displayOrderCode } from '../../composables/useOrderFormat';
 
 const REDEEM_COST = 3;
 
@@ -172,21 +198,6 @@ const redeemableProducts = ref<productApi.Product[]>([]);
 const isRedeeming = ref('');
 const lastRedeemOrder = ref<orderApi.Order | null>(null);
 const pointHistory = ref<pointsApi.PointHistoryEntry[]>([]);
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat('zh-TW', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(value));
-}
-
-function displayOrderCode(order: orderApi.Order) {
-  if (order.orderLookupCode) return order.orderLookupCode;
-  if (order.orderType === 'redeem') return '兌換訂單';
-  return '未產生查詢碼';
-}
 
 async function loadHistory() {
   pointHistory.value = await pointsApi.getPointHistory();

@@ -14,14 +14,20 @@
         <Transition name="dialog">
           <div
             v-if="confirmStore.isVisible"
+            ref="dialogEl"
             class="w-full max-w-sm rounded-xl border border-stone-200 bg-white p-6 shadow-xl"
             tabindex="-1"
-            ref="dialogEl"
           >
-            <h2 :id="titleId" class="m-0 text-lg font-bold text-amber-950">
+            <h2
+              :id="titleId"
+              class="m-0 text-lg font-bold text-amber-950"
+            >
               {{ confirmStore.options.title }}
             </h2>
-            <p :id="msgId" class="mb-0 mt-2 text-stone-600">
+            <p
+              :id="msgId"
+              class="mb-0 mt-2 text-stone-600"
+            >
               {{ confirmStore.options.message }}
             </p>
             <div class="mt-5 flex justify-end gap-3">

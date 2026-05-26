@@ -8,11 +8,19 @@
       <h1 class="m-0 text-2xl font-bold text-amber-950">
         {{ isError ? '付款失敗' : '付款確認' }}
       </h1>
-      <p class="m-0 text-stone-700">{{ message }}</p>
-      <p v-if="errorCode" class="m-0 text-sm text-red-600">
+      <p class="m-0 text-stone-700">
+        {{ message }}
+      </p>
+      <p
+        v-if="errorCode"
+        class="m-0 text-sm text-red-600"
+      >
         錯誤代碼：{{ errorCode }}
       </p>
-      <p v-if="lookupCode" class="m-0 flex flex-wrap items-center gap-2 text-sm text-stone-600">
+      <p
+        v-if="lookupCode"
+        class="m-0 flex flex-wrap items-center gap-2 text-sm text-stone-600"
+      >
         訂單查詢碼：<strong class="text-amber-950">{{ lookupCode }}</strong>
         <button
           type="button"
@@ -54,7 +62,10 @@
           查看點餐紀錄
         </RouterLink>
       </div>
-      <p v-if="isError" class="m-0 text-xs text-stone-500">
+      <p
+        v-if="isError"
+        class="m-0 text-xs text-stone-500"
+      >
         訂單仍會保留。若付款已扣款但畫面顯示失敗，請保留訂單查詢碼並聯絡店員確認。
       </p>
     </article>

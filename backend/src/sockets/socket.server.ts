@@ -23,10 +23,6 @@ export function initSocketServer(httpServer: HttpServer) {
   io.use(authenticateSocket);
 
   io.on('connection', (socket: Socket) => {
-    console.log(
-      `Socket connected: ${socket.id} (User: ${socket.data.user?.id || 'Guest'})`
-    );
-
     socket.on('join_room', async (data: { room: string }) => {
       const { room } = data;
       const user = socket.data.user;
@@ -71,9 +67,6 @@ export function initSocketServer(httpServer: HttpServer) {
       }
     });
 
-    socket.on('disconnect', () => {
-      console.log(`Socket disconnected: ${socket.id}`);
-    });
   });
 
   return io;
@@ -88,12 +81,10 @@ export function getIo() {
 
 export function emitOrderUpdated(orderId: string, data: OrderUpdatedPayload) {
   if (!io) return;
-  getIo()
-    .to(`room:order:${orderId}`)
-    .emit('order_updated', { orderId, ...data });
+  io.to(`room:order:${orderId}`).emit('order_updated', { orderId, ...data });
 }
 
 export function emitNotification(room: string, notification: unknown) {
   if (!io) return;
-  getIo().to(room).emit('notification', notification);
+  io.to(room).emit('notification', notification);
 }

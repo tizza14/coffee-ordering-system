@@ -17,7 +17,6 @@ describe('env', () => {
     };
 
     jest.isolateModules(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { env } = require('./env') as typeof import('./env');
 
       expect(env.linePayConfirmUrl).toBe(

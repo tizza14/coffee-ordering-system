@@ -1,15 +1,8 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { getParam, getQueryString } from '../../utils/request';
 import * as orderService from '../orders/order.service';
 import * as notificationService from './notification.service';
-
-function getParam(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function getQueryString(value: unknown) {
-  return typeof value === 'string' ? value : undefined;
-}
 
 export const listUserNotifications = asyncHandler(
   async (req: Request, res: Response) => {

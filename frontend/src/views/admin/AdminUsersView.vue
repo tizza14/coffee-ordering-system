@@ -4,8 +4,12 @@
       class="mb-5 flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">使用者管理</h1>
-        <p class="m-0 text-stone-600">檢視並管理使用者角色。</p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          使用者管理
+        </h1>
+        <p class="m-0 text-stone-600">
+          檢視並管理使用者角色。
+        </p>
       </div>
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
@@ -16,7 +20,10 @@
       </button>
     </header>
 
-    <p v-if="errorMessage" class="mb-4 font-bold text-red-700">
+    <p
+      v-if="errorMessage"
+      class="mb-4 font-bold text-red-700"
+    >
       {{ errorMessage }}
     </p>
 
@@ -27,7 +34,10 @@
       載入使用者中...
     </p>
 
-    <div v-else class="grid gap-3">
+    <div
+      v-else
+      class="grid gap-3"
+    >
       <div
         v-for="user in userStore.users"
         :key="user.id"
@@ -40,7 +50,9 @@
           <p class="m-0 text-sm text-stone-500">
             {{ user.email }}
           </p>
-          <p class="m-0 text-sm text-stone-500">點數：{{ user.points }}</p>
+          <p class="m-0 text-sm text-stone-500">
+            點數：{{ user.points }}
+          </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -63,9 +75,15 @@
               )
             "
           >
-            <option value="user">一般使用者</option>
-            <option value="staff">員工</option>
-            <option value="admin">管理者</option>
+            <option value="user">
+              一般使用者
+            </option>
+            <option value="staff">
+              員工
+            </option>
+            <option value="admin">
+              管理者
+            </option>
           </select>
         </div>
       </div>

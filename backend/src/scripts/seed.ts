@@ -70,7 +70,7 @@ function buildHistoricalOrders(
   userIds: mongoose.Types.ObjectId[],
   daysBack: number
 ) {
-  const orders: object[] = [];
+  const orders: Record<string, unknown>[] = [];
   const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
   const DOW_MULT = [1.2, 1.0, 0.9, 1.0, 1.1, 1.3, 1.5];
 
@@ -228,8 +228,7 @@ async function seed() {
     staffUser._id  as mongoose.Types.ObjectId
   ];
   const histOrders = buildHistoricalOrders(createdProducts, memberIds, 60);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (OrderModel as any).collection.insertMany(histOrders);
+  await OrderModel.collection.insertMany(histOrders);
   console.log(`📦 建立 ${histOrders.length} 筆歷史訂單（最近 60 天）`);
 
   // Today's live demo orders
@@ -238,15 +237,14 @@ async function seed() {
     memberUser._id as mongoose.Types.ObjectId,
     staffUser._id  as mongoose.Types.ObjectId
   );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (OrderModel as any).collection.insertMany(todayOrders);
+  await OrderModel.collection.insertMany(todayOrders);
   console.log(`📋 建立 ${todayOrders.length} 筆今日展示訂單`);
 
   // Sync member points from historical paid orders
   const memberOrders = histOrders.filter(
-    (o: any) => o.userId?.toString() === memberUser._id.toString() && o.paymentStatus === 'paid'
+    (o) => String(o.userId) === memberUser._id.toString() && o.paymentStatus === 'paid'
   );
-  const totalPoints = memberOrders.reduce((sum: number, o: any) => sum + (o.pointsEarned ?? 0), 0);
+  const totalPoints = memberOrders.reduce((sum, o) => sum + (Number(o.pointsEarned) || 0), 0);
   // Give demo user a nice starting balance (min 5 points for easy redeem demo)
   const demoPoints = Math.max(totalPoints, 5);
   await UserModel.findByIdAndUpdate(memberUser._id, { points: demoPoints });

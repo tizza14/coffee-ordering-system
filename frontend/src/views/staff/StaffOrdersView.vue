@@ -2,9 +2,15 @@
   <section class="grid min-h-[calc(100vh-64px)] gap-5 bg-amber-50 p-4 sm:p-6">
     <header class="flex items-center justify-between gap-4 max-[760px]:flex-col max-[760px]:items-stretch">
       <div>
-        <p class="m-0 text-xs font-extrabold uppercase tracking-wide text-amber-700">Order Queue</p>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">員工訂單</h1>
-        <p class="m-0 text-stone-600">依處理優先順序查看已付款訂單，快速推進狀態。</p>
+        <p class="m-0 text-xs font-extrabold uppercase tracking-wide text-amber-700">
+          Order Queue
+        </p>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          員工訂單
+        </h1>
+        <p class="m-0 text-stone-600">
+          依處理優先順序查看已付款訂單，快速推進狀態。
+        </p>
       </div>
       <button
         class="min-h-10 rounded-md border border-stone-500 bg-white px-4 font-bold text-amber-950"
@@ -15,22 +21,37 @@
       </button>
     </header>
 
-    <section v-if="orderStore.todaySummary" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section
+      v-if="orderStore.todaySummary"
+      class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+    >
       <article
         v-for="metric in metrics"
         :key="metric.label"
         class="rounded-lg border border-stone-300 bg-white p-4"
       >
-        <p class="m-0 text-sm font-bold uppercase text-stone-500">{{ metric.label }}</p>
+        <p class="m-0 text-sm font-bold uppercase text-stone-500">
+          {{ metric.label }}
+        </p>
         <strong class="text-2xl text-amber-950">{{ metric.value }}</strong>
-        <p v-if="metric.note" class="m-0 text-sm text-stone-600">{{ metric.note }}</p>
+        <p
+          v-if="metric.note"
+          class="m-0 text-sm text-stone-600"
+        >
+          {{ metric.note }}
+        </p>
       </article>
     </section>
 
-    <section v-if="orderStore.todaySummary" class="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+    <section
+      v-if="orderStore.todaySummary"
+      class="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]"
+    >
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="m-0 text-lg font-bold text-amber-950">目前佇列</h2>
+          <h2 class="m-0 text-lg font-bold text-amber-950">
+            目前佇列
+          </h2>
           <strong class="text-sm text-amber-900">{{ activeOrders.length }} 筆進行中</strong>
         </div>
         <div class="mt-3 grid gap-2 sm:grid-cols-4">
@@ -45,7 +66,9 @@
             :aria-label="`篩選 ${statusLabel(status)}`"
             @click="activeFilter = statusToFilter(status)"
           >
-            <p class="m-0 text-xs font-bold text-stone-500">{{ statusLabel(status) }}</p>
+            <p class="m-0 text-xs font-bold text-stone-500">
+              {{ statusLabel(status) }}
+            </p>
             <strong class="text-xl text-amber-950">
               {{ orderStore.todaySummary.statusCounts[status] }}
             </strong>
@@ -54,13 +77,23 @@
       </article>
       <article class="rounded-lg border border-stone-300 bg-white p-4">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="m-0 text-lg font-bold text-amber-950">今日銷售品項</h2>
+          <h2 class="m-0 text-lg font-bold text-amber-950">
+            今日銷售品項
+          </h2>
           <span class="text-sm font-bold text-stone-500">
             已售 {{ orderStore.todaySummary.itemQuantity }} 件
           </span>
         </div>
-        <p v-if="soldItems.length === 0" class="m-0 pt-3 text-stone-600">尚無已付款品項。</p>
-        <ul v-else class="grid max-h-36 list-none gap-2 overflow-auto p-0">
+        <p
+          v-if="soldItems.length === 0"
+          class="m-0 pt-3 text-stone-600"
+        >
+          尚無已付款品項。
+        </p>
+        <ul
+          v-else
+          class="grid max-h-36 list-none gap-2 overflow-auto p-0"
+        >
           <li
             v-for="item in soldItems"
             :key="item.productId"
@@ -75,7 +108,10 @@
     </section>
 
     <section class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap gap-2" aria-label="訂單佇列篩選">
+      <div
+        class="flex flex-wrap gap-2"
+        aria-label="訂單佇列篩選"
+      >
         <button
           v-for="filter in queueFilters"
           :key="filter.value"
@@ -101,13 +137,13 @@
         >
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-2">
-              <div class="h-5 w-36 rounded bg-stone-200"></div>
-              <div class="h-3 w-24 rounded bg-stone-200"></div>
+              <div class="h-5 w-36 rounded bg-stone-200" />
+              <div class="h-3 w-24 rounded bg-stone-200" />
             </div>
-            <div class="h-6 w-20 rounded-full bg-stone-200"></div>
+            <div class="h-6 w-20 rounded-full bg-stone-200" />
           </div>
-          <div class="h-3 w-full rounded bg-stone-200"></div>
-          <div class="h-10 w-full rounded bg-stone-200"></div>
+          <div class="h-3 w-full rounded bg-stone-200" />
+          <div class="h-10 w-full rounded bg-stone-200" />
         </li>
       </ul>
     </template>
@@ -130,7 +166,10 @@
       這個佇列目前沒有訂單。
     </p>
 
-    <ul v-else class="grid list-none gap-3 p-0">
+    <ul
+      v-else
+      class="grid list-none gap-3 p-0"
+    >
       <li
         v-for="order in filteredOrders"
         :key="order.id"
@@ -152,7 +191,7 @@
           </div>
           <div class="flex flex-wrap gap-2">
             <span :class="paymentBadgeClass(order.paymentStatus)">
-              {{ paymentStatusLabel(order.paymentStatus) }}
+              {{ paymentLabel(order.paymentStatus) }}
             </span>
             <span
               v-if="order.orderType === 'redeem'"
@@ -177,7 +216,9 @@
         <footer class="flex items-center justify-between gap-4 border-t border-stone-200 pt-3 max-[760px]:flex-col max-[760px]:items-stretch">
           <div>
             <strong class="text-lg text-amber-950">NT$ {{ order.totalAmount }}</strong>
-            <p class="m-0 text-sm text-stone-600">{{ actionHint(order.status) }}</p>
+            <p class="m-0 text-sm text-stone-600">
+              {{ actionHint(order.status) }}
+            </p>
           </div>
           <div class="flex flex-wrap justify-end gap-2 max-[760px]:justify-stretch">
             <button
@@ -212,6 +253,7 @@ import { extractApiError } from '../../api/http';
 import { useOrderStore } from '../../stores/order.store';
 import { useSocketStore } from '../../stores/socket.store';
 import { useToastStore } from '../../stores/toast.store';
+import { paymentLabel } from '../../composables/useOrderFormat';
 
 type OrderTransitionStatus = Exclude<Order['status'], 'pending'>;
 type QueueFilter = 'active' | 'pending' | 'preparing' | 'ready' | 'done';
@@ -360,17 +402,6 @@ function statusLabel(status: Order['status']) {
     ready: '可取餐',
     completed: '已完成',
     cancelled: '已取消'
-  };
-  return labels[status];
-}
-
-function paymentStatusLabel(status: Order['paymentStatus']) {
-  const labels: Record<Order['paymentStatus'], string> = {
-    unpaid: '未付款',
-    payment_pending: '付款處理中',
-    paid: '已付款',
-    payment_failed: '付款失敗',
-    refunded: '已退款'
   };
   return labels[status];
 }

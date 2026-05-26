@@ -7,38 +7,52 @@
       @submit.prevent="submit"
     >
       <div>
-        <h1 class="m-0 text-2xl font-bold text-amber-950">結帳</h1>
+        <h1 class="m-0 text-2xl font-bold text-amber-950">
+          結帳
+        </h1>
         <p class="m-0 text-stone-600">
           建立訂單後將前往 Line Pay 付款。
         </p>
       </div>
 
       <fieldset class="grid gap-3 border-0 p-0">
-        <legend class="font-bold">訂單類型</legend>
+        <legend class="font-bold">
+          訂單類型
+        </legend>
         <label class="flex cursor-pointer items-center gap-2">
           <input
             v-model="mode"
             type="radio"
             value="member"
             @click.prevent="handleMemberClick"
-          />
+          >
           會員點餐
-          <span v-if="!authStore.isAuthenticated" class="text-xs text-stone-500">（需登入）</span>
+          <span
+            v-if="!authStore.isAuthenticated"
+            class="text-xs text-stone-500"
+          >（需登入）</span>
         </label>
         <label class="flex items-center gap-2">
-          <input v-model="mode" type="radio" value="guest" />
+          <input
+            v-model="mode"
+            type="radio"
+            value="guest"
+          >
           訪客點餐
         </label>
       </fieldset>
 
-      <div v-if="mode === 'guest'" class="grid gap-3">
+      <div
+        v-if="mode === 'guest'"
+        class="grid gap-3"
+      >
         <label class="grid gap-1.5 font-semibold">
           姓名
           <input
             v-model="guestName"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             required
-          />
+          >
         </label>
         <label class="grid gap-1.5 font-semibold">
           手機
@@ -47,7 +61,7 @@
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             pattern="09[0-9]{8}"
             required
-          />
+          >
         </label>
         <label class="grid gap-1.5 font-semibold">
           電子郵件
@@ -55,11 +69,14 @@
             v-model="guestEmail"
             class="min-h-10 rounded-md border border-stone-400 px-2.5"
             type="email"
-          />
+          >
         </label>
       </div>
 
-      <div v-else class="grid gap-3">
+      <div
+        v-else
+        class="grid gap-3"
+      >
         <label class="grid gap-1.5 font-semibold">
           取餐手機
           <input
@@ -68,14 +85,17 @@
             pattern="09[0-9]{8}"
             placeholder="例如 0912345678"
             required
-          />
+          >
         </label>
         <p class="m-0 text-xs text-stone-500">
           此手機會顯示在訂單追蹤與點餐紀錄，用於核對取餐訂單。
         </p>
       </div>
 
-      <p v-if="errorMessage" class="m-0 font-semibold text-red-700">
+      <p
+        v-if="errorMessage"
+        class="m-0 font-semibold text-red-700"
+      >
         {{ errorMessage }}
       </p>
 
@@ -84,8 +104,8 @@
         type="submit"
         :disabled="
           cartStore.items.length === 0 ||
-          orderStore.isLoading ||
-          paymentStore.isLoading
+            orderStore.isLoading ||
+            paymentStore.isLoading
         "
       >
         前往付款
@@ -95,8 +115,13 @@
     <aside
       class="order-1 grid content-start gap-3 rounded-lg border border-stone-300 bg-white p-6 lg:order-2"
     >
-      <h2 class="m-0 text-xl font-bold">訂單明細</h2>
-      <p v-if="cartStore.items.length === 0" class="m-0 text-stone-600">
+      <h2 class="m-0 text-xl font-bold">
+        訂單明細
+      </h2>
+      <p
+        v-if="cartStore.items.length === 0"
+        class="m-0 text-stone-600"
+      >
         購物車沒有商品。
       </p>
       <RouterLink
